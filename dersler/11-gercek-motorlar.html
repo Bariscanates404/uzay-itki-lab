@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 11 · Gerçek Araştırma Motorları</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 11</div>
+  <h1>Ders 11 · Gerçek Araştırma Motorları</h1>
+  <div class="sub">Bilimsel kaynaklardan derlenen GERÇEK motorlar: sayıları, durumu, sorunu ve beklentisi. (Veriler: NASA/Wikipedia, 2026.)</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Bugün uçan en verimli motor <b>iyon/Hall</b> (yüksek Isp, minik itki). Yüksek itki için hâlâ <b>kimyasal</b> şart. Aradaki "tatlı nokta"yı <b>nükleer termal</b> ve <b>VASIMR</b> hedefliyor ama henüz uçmadılar.
+    <b>Füzyon (DFD)</b> her şeyi değiştirebilir ama TRL düşük. Çoğu motorda asıl darboğaz <b class="key">güç kaynağı</b> ve <b class="key">atık ısı</b>. Tüm sayılar <code>docs/AI-KNOWLEDGE-BASE.md</code>'de.
+  </div>
+
+  <div class="navrow">
+    <a href="10-yercekimi-sapani.html">← Ders 10</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const ENG=[
+ {k:'Kimyasal (LOX/LH2)', th:7e6, isp:450, pw:'—', prop:'LOX/LH2', st:'Uçuyor (her gün) · TRL9', trl:9, c:'#ff9f6b', sorun:'Düşük Isp → roket denkleminin laneti, yakıtın çoğu yakıt taşımaya gider.', bek:'Yerden kalkış ve yüksek itki gereken her şey.'},
+ {k:'Hall (HET)', th:0.4, isp:1600, pw:'1.35–100 kW', prop:'Xenon/Kripton', st:'Yaygın uçuyor (Starlink) · TRL9', trl:9, c:'#7fd6ff', sorun:'Boşaltma kanalı duvar erozyonu → ömür sınırı; orta Isp.', bek:'Uydu kontrolü, kargo çekicisi. Elektrikli itkinin iş atı.'},
+ {k:'Gridli İyon (NASA NEXT)', th:0.237, isp:4170, pw:'0.5–6.9 kW', prop:'Xenon', st:'Uçtu — DART 2021 · TRL9', trl:9, c:'#46e08a', sorun:'Çok düşük itki (yavaş manevra), bol elektrik ister.', bek:'Derin uzay kargo, örnek getirme. 5.5 yıl test, 17 MN·s rekor.'},
+ {k:'VASIMR (VX-200)', th:5, isp:5000, pw:'200 kW', prop:'Argon', st:'Yer testi, uçmadı · TRL~5', trl:5, c:'#b18bff', sorun:'Yüksek itki gösterilemedi; dev güç + atık ısı (%60) + plazma ayrılması kanıtsız.', bek:'Nükleer güçle hızlı Mars; değişken Isp = "vites".'},
+ {k:'Nükleer Termal (NERVA/DRACO)', th:1e5, isp:950, pw:'reaktör', prop:'Sıvı H2', st:'Yer testi 1955-73; DRACO iptal 2025 · TRL~5', trl:5, c:'#ffcf5a', sorun:'Radyoaktif, hiç uçmadı; reaktör testi + politika/yasa engeli.', bek:'İnsanlı Mars transit süresini yarıya indirme.'},
+ {k:'Direct Fusion Drive (PFRC)', th:8, isp:10000, pw:'+200 kW üretir', prop:'He-3+Döteryum', st:'Konsept/lab · TRL~3', trl:3, c:'#ff6bd6', sorun:'Aneutronik füzyon henüz Q>1 değil; He-3 çok nadir.', bek:'1000 kg → Plüton 4 yılda + varışta 2 MW güç.'},
+ {k:'Güneş Yelkeni (LightSail-2)', th:0.0005, isp:999999, pw:'0 (ışık)', prop:'Yok', st:'Uçtu 2019 · TRL7', trl:7, c:'#ffe28a', sorun:'İtki minicik; Güneş\'ten uzaklaşınca zayıflar; dev alan gerek.', bek:'Yakıtsız uzun görevler; Dünya\'dan lazerle yıldızlararası (Starshot).'}
+];
+function fmtTh(n){ return n>=1e6? (n/1e6).toFixed(0)+' MN' : n>=1? n.toFixed(1)+' N' : (n*1000).toFixed(n<0.01?1:0)+' mN'; }
+function fmtIsp(n){ return n>=99999? '∞ (yakıtsız)' : n.toLocaleString('tr')+' s'; }
+function val(id){ const e=document.getElementById(id); return e? +e.value : 0; }
+function bar(g,x,y,w,frac,col,txt){ frac=Math.max(0.02,Math.min(1,frac));
+  g.fillStyle='#1a2348';rrect(g,x,y,w,15,4);g.fill(); g.fillStyle=col;rrect(g,x,y,w*frac,15,4);g.fill();
+  g.fillStyle='#cdd6ff';g.font='11px Segoe UI';g.textAlign='left';g.fillText(txt,x,y-4); }
+
+Lab.start([
+  {
+    tab:'1 · Motor tarayıcı',
+    html:`<h2>Bir motor seç, gerçek sayılarını gör</h2>
+      <div class="sliders">
+        <div class="row"><label>Motor</label>
+          <select id="e_sel">${ENG.map((e,i)=>`<option value="${i}">${e.k}</option>`).join('')}</select><span></span></div>
+        <div class="res" style="line-height:1.7">
+          İtki: <b id="o_th" style="color:#ff9f6b">—</b> &nbsp;·&nbsp; Isp: <b id="o_isp" style="color:#46e08a">—</b> &nbsp;·&nbsp; Güç: <b id="o_pw">—</b> &nbsp;·&nbsp; İtici: <b id="o_prop">—</b><br>
+          Durum: <b id="o_st" style="color:#7fd6ff">—</b><br>
+          🔧 Sorun: <span id="o_sorun" style="color:#ff9aa0">—</span><br>
+          🎯 Beklenti: <span id="o_bek" style="color:#9fe0b0">—</span>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const e=ENG[val('e_sel')||0];
+      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+      set('o_th',fmtTh(e.th));set('o_isp',fmtIsp(e.isp));set('o_pw',e.pw);set('o_prop',e.prop);
+      set('o_st',e.st);set('o_sorun',e.sorun);set('o_bek',e.bek);
+      // araç + plume (itki ~ log ölçek)
+      const cx=F.cx-130, cy=F.midY-15;
+      g.fillStyle='#26356f';g.strokeStyle=e.c;g.lineWidth=2.5;rrect(g,cx-30,cy-26,80,52,10);g.fill();g.stroke();
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(cx+34,cy,6,0,7);g.fill();
+      label(g,e.k.split(' ')[0],cx+10,cy-36,e.c,12);
+      const plume=12+(Math.log10(e.th)+4)/11*130;
+      for(let k=0;k<10;k++){ const pp=((t*2.5+k/10)%1); g.globalAlpha=(1-pp)*0.9;g.fillStyle=e.c;
+        g.beginPath();g.arc(cx-34-pp*plume,cy+(k%3-1)*5,5-pp*3,0,7);g.fill(); } g.globalAlpha=1;
+      // barlar (log normalize)
+      const bx=F.cx+50, bw=210;
+      bar(g,bx,cy-26,bw,(Math.log10(e.th)+4)/11,'#ff9f6b','İTKİ  '+fmtTh(e.th));
+      bar(g,bx,cy+6,bw,(Math.log10(e.isp)-2.6)/3.4,'#46e08a','VERİM Isp  '+fmtIsp(e.isp));
+      bar(g,bx,cy+38,bw,e.trl/9,e.trl>=8?'#46e08a':e.trl>=5?'#ffcf5a':'#ff6b6b','OLGUNLUK TRL '+e.trl+'/9');
+      banner(g,'İtki ve Isp logaritmik — aralarındaki uçurum 11 büyüklük mertebesi','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · İtki–Isp haritası (gerçek)',
+    html:`<h2>Hepsi tek haritada — gerçek değerlerle</h2>Yatay: <b style="color:#ff9f6b">itki</b> (log). Dikey: <b style="color:#46e08a">verim/Isp</b> (log).
+          Sağ-üst köşe (yüksek+yüksek) = hayal; kimse orada değil. <b>Nükleer termal</b> ve <b>füzyon</b> oraya en yakın adaylar.`,
+    loop:true,
+    draw:(g,t)=>{
+      const px=130,py=54,pw=580,ph=250;
+      g.strokeStyle='#33406f';g.lineWidth=1.5;g.strokeRect(px,py,pw,ph);
+      label(g,'itki (log) →',px+pw/2,py+ph+22,'#ff9f6b',12);
+      g.save();g.translate(px-24,py+ph/2);g.rotate(-Math.PI/2);label(g,'Isp / verim (log) →',0,0,'#46e08a',12);g.restore();
+      glowCircle(g,px+pw,py,46+8*Math.sin(t*3),'rgba(70,224,138,.2)');
+      label(g,'hayal',px+pw-34,py+16,'#46e08a',11);
+      const X=th=>px+(Math.log10(th)+4)/11*pw;
+      const Y=isp=>py+ph-(Math.log10(isp)-2.6)/3.4*ph;
+      for(const e of ENG){ const x=X(e.th), y=Y(e.isp);
+        glowCircle(g,x,y,13,'rgba(255,255,255,.15)');
+        g.fillStyle=e.c;g.beginPath();g.arc(x,y,7,0,7);g.fill();
+        g.fillStyle='#dfe8ff';g.font='11px Segoe UI';g.textAlign='center';
+        g.fillText(e.k.split(' ')[0],x,y-12);g.textAlign='left'; }
+      banner(g,'Bugün uçanlar: sol-üst (iyon/Hall) ve sağ-alt (kimyasal). Orta-üst = gelecek.','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Hangi görev → hangi motor',
+    html:`<h2>Görevi seç, doğru motoru gör</h2>Her motor bir denge; "en iyi" göreve bağlı.
+      <div class="sliders">
+        <div class="row"><label>Görev</label>
+          <select id="m_sel">
+            <option value="0">Yerden kalkış</option>
+            <option value="1">LEO uydu kontrolü</option>
+            <option value="2">Dış gezegen kargo/sonda</option>
+            <option value="3">Hızlı insanlı Mars</option>
+            <option value="4">Yıldızlararası</option>
+          </select><span></span></div>
+        <div class="res">Önerilen: <b id="m_eng" style="color:#ffd76a">—</b><br><span id="m_why" style="font-weight:400;color:#cdd6ff;font-size:14px">—</span></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const M=[
+        {eng:'Kimyasal (LOX/LH2)', why:'Tek yüksek-itki seçenek; Dünya çekimini yenecek tek bu.', idx:0},
+        {eng:'Hall (HET)', why:'Uzun ömür, verimli, düşük güç. Uydu iş atı.', idx:1},
+        {eng:'Gridli İyon (NEXT)', why:'Yıllarca düşük itki = dev Δv, çok az yakıt.', idx:2},
+        {eng:'Nükleer Termal / VASIMR', why:'Yüksek itki + iyi Isp; transit süresini kısaltır.', idx:4},
+        {eng:'Güneş/Lazer Yelken & DFD', why:'Yakıtsız ışık itkisi ya da füzyon; tek gerçekçi adaylar.', idx:6}
+      ];
+      const m=M[val('m_sel')||0];
+      const se=document.getElementById('m_eng'), sw=document.getElementById('m_why');
+      if(se)se.textContent=m.eng; if(sw)sw.textContent=m.why;
+      // motorları kart sırası, önerilen vurgulu
+      const cols=4, cw=180, ch=64, x0=130, y0=70;
+      ENG.forEach((e,i)=>{ const cxp=x0+(i%cols)*(cw+12), cyp=y0+Math.floor(i/cols)*(ch+14);
+        const on=(i===m.idx)||(m.eng.includes(e.k.split(' ')[0]));
+        g.fillStyle=on?'#16305a':'#101840';g.strokeStyle=on?'#46e08a':'#243a86';g.lineWidth=on?2.5:1;
+        rrect(g,cxp,cyp,cw,ch,8);g.fill();g.stroke();
+        if(on) glowCircle(g,cxp+cw/2,cyp+ch/2,40,'rgba(70,224,138,.18)');
+        g.fillStyle=e.c;g.font='bold 12px Segoe UI';g.textAlign='left';
+        g.fillText(e.k.split(' (')[0].slice(0,20),cxp+10,cyp+24);
+        g.fillStyle='#9fb0ff';g.font='11px Segoe UI';
+        g.fillText(fmtTh(e.th)+' · '+fmtIsp(e.isp),cxp+10,cyp+44);
+        if(on){ g.fillStyle='#46e08a';g.fillText('✓ önerilen',cxp+10,cyp+58); } });
+      banner(g,'"En iyi motor" yok — göreve en uygun motor var','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ff9f6b',t:'İtki'},
+  {c:'#46e08a',t:'Verim / Isp'},
+  {c:'#ffd76a',t:'Önerilen motor'}
+]});
+</script>
+</body>
+</html>
