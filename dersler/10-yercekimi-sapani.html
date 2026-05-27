@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 10 · Yerçekimi Sapanı</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 10</div>
+  <h1>Ders 10 · Yerçekimi Sapanı (Gravity Assist)</h1>
+  <div class="sub">Bonus: tek damla yakıt harcamadan hızlan. Bir gezegenin yanından geçerek onun yörünge hızının bir kısmını "çalarsın".</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Hareketli bir gezegenin <b>arkasından</b> geçersen Güneş'e göre hızlanırsın (önünden geçersen yavaşlarsın). Gezegenin çerçevesinde hızın değişmez — sadece yön değişir.
+    Ama gezegen hareketli olduğundan Güneş çerçevesinde hız kazanırsın; farkı <b class="key">gezegenden çalarsın</b> (o sonsuz küçük yavaşlar — momentum korunur, Ders 03). Voyager ve Cassini böyle bedava Δv topladı.
+  </div>
+
+  <div class="navrow">
+    <a href="09-senin-tasarimin.html">← Ders 09</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function bez(p,u){ const k=1-u;
+  return { x:k*k*k*p[0].x+3*k*k*u*p[1].x+3*k*u*u*p[2].x+u*u*u*p[3].x,
+           y:k*k*k*p[0].y+3*k*k*u*p[1].y+3*k*u*u*p[2].y+u*u*u*p[3].y }; }
+function craft(g,x,y,ang){
+  g.save();g.translate(x,y);g.rotate(ang||0);
+  g.fillStyle='#eaf6ff';g.beginPath();g.moveTo(11,0);g.lineTo(-8,-7);g.lineTo(-8,7);g.closePath();g.fill();
+  g.restore();
+}
+
+Lab.start([
+  {
+    tab:'1 · Arkadan geç → hızlan',
+    html:`<h2>Gezegenin yanından sıyrıl, hızlanarak çık</h2>Araç gezegene yaklaşır, yerçekimi yörüngesini büker, ve <b class="key">daha hızlı</b> ayrılır.
+          Hız göstergesini izle: gezegeni geçtikten sonra zıplıyor. Bütün bu hız <b>bedava</b> — motor yok, yakıt yok.`,
+    loop:true,
+    draw:(g,t)=>{
+      const P=[{x:70,y:F.midY+120},{x:380,y:F.midY+150},{x:510,y:F.midY-150},{x:820,y:F.midY-120}];
+      drawPlanet(g,448,F.midY,40,'#c98a4b'); label(g,'gezegen',448,F.midY+58,'#e0b07a',12);
+      // izi (sönük)
+      const uVis = t<0.5? t*0.8 : 0.4+(t-0.5)*1.2;
+      g.strokeStyle='rgba(127,180,255,.35)';g.lineWidth=2;g.beginPath();
+      for(let u=0;u<=uVis;u+=0.01){ const q=bez(P,u); u===0?g.moveTo(q.x,q.y):g.lineTo(q.x,q.y); } g.stroke();
+      const cur=bez(P,Math.min(uVis,1)), nxt=bez(P,Math.min(uVis+0.01,1));
+      const ang=Math.atan2(nxt.y-cur.y,nxt.x-cur.x);
+      craft(g,cur.x,cur.y,ang);
+      const fast = uVis>0.5;
+      arrowXY(g,cur.x,cur.y,Math.cos(ang)*(fast?60:30),Math.sin(ang)*(fast?60:30),fast?'#46e08a':'#5ad1ff');
+      const v = uVis<0.5? (10+uVis*4) : (12+(uVis-0.5)*16);
+      label(g,'hız: '+v.toFixed(1)+' km/s',cur.x,cur.y-26, fast?'#46e08a':'#5ad1ff',13);
+      banner(g, fast?'Geçtikten sonra DAHA HIZLI — bedava Δv':'Yaklaşıyor...','#46e08a');
+    }
+  },
+  {
+    tab:'2 · İki bakış açısı',
+    html:`<h2>Sır: hangi çerçeveden bakıyorsun?</h2><b style="color:#5ad1ff">Gezegenin gözünden:</b> araç aynı hızla girer ve çıkar, sadece <b>yön</b> değişir (hız kazanmaz).
+          <b style="color:#46e08a">Güneşin gözünden:</b> gezegen hareketli olduğu için araç <b class="key">daha hızlı</b> çıkar. Aradaki farkı gezegenden alırsın.`,
+    loop:true,
+    draw:(g,t)=>{
+      const u=(t)%1, yT=F.midY-70, yB=F.midY+78;
+      // ---- üst: gezegen çerçevesi ----
+      label(g,'GEZEGENİN GÖZÜNDEN — hız aynı, yön döner',F.cx,yT-52,'#5ad1ff',13);
+      drawPlanet(g,F.cx,yT,26,'#c98a4b');
+      // V şeklinde sapma, giriş=çıkış uzunluğu
+      const inx=120+u*(F.cx-150), iny=yT+40-(u)*0;
+      const outx=F.cx+ (u)*(F.W-150-F.cx), outy=yT-40;
+      if(u<0.5){ const uu=u/0.5; const x=120+uu*(F.cx-130), y=yT+44-uu*44; craft(g,x,y,Math.atan2(-44,(F.cx-130)));
+        arrowXY(g,x,y,40,-22,'#5ad1ff'); }
+      else { const uu=(u-0.5)/0.5; const x=F.cx+uu*(F.W-160-F.cx), y=yT-uu*44; craft(g,x,y,Math.atan2(-44,(F.W-160-F.cx)));
+        arrowXY(g,x,y,40,-22,'#5ad1ff'); }
+      label(g,'giriş hızı = çıkış hızı',F.cx,yT+50,'#5ad1ff',11);
+      // ---- alt: güneş çerçevesi ----
+      label(g,'GÜNEŞİN GÖZÜNDEN — gezegen hareketli → araç hızlanır',F.cx,yB-50,'#46e08a',13);
+      const planX=F.cx-60+u*120;                 // gezegen sağa hareket
+      drawPlanet(g,planX,yB,26,'#c98a4b'); arrow(g,planX+30,yB,26,'#e0b07a'); label(g,'gezegen v',planX+70,yB+30,'#e0b07a',11);
+      if(u<0.5){ const uu=u/0.5; const x=120+uu*(planX-130), y=yB+44-uu*44; craft(g,x,y,0);
+        arrowXY(g,x,y,30,-16,'#5ad1ff'); }
+      else { const uu=(u-0.5)/0.5; const x=planX+uu*(F.W-150-planX), y=yB-uu*40; craft(g,x,y,0);
+        arrowXY(g,x,y,68,-20,'#46e08a'); label(g,'daha hızlı!',x+40,y-26,'#46e08a',12); }
+      banner(g,'Farkı gezegenden çalarsın; o ihmal edilecek kadar yavaşlar','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Voyager büyük turu',
+    html:`<h2>Zincirleme: bedava hız üstüne hız</h2>Voyager 2, dört dev gezegeni (Jüpiter→Satürn→Uranüs→Neptün) sırayla kullanıp her birinden hız aldı — yakıtsız.
+          Tersini de yapabilirsin: gezegenin <b>önünden</b> geçersen yavaşlarsın (MESSENGER, Merkür'e inmek için böyle yaptı).`,
+    loop:true,
+    draw:(g,t)=>{
+      sunDraw(g,60,F.midY);
+      const planets=[{x:250,r:30,c:'#d8a05a',n:'Jüpiter'},{x:420,r:26,c:'#e8d08a',n:'Satürn'},{x:580,r:20,c:'#9fd6e0',n:'Uranüs'},{x:720,r:20,c:'#6b8ad6',n:'Neptün'}];
+      for(const p of planets){ drawPlanet(g,p.x,F.midY+30,p.r,p.c); label(g,p.n,p.x,F.midY+30+p.r+16,'#cdd6ff',11); }
+      // zikzak yol yukarıdan gezegenlere değerek
+      const pts=[{x:70,y:F.midY-40}];
+      for(const p of planets) pts.push({x:p.x,y:F.midY+30-p.r-8});
+      pts.push({x:840,y:F.midY-90});
+      g.strokeStyle='rgba(127,180,255,.4)';g.lineWidth=2;g.beginPath();
+      for(let i=0;i<pts.length;i++){ i===0?g.moveTo(pts[i].x,pts[i].y):g.lineTo(pts[i].x,pts[i].y); } g.stroke();
+      // araç ilerler
+      const seg=(pts.length-1)*Math.min(t,1); const si=Math.min(Math.floor(seg),pts.length-2); const sf=seg-si;
+      const a=pts[si], b=pts[si+1]; const x=a.x+(b.x-a.x)*sf, y=a.y+(b.y-a.y)*sf;
+      craft(g,x,y,Math.atan2(b.y-a.y,b.x-a.x));
+      const v=16+ (si+sf)*7;
+      label(g,'hız: '+v.toFixed(0)+' km/s',x,y-22,'#46e08a',13);
+      // geçilen gezegende parıltı
+      if(sf<0.2 && si>0) glowCircle(g,pts[si].x,pts[si].y,26,'rgba(70,224,138,.4)');
+      banner(g,'Her gezegen bedava hız ekler — Voyager 2: 4 gezegen, 0 yakıt','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#5ad1ff',t:'Araç (girişte)'},
+  {c:'#46e08a',t:'Kazanılan hız'},
+  {c:'#e0b07a',t:'Gezegen'}
+]});
+
+function sunDraw(g,x,y){
+  glowCircle(g,x,y,70,'rgba(255,200,80,.4)');
+  const grd=g.createRadialGradient(x,y,0,x,y,26);
+  grd.addColorStop(0,'#fff4c2');grd.addColorStop(1,'#ff9b2d');
+  g.fillStyle=grd;g.beginPath();g.arc(x,y,26,0,7);g.fill();
+  label(g,'GÜNEŞ',x,y+44,'#ffd24d',11);
+}
