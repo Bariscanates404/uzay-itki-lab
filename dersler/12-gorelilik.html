@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 12 · Görelilik</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 12</div>
+  <h1>Ders 12 · Görelilik (Işık Hızına Yaklaşınca)</h1>
+  <div class="sub">Yıldızlararası seyahatin sınırı. Hız ışık hızına (c) yaklaştıkça zaman yavaşlar, uzunluk büzülür ve enerji ihtiyacı sonsuza gider.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Hiçbir şey c'ye ulaşamaz — çünkü hızlandıkça gereken enerji <b class="keybad">sonsuza</b> gider (γ patlar). Ama bir avantaj var: hızlıyken <b class="key">gemideki zaman yavaşlar</b>,
+    böylece mürettebat için yolculuk kısalır (Dünya'da binlerce yıl geçse de). Starshot bu yüzden c'nin %15-20'siyle yetiniyor: ötesi üstel pahalı. γ = 1/√(1−v²/c²).
+  </div>
+
+  <div class="navrow">
+    <a href="11-gercek-motorlar.html">← Ders 11</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function val(id,def){ const e=document.getElementById(id); return e? +e.value : def; }
+function clock(g,x,y,r,ang,txt,col){
+  g.strokeStyle=col;g.lineWidth=2.5;g.beginPath();g.arc(x,y,r,0,7);g.stroke();
+  g.fillStyle='#0a1030';g.beginPath();g.arc(x,y,r-2,0,7);g.fill();
+  g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(ang-1.57)*r*0.7,y+Math.sin(ang-1.57)*r*0.7);g.stroke();
+  g.fillStyle=col;g.beginPath();g.arc(x,y,3,0,7);g.fill();
+  label(g,txt,x,y+r+16,col,12);
+}
+
+Lab.start([
+  {
+    tab:'1 · Hıza göre γ (kaydırıcı)',
+    html:`<h2>Hızı artır, evrenin nasıl büküldüğünü gör</h2>Hızı ışık hızının yüzdesi olarak seç. <b style="color:#ffcf5a">γ (gama)</b> her şeyi belirler:
+          gemi saati yavaşlar, gemi (ve mesafeler) büzülür, enerji ihtiyacı patlar.
+      <div class="sliders">
+        <div class="row"><label>Hız (% ışık hızı)</label><input id="s_v" type="range" min="0" max="99" step="1" value="50"><span id="o_v">50%</span></div>
+        <div class="res">γ = <b style="color:#ffcf5a" id="o_g">1.15</b> &nbsp;·&nbsp; 1 saat gemide = <b style="color:#7fd6ff" id="o_t">1.15</b> saat Dünyada &nbsp;·&nbsp; uzunluk: <b style="color:#46e08a" id="o_l">87</b>%</div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const v=val('s_v',50)/100, gam=1/Math.sqrt(1-Math.min(v,0.999)**2);
+      const ov=document.getElementById('o_v'),og=document.getElementById('o_g'),ot=document.getElementById('o_t'),ol=document.getElementById('o_l');
+      if(ov)ov.textContent=Math.round(v*100)+'%'; if(og)og.textContent=gam.toFixed(2);
+      if(ot)ot.textContent=gam.toFixed(2); if(ol)ol.textContent=Math.round(100/gam)+'';
+      // iki saat: Dünya normal, gemi yavaş (1/γ)
+      clock(g,200,150,46,t*6.28,'DÜNYA saati','#7fd6ff');
+      clock(g,360,150,46,t*6.28/gam,'GEMİ saati (yavaş)','#ffcf5a');
+      // cetvel: tam vs büzülmüş
+      const fy=270; g.strokeStyle='#5ad1ff';g.lineWidth=2;
+      g.strokeRect(140,fy,240,24); label(g,'durağan gemi (tam boy)',260,fy-8,'#5ad1ff',11);
+      const cl=240/gam; g.fillStyle='#46e08a';g.fillRect(140,fy+34,cl,24);
+      label(g,'hızlı gemi: '+Math.round(100/gam)+'% boy',140+cl/2,fy+34+38,'#46e08a',11);
+      // enerji barı (γ-1)
+      const bx=470,by=120,bh=180; g.strokeStyle='#33406f';g.strokeRect(bx,by,40,bh);
+      const ef=Math.min((gam-1)/6,1); g.fillStyle=ef>0.8?'#ff6b6b':'#ffcf5a';g.fillRect(bx+2,by+bh-ef*bh+2,36,ef*bh-4);
+      label(g,'enerji',bx+20,by-8,'#ffcf5a',12); label(g,'ihtiyacı',bx+20,by+bh+18,'#ffcf5a',11);
+      if(v>=0.95) label(g,'→ ∞',bx+20,by+30,'#ff6b6b',16);
+      label(g,'γ = '+gam.toFixed(2),650,150,'#ffcf5a',24);
+      banner(g,'v → c oldukça γ patlar: zaman donar, boy sıfırlanır, enerji sonsuza gider','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · İkiz paradoksu',
+    html:`<h2>Giden ikiz daha genç döner</h2>Bir ikiz Dünya'da kalır, diğeri ışık hızının %80'iyle (γ=1.67) bir yıldıza gidip döner.
+          Gemi saati Dünya saatinden <b class="key">yavaş</b> işler: Dünya'da 10 yıl geçerken gemide sadece 6 yıl geçer. Gemici <b>4 yıl daha genç</b> döner. Bilim kurgu değil — gerçek, ölçüldü.`,
+    loop:true,
+    draw:(g,t)=>{
+      const gam=1.667, earthY=t*10, shipY=earthY/gam;
+      drawPlanet(g,90,F.midY,30,'#3a6ea5'); label(g,'DÜNYA',90,F.midY+48,'#9fb0ff',12);
+      // yıldız (sağ)
+      glowCircle(g,790,F.midY,30,'rgba(255,200,80,.4)'); g.fillStyle='#ffd24d';g.beginPath();g.arc(790,F.midY,16,0,7);g.fill();
+      label(g,'yıldız',790,F.midY+40,'#ffd24d',11);
+      // gemi gidip gelir
+      const out=t<0.5? t/0.5 : (1-(t-0.5)/0.5); const sx=130+out*620;
+      const craftAng = t<0.5?0:Math.PI;
+      g.save();g.translate(sx,F.midY-70);g.rotate(craftAng);
+      g.fillStyle='#eaf6ff';g.beginPath();g.moveTo(12,0);g.lineTo(-9,-7);g.lineTo(-9,7);g.closePath();g.fill();g.restore();
+      // saatler
+      clock(g,150,F.midY+70,40,earthY*0.628,'Dünya: '+earthY.toFixed(1)+' yıl','#7fd6ff');
+      clock(g,sx,F.midY-130,34,shipY*0.628,'Gemi: '+shipY.toFixed(1)+' yıl','#ffcf5a');
+      banner(g, t>=0.98?'Dönüşte: Dünya 10 yıl, gemici 6 yıl yaşlandı — 4 yıl genç!':'γ=1.67 · gemi saati yavaş işliyor','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Neden c geçilemez',
+    html:`<h2>Enerji duvarı</h2>Sabit itki uygularsın ama hız <b class="keybad">asla c'ye ulaşmaz</b> — sadece sonsuza dek yaklaşır. Çünkü hızlandıkça γ artar ve aynı hız artışı için
+          gittikçe <b>daha çok enerji</b> gerekir. c'ye varmak sonsuz enerji ister. Bu, evrenin hız limiti.`,
+    loop:true,
+    draw:(g,t)=>{
+      const px=130,py=56,pw=580,ph=240;
+      g.strokeStyle='#33406f';g.lineWidth=1.5;g.strokeRect(px,py,pw,ph);
+      // c çizgisi (üst)
+      g.strokeStyle='#ff6b6b';g.setLineDash([5,5]);g.lineWidth=2;g.beginPath();g.moveTo(px,py+10);g.lineTo(px+pw,py+10);g.stroke();g.setLineDash([]);
+      label(g,'c (ışık hızı) — ulaşılamaz',px+pw-110,py+4,'#ff6b6b',11);
+      // hız eğrisi v=tanh, asimptot
+      g.strokeStyle='#5ad1ff';g.lineWidth=2.5;g.beginPath();
+      for(let u=0;u<=1;u+=0.01){ const v=Math.tanh(u*3); const X=px+u*pw, Y=py+10+(1-v)*(ph-10);
+        u===0?g.moveTo(X,Y):g.lineTo(X,Y); } g.stroke();
+      const u=Math.min(t,1), v=Math.tanh(u*3), X=px+u*pw, Y=py+10+(1-v)*(ph-10);
+      g.fillStyle='#ffcf5a';g.beginPath();g.arc(X,Y,6,0,7);g.fill();
+      label(g,'hız',px-20,py+ph/2,'#5ad1ff',12); label(g,'sabit itki süresi →',px+pw/2,py+ph+22,'#9fb0ff',12);
+      // enerji (γ) patlaması
+      const gam=1/Math.sqrt(1-Math.min(v,0.999)**2);
+      label(g,'gereken enerji (γ): '+gam.toFixed(1)+'×',px+pw/2,py+ph+44,gam>5?'#ff6b6b':'#ffcf5a',13);
+      banner(g,'Hız c\'ye asimptot yapar; enerji ihtiyacı sonsuza gider — limit aşılamaz','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#7fd6ff',t:'Dünya / durağan'},
+  {c:'#ffcf5a',t:'Hızlı gemi (γ etkisi)'},
+  {c:'#ff6b6b',t:'Limit / enerji duvarı'}
+]});
+</script>
+</body>
+</html>
