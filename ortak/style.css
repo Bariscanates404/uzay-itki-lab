@@ -84,3 +84,5 @@ input[type=range]{accent-color:var(--accent)}
 .sliders .res{border-top:1px solid #243a86;padding-top:10px;font-size:15px}
 .sliders .res b{color:#fff}
 .sliders .res .p{color:#ffcf5a}.sliders .res .vs{color:#46e08a}
+.sliders select{background:#101840;color:#e8ecff;border:1px solid #2c3a7a;border-radius:8px;padding:7px 10px;font-size:14px;font-family:inherit}
+.sliders select:focus{outline:none;border-color:var(--accent)}

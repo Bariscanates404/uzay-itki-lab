@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 09 · Senin Tasarımın</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 09</div>
+  <h1>Ders 09 · Senin Tasarımın ⚡</h1>
+  <div class="sub">Final. Önce gerçek "uç" konseptleri gör, sonra parçaları kendin birleştir — fizik anında tasarımını değerlendirsin.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Mükemmel itki = <b class="key">yüksek itki + yüksek Isp + az yakıt</b> — ama bunların hepsini birden elde etmek çok zor; her sistem bir denge.
+    Bütün gerçek motorlar tek bir kurala uyar: <b>dışarı kütle (ya da foton) at, yoksa gitmezsin.</b> Senin ilk mıknatıs fikrin de bu yüzden ancak <b>dışarıdaki</b> güneş rüzgarına yaslanınca (magsail) işe yaradı.
+    Yeni bir itki sistemi icat etmek = bu üçgende kimsenin denemediği bir köşeyi zekice doldurmak.
+  </div>
+
+  <div class="navrow">
+    <a href="08-magsail.html">← Ders 08</a>
+    <a href="../index.html">⌂ Müfredatı tamamladın 🎉</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function val(id,def){ const e=document.getElementById(id); return e? e.value : def; }
+function bar(g,x,y,w,frac,col,txt){
+  frac=Math.max(0,Math.min(1,frac));
+  g.fillStyle='#1a2348';rrect(g,x,y,w,16,4);g.fill();
+  g.fillStyle=col;rrect(g,x,y,w*frac,16,4);g.fill();
+  g.fillStyle='#cdd6ff';g.font='12px Segoe UI';g.textAlign='left';g.fillText(txt,x,y-5);
+}
+
+// ---------- Sahne 1: egzotik konsept galerisi ----------
+const concepts=[
+  {name:'Nükleer Patlama (Orion)', stat:'19–31 km/s egzoz + MEGANEWTON itki — ikisi birden! 1958–63, nükleer test yasağıyla iptal.', col:'#ff8a3d'},
+  {name:'Füzyon Roketi', stat:'Hidrojen füzyonu → çok yüksek Isp. Sorun: reaktör çok ağır. Teknoloji henüz yok.', col:'#7fd6ff'},
+  {name:'Antimadde Roketi', stat:'Madde+antimadde yok oluşu: bilinen EN yüksek enerji/kütle. Ama gram üretmek ~imkansız & pahalı.', col:'#ff6bd6'},
+  {name:'Lazer Yelken (Starshot)', stat:'Dünya\'dan 100 GW lazer, gramlık graphene yelken → ışık hızının %15–20\'si, Alpha Centauri 20–30 yıl. (2016)', col:'#ffe28a'},
+  {name:'Bussard Ramjet', stat:'Dev manyetik huniyle yıldızlararası H topla, füzyonla yak. Sorun: ışıma kaybı ~1 milyar kat fazla → şimdilik imkansız.', col:'#b18bff'}
+];
+function drawConcept(g,idx,tt){
+  const c=concepts[idx], cy=F.midY-20;
+  label(g,c.name,F.cx,46,c.col,20);
+  if(idx===0){ // Orion: itme plakası + arkada patlamalar
+    const rx=F.cx-30; g.fillStyle='#cdd6ff';rrect(g,rx,cy-26,70,52,8);g.fill();
+    g.fillStyle='#9fb0ff';rrect(g,rx-14,cy-30,12,60,4);g.fill();           // pusher plate
+    const fph=(tt*3)%1; glowCircle(g,rx-50-fph*40,cy,30*(1-fph)+8,'rgba(255,160,60,'+(1-fph)+')');
+    if(fph<0.2){ glowCircle(g,rx-30,cy,40,'rgba(255,240,180,.9)'); }
+  } else if(idx===1){ // füzyon plume
+    g.fillStyle='#cdd6ff';rrect(g,F.cx-10,cy-22,70,44,8);g.fill();
+    for(let k=0;k<14;k++){ const pp=((tt*2+k/14)%1); g.globalAlpha=1-pp;g.fillStyle=k%2?'#7fd6ff':'#bff0ff';
+      g.beginPath();g.arc(F.cx-14-pp*90,cy+(k%5-2)*5,7-pp*4,0,7);g.fill(); } g.globalAlpha=1;
+  } else if(idx===2){ // antimadde anihilasyon
+    const mx=F.cx-60, ax=F.cx+60, conv=Math.min(tt*2,1);
+    const e=mx+(F.cx-mx)*conv, p=ax-(ax-F.cx)*conv;
+    if(conv<1){ g.fillStyle='#5ad1ff';g.beginPath();g.arc(e,cy,10,0,7);g.fill();label(g,'madde',e,cy-22,'#5ad1ff',11);
+      g.fillStyle='#ff6bd6';g.beginPath();g.arc(p,cy,10,0,7);g.fill();label(g,'antimadde',p,cy-22,'#ff6bd6',11); }
+    else { const b=((tt*2-1)%1); glowCircle(g,F.cx,cy,70*(1-b)+10,'rgba(255,255,200,'+(1-b)+')');
+      for(let r=0;r<8;r++){ const an=r/8*6.28; g.strokeStyle='rgba(255,240,150,'+(1-b)+')';g.lineWidth=2;
+        g.beginPath();g.moveTo(F.cx,cy);g.lineTo(F.cx+Math.cos(an)*b*120,cy+Math.sin(an)*b*120);g.stroke(); }
+      label(g,'γ ışıması (saf enerji)',F.cx,cy+90,'#ffe28a',11); }
+  } else if(idx===3){ // lazer yelken
+    drawPlanet(g,70,F.midY,26,'#3a6ea5'); label(g,'Dünya',70,F.midY+44,'#9fb0ff',11);
+    g.strokeStyle='rgba(255,80,80,.6)';g.lineWidth=3;g.beginPath();g.moveTo(96,F.midY);
+    const sx=120+((tt)%1)*640; g.lineTo(sx-10,cy);g.stroke();
+    g.fillStyle='#eaf6ff';g.save();g.translate(sx,cy);g.rotate(0.3);rrect(g,-4,-26,8,52,3);g.fill();g.restore();
+    arrow(g,sx+8,cy,40,'#46e08a'); label(g,'%15–20 ışık hızı',sx,cy-40,'#ffe28a',11);
+  } else { // bussard ramjet huni
+    const rx=620; g.strokeStyle='rgba(127,180,255,.55)';g.lineWidth=2;
+    g.beginPath();g.moveTo(120,cy-120);g.lineTo(rx,cy-30);g.lineTo(rx,cy+30);g.lineTo(120,cy+120);g.stroke();
+    for(let k=0;k<16;k++){ const pp=((tt*0.9+k/16)%1); const fx=120+pp*(rx-120);
+      const spread=(1-pp)*110+18; const fy=cy+(((k%8)/8)-0.5)*2*spread;
+      g.fillStyle='#7fd6ff';g.beginPath();g.arc(fx,fy,3,0,7);g.fill(); }
+    g.fillStyle='#cdd6ff';rrect(g,rx,cy-18,60,36,8);g.fill();
+    glowCircle(g,rx+30,cy,22,'rgba(127,214,255,.5)');
+    arrow(g,rx+62,cy,34,'#46e08a');
+    label(g,'manyetik huni → H topla → füzyon',F.cx,cy+120,'#b18bff',11);
+  }
+  // alt bilgi + ilerleme noktaları
+  g.textAlign='center';g.fillStyle='#cdd6ff';g.font='13px Segoe UI';
+  wrapText(g,c.stat,F.cx,F.H-58,640,18);g.textAlign='left';
+  for(let i=0;i<5;i++){ g.fillStyle=i===idx?c.col:'#2a3566';g.beginPath();g.arc(F.cx-40+i*20,F.H-20,5,0,7);g.fill(); }
+}
+function wrapText(g,text,cx,y,maxW,lh){
+  const words=text.split(' ');let line='',yy=y;
+  for(const w of words){ const test=line+w+' '; if(g.measureText(test).width>maxW && line){ g.fillText(line,cx,yy);line=w+' ';yy+=lh; } else line=test; }
+  g.fillText(line,cx,yy);
+}
+
+// ---------- Sahne 2: tasarım değerlendirici ----------
+const Emeta={'Güneş paneli':2,'Nükleer fisyon':6,'Füzyon':8,'Antimadde':10,"Dünya'dan lazer":9};
+const Pmeta={'Kimyasal yakıt':{fuel:1},'Xenon gazı':{fuel:1,light:1},'Işık / foton':{photon:1},'Güneş rüzgarı (dış)':{wind:1,ext:1},'Yıldızlararası H (dış)':{scoop:1,ext:1},'YOK — reaksiyonsuz':{none:1}};
+const Mmeta={'Sıcak egzoz':{th:8,isp:2},'İyon (elektrik alanı)':{th:2,isp:8},'Işık basıncı (yelken)':{th:1,isp:10,needPhoton:1},'Mıknatıs saptırma':{th:1,isp:9,needWind:1},'Nükleer patlama':{th:10,isp:6}};
+
+function evaluate(e,p,m){
+  const P=Pmeta[p], M=Mmeta[m], En=Emeta[e];
+  if(P.none) return {name:'❌ İMKANSIZ',verdict:'Reaksiyon kütlesi yok = itki yok. Momentum korunumu (Ders 03): dışarı bir şey atmadan gidemezsin. Senin ilk fikrin tam buydu!',th:0,isp:0,feas:0,col:'#ff6b6b'};
+  let th=M.th, isp=M.isp, feas=60, warn='';
+  if(M.needPhoton && !P.photon) { feas=15; warn='⚠ Yöntem ışık ister ama itici madde foton değil. '; }
+  if(M.needWind && !P.wind && !P.scoop) { feas=15; warn='⚠ Mıknatıs saptırma yüklü parçacık ister (güneş rüzgarı / H). '; }
+  if(En>=8){ isp=Math.min(10,isp+1); } // füzyon/antimadde Isp'yi yükseltir
+  // bilinen arketipler
+  let name='Özgün tasarım', verdict='', col='#5ad1ff';
+  if(P.photon && M.needPhoton){ if(e==="Dünya'dan lazer"){name='= Lazer Yelken (Starshot)';feas=70;verdict='Gramlık yelkeni Dünya\'dan lazerle it → ışık hızının %15-20\'si. Yakıt sıfır!';col='#ffe28a';}
+    else {name='= Güneş Yelkeni';feas=92;verdict='Bugün uçuyor (LightSail). Yakıtsız, yavaş ama bitmez.';col='#ffe28a';} }
+  else if(P.wind && M.needWind){name='= Magsail';feas=55;verdict='Mıknatısla güneş rüzgarını sapt → itki. Senin fikrinin gerçek hali!';col='#7fb4ff';}
+  else if(p==='Xenon gazı'&&m==='İyon (elektrik alanı)'){name='= İyon Thruster (Dawn)';feas=95;verdict='En verimli kanıtlanmış motor. Az itki, yıllarca, dev Δv.';col='#46e08a';}
+  else if(m==='Nükleer patlama'&&e==='Nükleer fisyon'){name='= Nükleer Pulse (Orion)';feas=50;verdict='Yüksek itki + yüksek Isp birden! Ama nükleer test yasağı engelliyor.';col='#ff8a3d';}
+  else if(e==='Füzyon'&&(m==='Sıcak egzoz'||m==='Nükleer patlama')){name='= Füzyon Roketi';feas=35;verdict='Muhteşem Isp, ama füzyon reaktörü ağır ve henüz yok.';col='#7fd6ff';}
+  else if(e==='Antimadde'){name='= Antimadde Roketi';feas=20;verdict='Bilinen en güçlü enerji. Ama gram antimadde üretmek ~imkansız & astronomik pahalı.';col='#ff6bd6';}
+  else if(P.scoop && e==='Füzyon'){name='= Bussard Ramjet';feas=10;verdict='Yıldızlararası H topla & yak. Işıma kayıpları yüzünden şimdilik imkansız (ama efsane).';col='#b18bff';}
+  else if(p==='Kimyasal yakıt'&&m==='Sıcak egzoz'){name='= Kimyasal Roket';feas=99;verdict='Bugünkü roketler. Yüksek itki (kalkış!), düşük Isp, çok yakıt.';col='#ff9f6b';}
+  else { verdict='Bilinen bir motora birebir uymuyor — ilginç! İtki/Isp dengesine ve fizibiliteye bak. '+(warn||'Mantıklıysa belki yeni bir fikir!'); if(warn)col='#ffcf5a'; }
+  return {name,verdict:warn+verdict,th,isp,feas,col};
+}
+
+Lab.start([
+  {
+    tab:'1 · Egzotik konseptler',
+    html:`<h2>Gerçekten önerilmiş "uç" itki sistemleri</h2>Otomatik dönüyor (sekmedeki ▶/hız ile kontrol et). Her biri bir yasayı zorluyor — bazıları çizimde, bazıları imkansızlık sınırında.
+          Bunlar senin tasarımın için ilham: hangi fikir hangi sorunu çözüyor?`,
+    loop:true,
+    draw:(g,t)=>{
+      const idx=Math.floor((t*concepts.length)%concepts.length);
+      const tt=((t*concepts.length)%1);
+      drawConcept(g,idx,tt);
+    }
+  },
+  {
+    tab:'2 · Tasarım sandığı (sen yap!)',
+    html:`<h2>Kendi itki sistemini kur</h2>Üç parçayı seç; fizik anında değerlendirsin. Bilinen bir motora denk gelirse söyler; gelmezse "özgün tasarım" der. <b>Reaksiyonsuz</b> seçeneğini de dene — ne olacak?
+      <div class="sliders">
+        <div class="row"><label>Enerji kaynağı</label>
+          <select id="d_e"><option>Güneş paneli</option><option>Nükleer fisyon</option><option>Füzyon</option><option>Antimadde</option><option>Dünya'dan lazer</option></select><span></span></div>
+        <div class="row"><label>İtici madde</label>
+          <select id="d_p"><option>Kimyasal yakıt</option><option>Xenon gazı</option><option>Işık / foton</option><option>Güneş rüzgarı (dış)</option><option>Yıldızlararası H (dış)</option><option>YOK — reaksiyonsuz</option></select><span></span></div>
+        <div class="row"><label>Hızlandırma</label>
+          <select id="d_m"><option>Sıcak egzoz</option><option>İyon (elektrik alanı)</option><option>Işık basıncı (yelken)</option><option>Mıknatıs saptırma</option><option>Nükleer patlama</option></select><span></span></div>
+        <div class="res">Tasarımın: <b id="d_name" style="color:#ffd76a">—</b><br><span id="d_verdict" style="font-weight:400;color:#cdd6ff;font-size:14px"></span></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const r=evaluate(val('d_e','Güneş paneli'),val('d_p','Kimyasal yakıt'),val('d_m','Sıcak egzoz'));
+      const nm=document.getElementById('d_name'), vd=document.getElementById('d_verdict');
+      if(nm){nm.textContent=r.name;nm.style.color=r.col;} if(vd)vd.textContent=r.verdict;
+      // araç + plume (fizibiliteye göre)
+      const cx=F.cx-120, cy=F.midY-20;
+      g.fillStyle='#26356f';g.strokeStyle=r.col;g.lineWidth=2.5;rrect(g,cx-30,cy-26,80,52,10);g.fill();g.stroke();
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(cx+34,cy,6,0,7);g.fill();
+      if(r.th>0){ for(let k=0;k<8;k++){ const pp=((t*3+k/8)%1); g.globalAlpha=(1-pp)*Math.min(1,r.th/5);
+        g.fillStyle=r.col;g.beginPath();g.arc(cx-34-pp*(20+r.th*6),cy+(k%3-1)*5,5-pp*3,0,7);g.fill(); } g.globalAlpha=1;
+        arrow(g,cx+50,cy,12+r.th*7,'#46e08a'); }
+      else { label(g,'itki yok',cx,cy-40,'#ff6b6b',14); }
+      // barlar
+      const bx=F.cx+70, bw=200;
+      bar(g,bx,cy-30,bw,r.th/10,'#ff9f6b','İTKİ (kuvvet)');
+      bar(g,bx,cy+6,bw,r.isp/10,'#46e08a','VERİM / Isp');
+      bar(g,bx,cy+42,bw,r.feas/100,r.feas>60?'#46e08a':r.feas>30?'#ffcf5a':'#ff6b6b','GERÇEKLEŞEBİLİRLİK');
+      banner(g, r.feas===0?'Momentum korunumu: dışarı kütle atmadan itki YOK':'Üç parçayı değiştir, dengeyi gör','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · İtki–Verim haritası',
+    html:`<h2>Hepsinin yeri bu haritada</h2>Yatay: <b style="color:#ff9f6b">itki (kuvvet)</b>. Dikey: <b style="color:#46e08a">verim (Isp / az yakıt)</b>. Sağ-üst köşe (yüksek itki + yüksek verim) hayalin —
+          ama oraya ulaşmak çok zor. Senin tasarımın bu haritada boş bir köşeyi zekice doldurabilir mi?`,
+    loop:true,
+    draw:(g,t)=>{
+      const px=120,py=56,pw=560,ph=250;
+      g.strokeStyle='#33406f';g.lineWidth=1.5;g.strokeRect(px,py,pw,ph);
+      label(g,'itki (kuvvet) →',px+pw/2,py+ph+22,'#ff9f6b',12);
+      g.save();g.translate(px-22,py+ph/2);g.rotate(-Math.PI/2);label(g,'verim (Isp) →',0,0,'#46e08a',12);g.restore();
+      const pts=[
+        {n:'Kimyasal',x:.9,y:.12,c:'#ff9f6b'},
+        {n:'İyon',x:.18,y:.82,c:'#46e08a'},
+        {n:'Güneş yelkeni',x:.06,y:.97,c:'#ffe28a'},
+        {n:'Magsail',x:.08,y:.9,c:'#7fb4ff'},
+        {n:'Orion',x:.96,y:.62,c:'#ff8a3d'},
+        {n:'Füzyon',x:.6,y:.88,c:'#7fd6ff'},
+        {n:'Antimadde',x:.72,y:.95,c:'#ff6bd6'}
+      ];
+      // hedef köşe parıltısı
+      glowCircle(g,px+pw*0.96,py+ph*0.06,40+8*Math.sin(t*3),'rgba(70,224,138,.25)');
+      label(g,'hayal: yüksek+yüksek',px+pw-70,py+14,'#46e08a',11);
+      for(const pt of pts){ const X=px+pt.x*pw, Y=py+(1-pt.y)*ph;
+        glowCircle(g,X,Y,14,'rgba(255,255,255,.18)');
+        g.fillStyle=pt.c;g.beginPath();g.arc(X,Y,7,0,7);g.fill();
+        g.fillStyle='#dfe8ff';g.font='12px Segoe UI';g.textAlign='center';g.fillText(pt.n,X,Y-12);g.textAlign='left'; }
+      banner(g,'Her motor bir denge — boş köşe = fırsat. Sıra sende.','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ff9f6b',t:'İtki (kuvvet)'},
+  {c:'#46e08a',t:'Verim / Isp'},
+  {c:'#ffd76a',t:'Senin tasarımın'}
+]});
+</script>
+</body>
+</html>
