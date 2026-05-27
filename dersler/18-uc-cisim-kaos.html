@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 18 · Üç Cisim Problemi & Kaos</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 18</div>
+  <h1>Ders 18 · Üç Cisim Problemi & Kaos</h1>
+  <div class="sub">İki cisim çözülür (Kepler). Ama üç cisim birbirini çekince... kaos. Tahmin edilemez yörüngeler, gerçek simülasyonla.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> İki cismin yörüngesi tam çözülür (elips). Üç cisim için <b class="keybad">genel kapalı çözüm yoktur</b> — hareket çoğunlukla <b>kaotiktir</b>: başlangıçtaki en ufak fark (kelebek etkisi) yörüngeyi tamamen değiştirir.
+    Yine de nadir, hassas dengeli <b class="key">kararlı çözümler</b> vardır (ünlü "figür-8"). Ders 17'deki Lagrange noktaları da kısıtlı üç-cisim probleminin özel denge çözümleridir.
+  </div>
+
+  <div class="navrow">
+    <a href="17-lagrange-noktalari.html">← Ders 17</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function mkBody(x,y,vx,vy,m,c){ return {x,y,vx,vy,ax:0,ay:0,m,c,trail:[]}; }
+function accel(B,G,soft){ B.forEach(b=>{b.ax=0;b.ay=0;});
+  for(let i=0;i<B.length;i++) for(let j=i+1;j<B.length;j++){ const a=B[i],b=B[j];
+    const dx=b.x-a.x,dy=b.y-a.y,r2=dx*dx+dy*dy+soft,r=Math.sqrt(r2),f=G/r2;
+    a.ax+=f*b.m*dx/r; a.ay+=f*b.m*dy/r; b.ax-=f*a.m*dx/r; b.ay-=f*a.m*dy/r; } }
+function stepN(B,G,dt,sub,soft){ for(let s=0;s<sub;s++){
+  B.forEach(b=>{b.vx+=b.ax*dt/2;b.vy+=b.ay*dt/2;b.x+=b.vx*dt;b.y+=b.vy*dt;});
+  accel(B,G,soft);
+  B.forEach(b=>{b.vx+=b.ax*dt/2;b.vy+=b.ay*dt/2;}); } }
+function drawWorld(g,B,cx,cy,sc,tcap){
+  B.forEach(b=>{ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>tcap)b.trail.shift(); });
+  B.forEach(b=>{ g.strokeStyle=b.c;g.globalAlpha=.45;g.lineWidth=1.5;g.beginPath();
+    b.trail.forEach((p,i)=>{ const X=cx+p.x*sc,Y=cy+p.y*sc; i?g.lineTo(X,Y):g.moveTo(X,Y); });g.stroke();g.globalAlpha=1; });
+  B.forEach(b=>{ const X=cx+b.x*sc,Y=cy+b.y*sc; glowCircle(g,X,Y,11,'rgba(255,255,255,.15)');
+    g.fillStyle=b.c;g.beginPath();g.arc(X,Y,6,0,7);g.fill(); });
+}
+
+let w1=null,f1=0;
+function init1(){ const B=[mkBody(-1,0,0,-0.32,1,'#7fd6ff'),mkBody(1,0,0,0.32,1,'#ff9f6b'),mkBody(0,0.65,0.26,0,1,'#46e08a')]; accel(B,1,0.05); return B; }
+let wa=null,wb=null,f2=0;
+function init2(p){ const B=[mkBody(-1,0,0,-0.32,1,'#7fd6ff'),mkBody(1,0,0,0.32,1,'#ff9f6b'),mkBody(0,0.65+p,0.26,0,1,'#46e08a')]; accel(B,1,0.05); return B; }
+let w3=null,f3=0;
+function init3(){ const B=[
+  mkBody(0.97000436,-0.24308753,0.466203685,0.43236573,1,'#7fd6ff'),
+  mkBody(-0.97000436,0.24308753,0.466203685,0.43236573,1,'#ff9f6b'),
+  mkBody(0,0,-0.93240737,-0.86473146,1,'#46e08a')]; accel(B,1,0); return B; }
+
+Lab.start([
+  {
+    tab:'1 · Üç cismin dansı',
+    html:`<h2>Üç kütle, kapalı çözüm yok</h2>Üç yıldız birbirini çekiyor. Gerçek yerçekimiyle hesaplanıyor — yörüngeler düzenli değil, sürekli değişen kaotik bir dans. Birbirine yaklaşır, savrulur, yeniden döner.`,
+    loop:true,
+    draw:(g,t)=>{
+      if(!w1){ w1=init1(); f1=0; }
+      if(Lab.playing){ stepN(w1,1,0.004,Math.max(1,Math.round(8*Lab.speed)),0.05); f1++;
+        if(f1>1500 || w1.some(b=>Math.hypot(b.x,b.y)>6)){ w1=init1(); f1=0; } }
+      drawWorld(g,w1,F.cx,F.midY,80,140);
+      banner(g,'Üç cisim = kaos: küçük etkiler büyür, gelecek tahmin edilemez','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Kelebek etkisi',
+    html:`<h2>Minik fark → bambaşka kader</h2>İki sistem neredeyse aynı; <b style="color:#46e08a">tek farkı</b> yeşil yıldızın başlangıç yeri %1 kaymış. Önce birlikte hareket ederler, sonra <b class="keybad">tamamen ayrılırlar.</b>
+          Kaosun kalbi bu: başlangıcı tam bilemezsen, geleceği de bilemezsin.`,
+    loop:true,
+    draw:(g,t)=>{
+      if(!wa){ wa=init2(0); wb=init2(0.012); f2=0; }
+      if(Lab.playing){ const sb=Math.max(1,Math.round(6*Lab.speed));
+        stepN(wa,1,0.004,sb,0.05); stepN(wb,1,0.004,sb,0.05); f2++;
+        if(f2>1100 || wa.some(b=>Math.hypot(b.x,b.y)>6) || wb.some(b=>Math.hypot(b.x,b.y)>6)){ wa=init2(0); wb=init2(0.012); f2=0; } }
+      g.strokeStyle='#243a86';g.lineWidth=1;g.beginPath();g.moveTo(F.cx,40);g.lineTo(F.cx,F.H-30);g.stroke();
+      drawWorld(g,wa,F.cx-205,F.midY,48,90);
+      drawWorld(g,wb,F.cx+205,F.midY,48,90);
+      label(g,'AYNI başlangıç',F.cx-205,60,'#7fd6ff',13);
+      label(g,'+%1 fark',F.cx+205,60,'#46e08a',13);
+      banner(g,'Aynı yasalar, neredeyse aynı başlangıç — ama kaderler ayrışıyor','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Nadir kararlı: figür-8',
+    html:`<h2>Kaosun içinde bir mucize</h2>Çok özel başlangıç değerleriyle, üç eşit kütle sonsuza dek bir <b class="key">8 rakamı</b> üzerinde birbirini kovalayabilir (Chenciner–Montgomery, 2000).
+          Hassas dengeli, nadir bir çözüm — kaosun ortasındaki düzen adası. Lagrange noktaları da (Ders 17) böyle özel çözümlerdir.`,
+    loop:true,
+    draw:(g,t)=>{
+      if(!w3){ w3=init3(); f3=0; }
+      if(Lab.playing){ stepN(w3,1,0.0009,Math.max(1,Math.round(30*Lab.speed)),0); f3++;
+        if(f3>1300){ w3=init3(); f3=0; } }
+      drawWorld(g,w3,F.cx,F.midY,120,220);
+      label(g,'üç eşit kütle, tek bir 8 yörüngesinde',F.cx,70,'#46e08a',13);
+      banner(g,'Doğru başlangıçla kaos yerini mükemmel düzene bırakır','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#7fd6ff',t:'Cisim 1'},
+  {c:'#ff9f6b',t:'Cisim 2'},
+  {c:'#46e08a',t:'Cisim 3'}
+]});
+</script>
+</body>
+</html>
