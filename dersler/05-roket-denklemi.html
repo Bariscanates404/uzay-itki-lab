@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 05 · Roket Denklemi</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 05</div>
+  <h1>Ders 05 · Roket Denklemi (Tsiolkovsky)</h1>
+  <div class="sub">Δv = egzoz hızı × ln(kütle oranı). Hızı doğrusal artırmak istersen, yakıt <b>üstel</b> büyür. Roketçiliğin en acı yasası.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Daha hızlı gitmek istedikçe gereken yakıt <b class="keybad">katlanarak (üstel)</b> artar — çünkü eklediğin yakıtı da hızlandırman gerekir.
+    Yakıtın çoğu, <b>daha çok yakıt taşımak</b> için harcanır. İki kurtuluş yolu: (1) egzoz hızını artır = yüksek Isp (iyon thruster!), (2) boşalan tankları at = kademeli roket.
+  </div>
+
+  <div class="navrow">
+    <a href="04-itki-kutle-hiz.html">← Ders 04</a>
+    <a href="../index.html">Sıradaki: Ders 06 (yakında) →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value : def; }
+function hRocket(g,x,y,len,col){            // yatay roket: kuyruk solda, burun sağda
+  g.fillStyle=col||'#dfe6ff';rrect(g,x,y-16,len,32,8);g.fill();
+  g.beginPath();g.moveTo(x+len,y-16);g.lineTo(x+len+22,y);g.lineTo(x+len,y+16);g.closePath();g.fill();
+  g.fillStyle='#ff6b6b';g.beginPath();g.moveTo(x,y-16);g.lineTo(x-12,y-26);g.lineTo(x,y-6);g.closePath();g.fill();
+  g.beginPath();g.moveTo(x,y+16);g.lineTo(x-12,y+26);g.lineTo(x,y+6);g.closePath();g.fill();
+}
+
+Lab.start([
+  {
+    tab:'1 · Roketin Laneti (kaydırıcı)',
+    html:`<h2>Δv'yi artır, yakıtın patlamasını izle</h2>İstediğin hızı (egzoz hızının katı olarak) seç. Gereken <b style="color:#ffcf5a">kütle oranı</b> = e<sup>Δv/egzoz</sup>.
+          Hızı 2, 3, 4 katına çıkar — yakıt tankının nasıl üstel büyüdüğüne bak.
+      <div class="sliders">
+        <div class="row"><label>Hedef Δv (egzoz katı)</label><input id="s_dv" type="range" min="0.5" max="4" step="0.1" value="1.5"><span id="o_dv">1.5×</span></div>
+        <div class="res">Kütle oranı (m₀/mₛ) = <b class="p" id="o_R">4.5</b> &nbsp;·&nbsp; Yakıt / yük = <b class="vs" id="o_F">3.5</b> kat</div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const x=rd('s_dv',1.5), R=Math.exp(x), fr=R-1;
+      const od=document.getElementById('o_dv'),oR=document.getElementById('o_R'),oF=document.getElementById('o_F');
+      if(od)od.textContent=x.toFixed(1)+'×'; if(oR)oR.textContent=R.toFixed(1); if(oF)oF.textContent=fr.toFixed(1);
+      // ---- roket (sol) ----
+      const cxR=200, noseY=64;
+      g.fillStyle='#dfe6ff';g.beginPath();g.moveTo(cxR,noseY);g.lineTo(cxR-22,noseY+36);g.lineTo(cxR+22,noseY+36);g.closePath();g.fill();
+      g.fillStyle='#5ad1ff';rrect(g,cxR-22,noseY+36,44,38,6);g.fill();
+      label(g,'YÜK',cxR,noseY+60,'#06203a',12);
+      const tankTop=noseY+74, fuelPx=Math.min(fr*22,236);
+      const grd=g.createLinearGradient(0,tankTop,0,tankTop+fuelPx);
+      grd.addColorStop(0,'#ffb14d');grd.addColorStop(1,'#ff7a2d');
+      g.fillStyle=grd;rrect(g,cxR-22,tankTop,44,fuelPx,6);g.fill();
+      g.strokeStyle='#ffd9a8';g.lineWidth=2;rrect(g,cxR-22,tankTop,44,fuelPx,6);g.stroke();
+      if(fuelPx>40) label(g,'YAKIT',cxR,tankTop+Math.min(fuelPx/2,118),'#5a2e00',12);
+      glowCircle(g,cxR,tankTop+fuelPx+12,16+4*Math.sin(t*22),'rgba(255,120,60,.7)');
+      if(fr*22>236) label(g,'↓ tanka sığmıyor!',cxR,F.H-44,'#ff6b6b',12);
+      // ---- üstel eğri (sağ) ----
+      const px=470,py=60,pw=350,ph=240, maxR=Math.exp(4);
+      g.strokeStyle='#33406f';g.lineWidth=1.5;g.strokeRect(px,py,pw,ph);
+      label(g,'kütle oranı = e^(Δv/egzoz)',px+pw/2,py-8,'#9fb0ff',12);
+      g.strokeStyle='#5ad1ff';g.lineWidth=2.5;g.beginPath();
+      for(let u=0;u<=4;u+=0.04){ const rr=Math.exp(u),X=px+(u/4)*pw,Y=py+ph-(rr/maxR)*ph; u===0?g.moveTo(X,Y):g.lineTo(X,Y); }
+      g.stroke();
+      const X=px+(Math.min(x,4)/4)*pw, Y=py+ph-(Math.min(R,maxR)/maxR)*ph;
+      g.strokeStyle='#ffcf5a';g.setLineDash([3,4]);g.lineWidth=1.5;g.beginPath();g.moveTo(X,py+ph);g.lineTo(X,Y);g.stroke();g.setLineDash([]);
+      g.fillStyle='#ffcf5a';g.beginPath();g.arc(X,Y,6,0,7);g.fill();
+      label(g,'yatay: Δv (0–4× egzoz)   dikey: kütle oranı',px+pw/2,py+ph+18,'#6c76a8',11);
+      banner(g,'Hız doğrusal artar, yakıt ÜSTEL artar — roketin laneti','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Yakıt, yakıtı taşır',
+    html:`<h2>İlk yakıt neden "boşa" gider?</h2>Roket 5 eşit yakıt parçası yakıyor. Her parçanın kattığı hızı (Δv) izle: <b class="keybad">ilk parçalar ağır roketi zor kıpırdatır</b>,
+          son parçalar çok daha fazla hız katar. Çünkü baştaki yakıt, sırtında <b>diğer tüm yakıtı</b> taşımak zorunda.`,
+    loop:true,
+    draw:(g,t)=>{
+      const masses=[6,5,4,3,2,1], dvc=[];
+      for(let i=0;i<5;i++) dvc.push(Math.log(masses[i]/masses[i+1]));
+      const total=dvc.reduce((a,b)=>a+b,0);
+      const bf=Math.min(t*5,5), burned=Math.floor(bf);
+      let dvNow=0; for(let i=0;i<burned;i++) dvNow+=dvc[i];
+      if(burned<5) dvNow+=dvc[burned]*(bf-burned);
+      const rx=110+(dvNow/total)*520, ry=F.midY-30;
+      // roket + kalan yakıt hücreleri
+      hRocket(g,rx,ry,120,'#cdd6ff');
+      for(let i=0;i<5;i++){ const cellX=rx+16+i*19;
+        g.fillStyle = i<burned? '#33406f' : '#ff8a3d';
+        rrect(g,cellX,ry-11,15,22,3);g.fill(); }
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(rx+112,ry,6,0,7);g.fill();
+      // egzoz
+      if(burned<5){ for(let k=0;k<5;k++){ const pp=(t*4+k/5)%1; g.globalAlpha=1-pp;g.fillStyle=k%2?'#ffcf5a':'#ff6b6b';
+        g.beginPath();g.arc(rx-12-pp*40,ry+(k%3-1)*4,5-pp*3,0,7);g.fill(); } g.globalAlpha=1; }
+      // Δv çubukları (alt)
+      const bx=150,by=F.H-70;
+      label(g,'her yakıt parçasının kattığı hız (Δv):',F.cx,by-26,'#9fb0ff',12);
+      for(let i=0;i<5;i++){ const h=dvc[i]*150, X=bx+i*120;
+        g.fillStyle = i<burned? '#46e08a' : '#2a3566';
+        rrect(g,X,by-h,70,h,4);g.fill();
+        label(g,(i+1)+'. parça',X+35,by+16,'#8b93c7',11);
+        label(g,dvc[i].toFixed(2),X+35,by-h-6, i<burned?'#46e08a':'#6c76a8',11); }
+      banner(g,'İlk parça: 0.18 · son parça: 0.69 — son yakıt ~4 kat verimli','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Çözüm: kademeli roket',
+    html:`<h2>Boşalan tankı at!</h2>Tek parçalı roket, boşalmış ağır tankı sonuna kadar taşır — <b class="keybad">ölü ağırlık.</b>
+          Kademeli roket, boşalan kademeyi <b class="key">fırlatıp atar</b>; kalan roket hafifler ve aynı yakıtla çok daha hızlanır. Gerçek roketler bu yüzden kademeli.`,
+    loop:true,
+    draw:(g,t)=>{
+      const ry=F.midY+10, rx=90+t*640;
+      // kademe bırakma eşikleri
+      const drop1=t>0.33, drop2=t>0.66;
+      // kalan gövde uzunluğu (kademe düştükçe kısalır)
+      let tailX=rx;
+      if(!drop1) tailX=rx; // 3 kademe
+      // çiz: kuyruktan buruna kademeler
+      const stageW=44;
+      // aktif kademe sayısı
+      const stages = [!drop1, !drop2, true]; // [k1,k2,çekirdek]
+      let sx=rx;
+      // çekirdek + yük her zaman (en sağda)
+      // build attached from tail
+      let drawX=rx;
+      const cols=['#7e8bd6','#9aa6e6','#cdd6ff'];
+      let firstAttached=true;
+      for(let s=0;s<3;s++){
+        if(stages[s]){
+          g.fillStyle=cols[s];rrect(g,drawX,ry-16,stageW,32,6);g.fill();
+          g.strokeStyle='#3a4690';g.lineWidth=1;rrect(g,drawX,ry-16,stageW,32,6);g.stroke();
+          if(firstAttached){ // kuyruk finleri
+            g.fillStyle='#ff6b6b';g.beginPath();g.moveTo(drawX,ry-16);g.lineTo(drawX-12,ry-26);g.lineTo(drawX,ry-6);g.closePath();g.fill();
+            g.beginPath();g.moveTo(drawX,ry+16);g.lineTo(drawX-12,ry+26);g.lineTo(drawX,ry+6);g.closePath();g.fill();
+            firstAttached=false;
+          }
+          drawX+=stageW;
+        }
+      }
+      // yük + burun
+      g.fillStyle='#5ad1ff';rrect(g,drawX,ry-12,26,24,5);g.fill();
+      g.fillStyle='#dfe6ff';g.beginPath();g.moveTo(drawX+26,ry-12);g.lineTo(drawX+48,ry);g.lineTo(drawX+26,ry+12);g.closePath();g.fill();
+      // egzoz
+      for(let k=0;k<5;k++){ const pp=(t*5+k/5)%1; g.globalAlpha=1-pp;g.fillStyle=k%2?'#ffcf5a':'#ff6b6b';
+        g.beginPath();g.arc(rx-10-pp*44,ry+(k%3-1)*4,5-pp*3,0,7);g.fill(); } g.globalAlpha=1;
+      // düşen kademeler
+      if(drop1){ const a=(t-0.33); const dx=(90+0.33*640)-a*120, dy=ry+a*a*900;
+        if(dy<F.H+30){ g.globalAlpha=0.8;g.fillStyle='#7e8bd6';rrect(g,dx,dy-14,40,28,5);g.fill();g.globalAlpha=1;
+          label(g,'boş kademe ↓',dx+20,dy-22,'#ff6b6b',11);} }
+      if(drop2){ const a=(t-0.66); const dx=(90+0.66*640)-a*120, dy=ry+a*a*900;
+        if(dy<F.H+30){ g.globalAlpha=0.8;g.fillStyle='#9aa6e6';rrect(g,dx,dy-14,40,28,5);g.fill();g.globalAlpha=1;} }
+      banner(g, drop2?'Sadece hafif çekirdek + yük kaldı → en yüksek hız':(drop1?'1. kademe atıldı, roket hafifledi':'3 kademe dolu, ağır başlangıç'),'#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ff8a3d',t:'Yakıt'},
+  {c:'#5ad1ff',t:'Yük (payload)'},
+  {c:'#46e08a',t:'Kazanılan Δv / hafifleme'}
+]});
+</script>
+</body>
+</html>
