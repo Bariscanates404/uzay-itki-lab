@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 16 · Hohmann Transferi</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 16</div>
+  <h1>Ders 16 · Hohmann Transferi & Manevralar</h1>
+  <div class="sub">Bir yörüngeden diğerine en az yakıtla nasıl geçilir? İki kısa ateşleme + uzun bir bekleyiş. Mars'a gitmenin de yolu bu.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Hohmann transferi = <b class="key">iki prograde ateşleme</b> arasında yarım elips boyunca <b>motor kapalı kayış</b>. 1. ateşleme apoapsis'i dış yörüngeye yükseltir; apoapsis'e varınca 2. ateşleme daireselleştirir.
+    İki coplanar dairesel yörünge arası <b>en yakıt-verimli</b> rota (ama en yavaşı). Gezegenler arası versiyonu <b>fırlatma penceresi</b> gerektirir: Mars, sen varınca orada olacağı yerde olmalı (Dünya–Mars için ~26 ayda bir).
+  </div>
+
+  <div class="navrow">
+    <a href="15-kutle-cekimi-yorunge.html">← Ders 15</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const CX=F.cx, CY=F.midY;
+function sun(g,x,y,r){ glowCircle(g,x,y,r*2.4,'rgba(255,200,80,.4)');
+  const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+  g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill(); }
+function dashCircle(g,x,y,r,col){ g.strokeStyle=col;g.setLineDash([4,6]);g.lineWidth=1.5;g.beginPath();g.arc(x,y,r,0,7);g.stroke();g.setLineDash([]); }
+function ellipseFocus(th,R1,R2){ const e=(R2-R1)/(R2+R1),a=(R1+R2)/2; return a*(1-e*e)/(1+e*Math.cos(th)); }
+
+Lab.start([
+  {
+    tab:'1 · İki ateşleme',
+    html:`<h2>Yörünge yükseltme: 1 → kayış → 2</h2>İç dairesel yörüngedesin. <b style="color:#46e08a">1. ateşleme</b> apoapsis'i dış yörüngeye fırlatır (transfer elipsi). Yarım tur <b>motor kapalı</b> kayarsın.
+          Apoapsis'e varınca <b style="color:#ffcf5a">2. ateşleme</b> seni dış dairesel yörüngeye oturtur.`,
+    loop:true,
+    draw:(g,t)=>{
+      const R1=92,R2=205;
+      sun(g,CX,CY,18);
+      dashCircle(g,CX,CY,R1,'rgba(127,180,255,.4)'); dashCircle(g,CX,CY,R2,'rgba(127,180,255,.4)');
+      // transfer elipsi
+      const inTransfer=(t>=0.2&&t<0.65);
+      g.strokeStyle=inTransfer?'#ffcf5a':'rgba(255,207,90,.25)';g.lineWidth=inTransfer?2.5:1.5;g.beginPath();
+      for(let th=0;th<=Math.PI*2;th+=0.05){ const r=ellipseFocus(th,R1,R2); g.lineTo(CX+r*Math.cos(th),CY-r*Math.sin(th)); }
+      g.stroke();
+      let px,py,note;
+      if(t<0.2){ const ang=Math.PI+(t/0.2)*Math.PI; px=CX+R1*Math.cos(ang); py=CY-R1*Math.sin(ang); note='iç dairesel yörünge'; }
+      else if(t<0.65){ const th=((t-0.2)/0.45)*Math.PI; const r=ellipseFocus(th,R1,R2); px=CX+r*Math.cos(th); py=CY-r*Math.sin(th); note='transfer elipsi — motor KAPALI, bedava kayış'; }
+      else { const ang=Math.PI+((t-0.65)/0.35)*Math.PI; px=CX+R2*Math.cos(ang); py=CY-R2*Math.sin(ang); note='dış dairesel yörünge'; }
+      // ateşleme noktaları
+      if(Math.abs(t-0.2)<0.04){ glowCircle(g,CX+R1,CY,20,'rgba(70,224,138,.7)'); }
+      if(Math.abs(t-0.65)<0.04){ glowCircle(g,CX-R2,CY,20,'rgba(255,207,90,.7)'); }
+      g.fillStyle='#46e08a';g.beginPath();g.arc(CX+R1,CY,5,0,7);g.fill(); label(g,'1. ateşleme',CX+R1+8,CY+18,'#46e08a',11);
+      g.fillStyle='#ffcf5a';g.beginPath();g.arc(CX-R2,CY,5,0,7);g.fill(); label(g,'2. ateşleme',CX-R2,CY-14,'#ffcf5a',11);
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(px,py,7,0,7);g.fill();
+      banner(g,note,inTransfer?'#ffcf5a':'#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Dünya → Mars & pencere',
+    html:`<h2>Gezegenler arası Hohmann</h2>Aynı mantık Güneş etrafında: Dünya yörüngesinden Mars yörüngesine transfer elipsi. Ama Mars hareketli! <b class="key">Fırlatma penceresi:</b>
+          Mars'ı sen varacağın noktada bulmak için, fırlatırken Mars önde (~44°) olmalı. Yanlış zamanda gidersen boş uzaya varırsın.`,
+    loop:true,
+    draw:(g,t)=>{
+      const Re=110,Rm=195;
+      sun(g,CX,CY,16); label(g,'Güneş',CX,CY+34,'#ffd24d',11);
+      dashCircle(g,CX,CY,Re,'rgba(90,160,255,.45)'); dashCircle(g,CX,CY,Rm,'rgba(255,120,90,.45)');
+      label(g,'Dünya yörüngesi',CX+Re+4,CY-Re+10,'#7fb4ff',10); label(g,'Mars yörüngesi',CX,CY-Rm-8,'#ff9f6b',11);
+      // Dünya fırlatmada sağda (açı 0). Mars varışta solda (açı π) olacak şekilde ilerler.
+      const earthAng = 0 + t*2.2;                        // Dünya hızlı döner (dekoratif)
+      const ex=CX+Re*Math.cos(earthAng), ey=CY-Re*Math.sin(earthAng);
+      // Mars: başta önde (~π-0.9), varışta (t=0.85) tam π'de
+      const marsStart=Math.PI-0.95, marsEnd=Math.PI;
+      const marsAng = marsStart + (marsEnd-marsStart)*Math.min(t/0.85,1) + (t>0.85?(t-0.85)*0.5:0);
+      const mx=CX+Rm*Math.cos(marsAng), my=CY-Rm*Math.sin(marsAng);
+      // transfer elipsi (Dünya sağ → Mars sol)
+      if(t<0.85){ g.strokeStyle='#ffe28a';g.lineWidth=2;g.beginPath();
+        for(let th=0;th<=Math.PI;th+=0.04){ const r=ellipseFocus(th,Re,Rm); g.lineTo(CX+r*Math.cos(th),CY-r*Math.sin(th)); } g.stroke(); }
+      // gezegenler
+      drawPlanet(g,ex,ey,9,'#3a6ea5'); label(g,'Dünya',ex,ey+22,'#7fb4ff',10);
+      drawPlanet(g,mx,my,11,'#c0502a'); label(g,'Mars',mx,my-16,'#ff9f6b',10);
+      // araç transferde
+      if(t<0.15){ label(g,'fırlatma penceresi: Mars ~44° önde',CX,F.H-44,'#46e08a',13); }
+      if(t>=0.15&&t<0.85){ const th=((t-0.15)/0.7)*Math.PI; const r=ellipseFocus(th,Re,Rm);
+        const sx=CX+r*Math.cos(th), sy=CY-r*Math.sin(th);
+        g.fillStyle='#eaf6ff';g.beginPath();g.arc(sx,sy,5,0,7);g.fill(); }
+      if(t>=0.85){ glowCircle(g,mx,my,22,'rgba(70,224,138,.5)'); label(g,'★ buluşma!',mx,my+26,'#46e08a',13); }
+      banner(g,'~26 ayda bir pencere açılır — yoksa Mars orada olmaz','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Yakıt mı, hız mı?',
+    html:`<h2>Hohmann en ucuz, ama en yavaş</h2>Hohmann sadece <b>iki kısa ateşleme</b> kullanır → minimum yakıt. Daha çabuk varmak istersen daha büyük ateşleme (daha "dik" yörünge) gerekir → <b class="keybad">çok daha fazla yakıt</b>.
+          Klasik denge: yakıt mı, zaman mı?`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: hohmann (yavaş, ince yay) vs hızlı (geniş yay)
+      const x0=120,y0=F.midY;
+      sun(g,x0,y0,14);
+      dashCircle(g,x0,y0,60,'rgba(127,180,255,.4)'); dashCircle(g,x0,y0,140,'rgba(127,180,255,.4)');
+      // hohmann yarım elips
+      g.strokeStyle='#46e08a';g.lineWidth=2.5;g.beginPath();
+      for(let th=0;th<=Math.PI;th+=0.05){ const r=ellipseFocus(th,60,140); g.lineTo(x0+r*Math.cos(th),y0-r*Math.sin(th)); } g.stroke();
+      label(g,'Hohmann: az yakıt, yavaş',x0+10,y0-150,'#46e08a',12);
+      // hızlı transfer (daha düz, dışarı taşan yay)
+      g.strokeStyle='#ff6b6b';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();
+      g.moveTo(x0+60,y0); g.bezierCurveTo(x0+120,y0-200,x0-160,y0-200,x0-140,y0); g.stroke();g.setLineDash([]);
+      label(g,'hızlı: çok yakıt',x0-40,y0+165,'#ff6b6b',12);
+      // sağ: Δv barları
+      const bx=560,by=120;
+      label(g,'Hohmann Δv bütçesi:',bx,by-14,'#9fb0ff',13);
+      const bar=(y,w,col,txt)=>{ g.fillStyle='#1a2348';rrect(g,bx,y,200,18,4);g.fill();g.fillStyle=col;rrect(g,bx,y,w,18,4);g.fill();
+        g.fillStyle='#cdd6ff';g.font='12px Segoe UI';g.fillText(txt,bx,y-4); };
+      bar(by+10,90,'#46e08a','1. ateşleme (apoapsis yükselt)');
+      bar(by+54,70,'#ffcf5a','2. ateşleme (daireselleştir)');
+      bar(by+98,190,'#ff6b6b','hızlı transfer (kıyas: çok daha fazla)');
+      label(g,'Sadece 2 kısa ateşleme; gerisi bedava kayış.',bx,by+150,'#46e08a',12);
+      banner(g,'En az yakıt = Hohmann. Acele = daha çok yakıt. Daima bir denge.','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'1. ateşleme / Hohmann'},
+  {c:'#ffcf5a',t:'2. ateşleme / transfer'},
+  {c:'#7fb4ff',t:'Yörüngeler'}
+]});
+</script>
+</body>
+</html>
