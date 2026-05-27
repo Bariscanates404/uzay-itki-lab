@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 15 · Kütle Çekimi & Yörüngeler</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 15</div>
+  <h1>Ders 15 · Kütle Çekimi & Yörüngeler</h1>
+  <div class="sub">Gerçek yerçekimi simülasyonu. Yörünge "düşmeye devam edip yere ışkalamaktır." Hızı ayarla, elips/dairesel/kaçış yörüngelerini canlı gör.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Yörünge = sürekli düşmek ama Dünya'yı sürekli ışkalamak. Hız tam olursa <b class="key">dairesel</b>, az/çok olursa <b>elips</b>, çok fazlaysa <b class="keybad">kaçış</b> (v_kaçış = √2 × v_dairesel).
+    Kepler: gezegen perihelde hızlı, afelde yavaş — eşit zamanda eşit alan süpürür. Ve uzayda sezgiye aykırı: <b>öne ateşlersin (prograde), yörüngenin karşı tarafı yükselir.</b> Newton: F = G·m₁·m₂/r².
+  </div>
+
+  <div class="navrow">
+    <a href="14-kapanis.html">← Ders 14</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const CX=F.cx, CY=F.midY, GM=60000;
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+function star(g){ glowCircle(g,CX,CY,60,'rgba(255,200,80,.4)');
+  const r=g.createRadialGradient(CX,CY,0,CX,CY,20);r.addColorStop(0,'#fff4c2');r.addColorStop(1,'#ff9b2d');
+  g.fillStyle=r;g.beginPath();g.arc(CX,CY,20,0,7);g.fill(); }
+function vCirc(R){ return Math.sqrt(GM/R); }
+
+// ---- Sahne 1: yörünge kumu (gerçek entegrasyon) ----
+let s1=null, s1v=-1;
+function step(s,sub){ const DT=0.08;
+  for(let i=0;i<sub;i++){ const dx=s.x-CX,dy=s.y-CY,r2=dx*dx+dy*dy,r=Math.sqrt(r2);
+    const a=-GM/r2; s.vx+=a*dx/r*DT; s.vy+=a*dy/r*DT; s.x+=s.vx*DT; s.y+=s.vy*DT; } }
+
+Lab.start([
+  {
+    tab:'1 · Yörünge kumu (hızı ayarla)',
+    html:`<h2>"Yörünge, düşüp de ışkalamaktır"</h2>Gezegene yatay hız ver. Az verirsen içeri düşer, tam verirsen <b style="color:#7fd6ff">dairesel</b>, biraz fazlası <b style="color:#ffcf5a">elips</b>, çok fazlası <b style="color:#ff6b6b">kaçış</b>.
+      <div class="sliders">
+        <div class="row"><label>Başlangıç hızı</label><input id="s_v" type="range" min="11" max="32" step="0.5" value="20"><span id="o_v">20</span></div>
+        <div class="res">Dairesel hız ≈ <b style="color:#7fd6ff">20</b> &nbsp;·&nbsp; Kaçış hızı ≈ <b style="color:#ff6b6b">28.3</b> &nbsp;·&nbsp; Durum: <b id="o_st" style="color:#46e08a">—</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const v=rd('s_v',20), R0=150;
+      if(!s1 || Math.abs(v-s1v)>0.01){ s1={x:CX+R0,y:CY,vx:0,vy:-v,trail:[]}; s1v=v; }
+      step(s1,6);
+      const dx=s1.x-CX,dy=s1.y-CY,r=Math.hypot(dx,dy);
+      if(r>560||r<22){ s1={x:CX+R0,y:CY,vx:0,vy:-v,trail:[]}; }
+      s1.trail.push({x:s1.x,y:s1.y}); if(s1.trail.length>160)s1.trail.shift();
+      // iz
+      g.strokeStyle='rgba(127,180,255,.5)';g.lineWidth=2;g.beginPath();
+      s1.trail.forEach((p,i)=>i===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y));g.stroke();
+      star(g);
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(s1.x,s1.y,7,0,7);g.fill();
+      const vc=vCirc(R0), vesc=Math.SQRT2*vc;
+      let st = v<vc-1.2?'elips (içeri düşer)' : Math.abs(v-vc)<=1.2?'DAİRESEL' : v<vesc-0.5?'elips (dışarı)' : 'KAÇIŞ!';
+      const os=document.getElementById('o_st'); if(os)os.textContent=st;
+      const ov=document.getElementById('o_v'); if(ov)ov.textContent=v.toFixed(1);
+      banner(g,'Newton: F = G·m₁·m₂ / r²  — yörünge bu çekimle düşüştür','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Kepler: eşit alan, eşit zaman',
+    html:`<h2>Perihelde hızlı, afelde yavaş</h2>Gezegen Güneş'e yakınken (perihel) hızlı, uzakken (afel) yavaş gider. Öyle ki <b class="key">eşit zamanda hep eşit alan</b> süpürür (Kepler'in 2. yasası).
+          İki tarama bölgesinin alanı eşit — biri geniş&kısa, biri dar&uzun.`,
+    loop:true,
+    draw:(g,t)=>{
+      const a=150,e=0.5;
+      const rOf=th=>a*(1-e*e)/(1+e*Math.cos(th));
+      // afel solda olsun: foküs Güneş, perihel sağda
+      star(g);
+      // elips çiz
+      g.strokeStyle='rgba(127,180,255,.4)';g.lineWidth=2;g.beginPath();
+      for(let th=0;th<=6.3;th+=0.05){ const rr=rOf(th); const x=CX+rr*Math.cos(th), y=CY+rr*Math.sin(th); th===0?g.moveTo(x,y):g.lineTo(x,y); }
+      g.closePath();g.stroke();
+      // eşit alan kamaları: perihel (geniş açı, kısa r) & afel (dar açı, uzun r)
+      const wedge=(c,half,col)=>{ g.fillStyle=col;g.beginPath();g.moveTo(CX,CY);
+        for(let th=c-half;th<=c+half;th+=0.02){ const rr=rOf(th); g.lineTo(CX+rr*Math.cos(th),CY+rr*Math.sin(th)); }
+        g.closePath();g.fill(); };
+      wedge(0,0.47,'rgba(255,207,90,.35)');      // perihel (sağ): geniş
+      wedge(Math.PI,0.052,'rgba(70,224,138,.40)'); // afel (sol): dar (alan eşit)
+      label(g,'perihel: geniş&kısa',CX+120,CY-60,'#ffcf5a',12);
+      label(g,'afel: dar&uzun',CX-150,CY-70,'#46e08a',12);
+      label(g,'(iki alan EŞİT)',CX,CY+95,'#dfe8ff',12);
+      // gezegen: dθ ∝ 1/r² (Kepler 2)
+      if(s1===null||true){} // bağımsız açı
+      window._kth=(window._kth||0); const rr=rOf(window._kth); window._kth+=520/(rr*rr); if(window._kth>6.283)window._kth-=6.283;
+      const px=CX+rr*Math.cos(window._kth), py=CY+rr*Math.sin(window._kth);
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(px,py,7,0,7);g.fill();
+      banner(g,'Kepler 2: çizgi Güneş–gezegen eşit zamanda eşit alan süpürür','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Yörünge yükseltme (prograde)',
+    html:`<h2>Sezgiye aykırı: öne bas, karşı taraf yükselir</h2>Dairesel yörüngede <b style="color:#46e08a">prograde</b> (hareket yönünde) ateşlersen, hız kazandığın nokta aynı kalır ama <b class="key">yörüngenin karşı tarafı (180° ötesi) yükselir</b> → elips.
+          Uzay aracını manevra ettirmenin temeli bu. Daha fazla bas → kaçış (v_kaçış = √2 × v_dairesel).`,
+    loop:true,
+    draw:(g,t)=>{
+      const R=110, R2=210;
+      star(g);
+      // orijinal dairesel (kesikli)
+      g.strokeStyle='rgba(127,180,255,.35)';g.setLineDash([5,6]);g.lineWidth=1.5;
+      g.beginPath();g.arc(CX,CY,R,0,7);g.stroke();g.setLineDash([]);
+      label(g,'eski dairesel yörünge',CX,CY+R+22,'#7fd6ff',11);
+      // yeni elips: perihel altta (R), afel üstte (R2). merkez yukarı kaydır
+      const cyE=CY-(R2-R)/2, ry=(R+R2)/2, rx=R;
+      g.strokeStyle='#ffcf5a';g.lineWidth=2.5;g.beginPath();g.ellipse(CX,cyE,rx,ry,0,0,7);g.stroke();
+      // gezegen elipste
+      const ph=t*6.283 + 1.57;
+      const px=CX+rx*Math.cos(ph), py=cyE+ry*Math.sin(ph);
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(px,py,7,0,7);g.fill();
+      // ateşleme noktası (perihel = alt) + prograde ok
+      const bx=CX, by=CY+R;
+      glowCircle(g,bx,by,16,'rgba(70,224,138,.5)');
+      arrow(g,bx+10,by,46,'#46e08a'); label(g,'prograde ateşleme',bx+120,by+4,'#46e08a',12);
+      // afel etiketi
+      label(g,'↑ karşı taraf yükseldi (afel)',CX,cyE-ry-10,'#ffcf5a',12);
+      banner(g,'Burada hızlan → 180° ötesi yükselir. Yörünge mekaniği sezgiye aykırıdır.','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#5ad1ff',t:'Gezegen / uzay aracı'},
+  {c:'#ffcf5a',t:'Elips yörünge'},
+  {c:'#46e08a',t:'Dairesel / ateşleme'}
+]});
+</script>
+</body>
+</html>
