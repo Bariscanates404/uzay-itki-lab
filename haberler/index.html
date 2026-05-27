@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilim Haberleri · Uzay İtki Laboratuvarı</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Bilim Haberleri</div>
+  <h1>🛰️ Bilim Haberleri</h1>
+  <div class="sub">Uzaydan canlı haberler — her gün güncellenir. Her habere, konusunu anlatan bir <b>ders</b> bağladık. (Kaynak: Spaceflight News API + NASA)</div>
+
+  <div class="hero" id="hero" style="display:none"></div>
+
+  <div class="chips" id="chips"></div>
+  <div id="status" class="status">Haberler yükleniyor…</div>
+  <div class="news-grid" id="grid"></div>
+</div>
+
+<script>
+const LESSON=[
+  {kw:['mars','hohmann','transfer orbit','interplanetary'], file:'16-hohmann-transfer.html', name:'Hohmann Transferi'},
+  {kw:['webb','jwst','telescope','lagrange','l2','gaia'], file:'17-lagrange-noktalari.html', name:'Lagrange Noktaları'},
+  {kw:['ion','hall thruster','electric propulsion','vasimr','xenon'], file:'06-iyon-thruster.html', name:'İyon Thruster'},
+  {kw:['fusion','nuclear','antimatter','reactor'], file:'11-gercek-motorlar.html', name:'Gerçek Motorlar'},
+  {kw:['solar sail','lightsail','light sail','starshot'], file:'07-gunes-yelkeni.html', name:'Güneş Yelkeni'},
+  {kw:['warp','wormhole','faster-than-light','ftl'], file:'13-warp-solucan-deligi.html', name:'Warp & Solucan Deliği'},
+  {kw:['reentry','re-entry','heat shield','splashdown','capsule','landing'], file:'19-atmosfer-girisi.html', name:'Atmosfer Girişi'},
+  {kw:['gravity','orbit','kepler','asteroid','comet'], file:'15-kutle-cekimi-yorunge.html', name:'Yörüngeler'},
+  {kw:['relativity','light speed','black hole','time dilation'], file:'12-gorelilik.html', name:'Görelilik'},
+  {kw:['rocket','launch','engine','propulsion','thrust','booster'], file:'05-roket-denklemi.html', name:'Roket Denklemi'},
+  {kw:['gravity assist','flyby','slingshot','voyager'], file:'10-yercekimi-sapani.html', name:'Yerçekimi Sapanı'},
+];
+function matchLesson(txt){ const t=txt.toLowerCase();
+  for(const L of LESSON){ if(L.kw.some(k=>t.includes(k))) return L; }
+  return {file:'index.html', name:'Müfredat'};
+}
+const FILTERS=[
+  {label:'Tümü', q:''},
+  {label:'🚀 Roket & İtki', q:'rocket'},
+  {label:'🔴 Mars', q:'Mars'},
+  {label:'🔭 Teleskop & JWST', q:'telescope'},
+  {label:'🌑 Ay & Artemis', q:'Moon'},
+  {label:'🛰️ Uydular', q:'satellite'},
+];
+let activeQ='';
+
+function fmtDate(s){ try{ const d=new Date(s); return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}); }catch(e){return '';} }
+
+async function loadNews(){
+  const grid=document.getElementById('grid'), st=document.getElementById('status');
+  grid.innerHTML=''; st.style.display='block'; st.textContent='Haberler yükleniyor…';
+  let url='https://api.spaceflightnewsapi.net/v4/articles/?limit=18&ordering=-published_at';
+  if(activeQ) url+='&search='+encodeURIComponent(activeQ);
+  try{
+    const r=await fetch(url); const j=await r.json();
+    if(!j.results||!j.results.length){ st.textContent='Bu konuda haber bulunamadı.'; return; }
+    st.style.display='none';
+    grid.innerHTML=j.results.map(a=>{
+      const L=matchLesson((a.title||'')+' '+(a.summary||''));
+      const sum=(a.summary||'').trim().slice(0,160);
+      return `<div class="ncard">
+        ${a.image_url?`<div class="thumb" style="background-image:url('${a.image_url.replace(/'/g,'')}')"></div>`:''}
+        <div class="body">
+          <div class="meta">${(a.news_site||'').toUpperCase()} · ${fmtDate(a.published_at)}</div>
+          <h4>${esc(a.title)}</h4>
+          <p>${esc(sum)}${sum.length>=160?'…':''}</p>
+          <div class="row">
+            <a class="src" href="${esc(a.url)}" target="_blank" rel="noopener">Kaynağı oku ↗</a>
+            <a class="lesson" href="../dersler/${L.file}" title="${L.name}">🔭 ${L.name}</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    st.textContent='Haberler yüklenemedi (internet bağlantısı gerekir). '+e.message;
+  }
+}
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function loadAPOD(){
+  try{
+    const r=await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+    if(!r.ok) return; const a=await r.json();
+    if(a.media_type!=='image') return;
+    const h=document.getElementById('hero');
+    h.innerHTML=`<img src="${esc(a.url)}" alt=""><div class="cap"><div class="k">NASA · Günün Uzay Görseli</div><h3>${esc(a.title)}</h3><p>${esc((a.explanation||'').slice(0,220))}…</p></div>`;
+    h.style.display='block';
+  }catch(e){ /* sessizce geç */ }
+}
+
+// filtre çipleri
+const chips=document.getElementById('chips');
+FILTERS.forEach((f,i)=>{ const d=document.createElement('div'); d.className='chip'+(i===0?' on':''); d.textContent=f.label;
+  d.onclick=()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); d.classList.add('on'); activeQ=f.q; loadNews(); };
+  chips.appendChild(d); });
+
+loadAPOD();
+loadNews();
+</script>
+</body>
+</html>

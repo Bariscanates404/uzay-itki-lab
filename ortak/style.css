@@ -86,3 +86,28 @@ input[type=range]{accent-color:var(--accent)}
 .sliders .res .p{color:#ffcf5a}.sliders .res .vs{color:#46e08a}
 .sliders select{background:#101840;color:#e8ecff;border:1px solid #2c3a7a;border-radius:8px;padding:7px 10px;font-size:14px;font-family:inherit}
 .sliders select:focus{outline:none;border-color:var(--accent)}
+
+/* ---- Bilim Haberleri ---- */
+.hero{position:relative;border-radius:16px;overflow:hidden;margin-bottom:22px;border:1px solid #1d2750;min-height:120px}
+.hero img{width:100%;display:block;max-height:340px;object-fit:cover}
+.hero .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;background:linear-gradient(0deg,rgba(5,6,15,.92),transparent)}
+.hero .cap .k{font-size:11px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase}
+.hero .cap h3{font-size:18px;margin:4px 0;color:#fff}
+.hero .cap p{font-size:13px;color:var(--muted);max-width:680px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{background:var(--panel);color:var(--muted);border:1px solid #1d2750;padding:7px 13px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.chip:hover{border-color:var(--accent);color:var(--ink)}
+.chip.on{background:linear-gradient(180deg,#1c2a66,#142052);color:#fff;border-color:var(--accent)}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.ncard{background:var(--panel);border:1px solid #1d2750;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:.15s}
+.ncard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.ncard .thumb{height:150px;background:#0a1030 center/cover no-repeat;border-bottom:1px solid #1d2750}
+.ncard .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ncard .meta{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.5px}
+.ncard h4{font-size:15px;color:#fff;line-height:1.35}
+.ncard p{font-size:13px;color:var(--muted);line-height:1.5;flex:1}
+.ncard .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+.ncard a.src{font-size:13px;font-weight:600;color:var(--accent)}
+.ncard .lesson{font-size:12px;color:var(--good);background:#0c1f16;border:1px solid #1d5a3a;border-radius:8px;padding:4px 9px;text-decoration:none}
+.ncard .lesson:hover{background:#103a24}
+.status{color:var(--muted);font-size:14px;padding:30px;text-align:center}
