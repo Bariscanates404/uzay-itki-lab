@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 06 · İyon Thruster</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 06</div>
+  <h1>Ders 06 · İyon Thruster</h1>
+  <div class="sub">Önceki dersin çözümü: egzoz hızını uçur. İyon motoru, minik parçacıkları (xenon iyonları) saniyede ~40 km hızla fırlatır.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> İyon thruster atomları iyonlaştırıp <b class="key">elektrik alanıyla</b> çok yüksek hıza çıkarır. İtki minicik (bir bozuk paranın ağırlığı kadar),
+    ama yakıt çok az gittiği için <b>yıllarca</b> durmadan çalışır → toplamda devasa Δv. Bedeli: bol elektrik gerekir (güneş paneli) ve yerden kalkış yapamaz.
+    Mıknatıs/elektrik alan fikrinin gerçekten işe yaradığı yer burası.
+  </div>
+
+  <div class="navrow">
+    <a href="05-roket-denklemi.html">← Ders 05</a>
+    <a href="../index.html">Sıradaki: Ders 07 (yakında) →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+Lab.start([
+  {
+    tab:'1 · Nasıl çalışır',
+    html:`<h2>Adım adım iyon motoru</h2>
+      <b>1)</b> Xenon gazı odaya girer (nötr atomlar). <b>2)</b> Elektronlar atomlara çarpar → <b style="color:#ffcf5a">pozitif iyon</b> olurlar.
+      <b>3)</b> İki ızgara arasındaki elektrik alanı iyonları <b class="key">ileri fırlatır</b> (çok hızlanır). <b>4)</b> Dışarı iyon demeti.
+      <b>5)</b> Nötrleştirici elektron ekler ki gemi yüklenip iyonları geri çekmesin.`,
+    loop:true,
+    draw:(g,t)=>{
+      const chamberR=300, grid1=305, grid2=350, midY=F.midY;
+      // oda
+      g.fillStyle='rgba(40,60,140,.25)';g.strokeStyle='#5ad1ff';g.lineWidth=2;
+      rrect(g,60,midY-70,chamberR-60,140,12);g.fill();g.stroke();
+      // ızgaralar
+      g.fillStyle='#ff6b6b';g.fillRect(grid1,midY-66,6,132); label(g,'+',grid1+3,midY-74,'#ff6b6b',16);
+      g.fillStyle='#5ad1ff';g.fillRect(grid2,midY-66,6,132); label(g,'–',grid2+3,midY-74,'#5ad1ff',16);
+      // alan okları
+      for(let i=-2;i<=2;i++){ arrow(g,grid1+10,midY+i*22,30,'rgba(120,200,255,.5)'); }
+      // serbest elektronlar (oda içinde)
+      for(let e=0;e<8;e++){ const ex=120+((Math.sin(t*3+e)*0.5+0.5)*150); const ey=midY+Math.cos(t*4+e*1.7)*45;
+        g.fillStyle='#7fd6ff';g.beginPath();g.arc(ex,ey,3,0,7);g.fill(); }
+      // akış parçacıkları
+      const N=14;
+      for(let i=0;i<N;i++){
+        let p=((t*0.55 + i/N)%1);
+        let x,col,r=6,ion=false;
+        if(p<0.5){ x=60+ (p/0.5)*(grid1-70); col = p<0.28? '#9aa6c8':'#ffcf5a'; ion=p>=0.28; }      // odada: nötr→iyon
+        else if(p<0.62){ x=grid1 + ((p-0.5)/0.12)*(grid2-grid1+10); col='#ffcf5a'; ion=true; }        // hızlanma
+        else { x=grid2+10 + ((p-0.62)/0.38)*(F.W-grid2-30); col='#ffd76a'; ion=true; }                 // demet
+        const y=midY + Math.sin(i*2.3)*22*(p<0.5?1:0.4);
+        g.fillStyle=col;g.shadowColor=ion?'#ffcf5a':'transparent';g.shadowBlur=ion?10:0;
+        g.beginPath();g.arc(x,y,r,0,7);g.fill();g.shadowBlur=0;
+        if(ion){ g.fillStyle='#7a5a00';g.font='bold 9px Segoe UI';g.fillText('+',x-2,y+3); }
+        if(p>0.62){ arrow(g,x-2,y,18,'#ffd76a'); }   // hızlı demet oku
+      }
+      // nötrleştirici
+      g.fillStyle='#7fd6ff';g.fillRect(F.W-90,midY+60,40,6);
+      for(let e=0;e<4;e++){ const pp=(t*2+e/4)%1; g.globalAlpha=1-pp;g.beginPath();g.arc(F.W-70,midY+60-pp*30,3,0,7);g.fill(); }
+      g.globalAlpha=1;
+      // etiketler
+      label(g,'1 gaz girişi',95,midY+95,'#9aa6c8',12);
+      label(g,'2 iyonlaştırma',200,midY-90,'#ffcf5a',12);
+      label(g,'3 ızgaralar',grid1+24,midY+95,'#9fb0ff',12);
+      label(g,'4 iyon demeti',560,midY-50,'#ffd76a',12);
+      label(g,'5 nötrleştirici',F.W-70,midY+90,'#7fd6ff',12);
+      banner(g,'Atomu iyonlaştır → elektrik alanıyla fırlat → ~40 km/s egzoz','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Kaplumbağa & Tavşan',
+    html:`<h2>Az ama sürekli itki kazanır</h2><b style="color:#ff9f6b">Kimyasal roket (tavşan):</b> başta dev itki, hızla öne fırlar, sonra yakıt biter, sabit hızda kalır.
+          <b style="color:#7fd6ff">İyon (kaplumbağa):</b> minicik ama <b class="key">durmayan</b> itki. Yavaş yavaş hızlanır ve sonunda tavşanı geçer. NASA'nın Dawn aracı böyle 41.000 km/s'e ulaştı.`,
+    loop:true,
+    draw:(g,t)=>{
+      const yC=F.midY-55, yI=F.midY+55;
+      // şeritler
+      g.strokeStyle='#222c52';g.lineWidth=1;
+      g.beginPath();g.moveTo(60,yC+30);g.lineTo(F.W-20,yC+30);g.moveTo(60,yI+30);g.lineTo(F.W-20,yI+30);g.stroke();
+      // kimyasal
+      let xC; const burn=0.12;
+      if(t<burn){ xC=70+ease(t/burn)*110; } else { xC=180+(t-burn)*620; }
+      // iyon
+      const xI=70 + t*t*840;
+      // çiz kimyasal roket
+      g.save();g.translate(xC,yC);
+      g.fillStyle='#dfe6ff';rrect(g,-40,-14,70,28,7);g.fill();
+      g.beginPath();g.moveTo(30,-14);g.lineTo(52,0);g.lineTo(30,14);g.closePath();g.fill();
+      if(t<burn){ for(let k=0;k<8;k++){ const pp=Math.random(); g.globalAlpha=1-pp;g.fillStyle=k%2?'#ffcf5a':'#ff6b6b';
+        g.beginPath();g.arc(-44-pp*50,(Math.random()-0.5)*22,7-pp*4,0,7);g.fill(); } g.globalAlpha=1; }
+      g.restore();
+      label(g,'KİMYASAL (tavşan)',120,yC-30,'#ff9f6b',12);
+      label(g, t<burn?'DEV İTKİ!':'yakıt bitti → sabit hız', xC, yC+44, t<burn?'#ff6b6b':'#8b93c7',11);
+      // çiz iyon roket
+      g.save();g.translate(xI,yI);
+      g.fillStyle='#cdd6ff';rrect(g,-36,-13,64,26,7);g.fill();
+      g.beginPath();g.moveTo(28,-13);g.lineTo(48,0);g.lineTo(28,13);g.closePath();g.fill();
+      // küçük sürekli mavi alev
+      const pp=(t*6)%1; g.globalAlpha=.8;g.fillStyle='#7fd6ff';g.beginPath();g.arc(-40-pp*16,0,4,0,7);g.fill();g.globalAlpha=1;
+      g.restore();
+      label(g,'İYON (kaplumbağa)',120,yI-30,'#7fd6ff',12);
+      label(g,'minik ama hep çalışıyor',xI,yI+44,'#7fd6ff',11);
+      if(xI>xC) label(g,'★ iyon geçti!',xI,yI-26,'#46e08a',13);
+      banner(g,'Sabit küçük itki, zamanla büyük hız kazandırır','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Gerçek örnek & sınırlar',
+    html:`<h2>Güçlü ama nazik</h2>İyon motoru muazzam <b>verimli</b> ama itkisi çok zayıf. Bu yüzden: elektrik gerektirir (güneş paneli), uzun görevler içindir,
+          ve <b class="keybad">yerden kalkış yapamaz</b> (Dünya çekimini yenecek itkisi yok). Uzayda, zamanla, rakipsiz.`,
+    loop:true,
+    draw:(g,t)=>{
+      const cx=F.cx, cyy=F.midY-10;
+      // güneş panelleri (sol/sağ)
+      for(const s of [-1,1]){
+        const px=cx + s*60;
+        g.fillStyle='#13306a';g.strokeStyle='#5ad1ff';
+        rrect(g, s<0? px-70:px, cyy-34, 70, 68, 4);g.fill();g.stroke();
+        g.strokeStyle='#2a4a8a';g.lineWidth=1;
+        for(let i=1;i<4;i++){ const gx=(s<0?px-70:px)+i*17.5; g.beginPath();g.moveTo(gx,cyy-34);g.lineTo(gx,cyy+34);g.stroke(); }
+        // parıltı
+        g.globalAlpha=.18+.12*Math.sin(t*3+s);g.fillStyle='#bfe3ff';rrect(g,(s<0?px-70:px),cyy-34,70,16,4);g.fill();g.globalAlpha=1;
+      }
+      // gövde
+      g.fillStyle='#26356f';g.strokeStyle='#7fb4ff';g.lineWidth=2;rrect(g,cx-26,cyy-26,52,52,8);g.fill();g.stroke();
+      // iyon plume (sola, mavi)
+      for(let k=0;k<10;k++){ const pp=(t*4+k/10)%1; g.globalAlpha=(1-pp)*.9;g.fillStyle='#7fd6ff';
+        g.beginPath();g.arc(cx-30-pp*70,cyy+(k%3-1)*5,4-pp*2,0,7);g.fill(); } g.globalAlpha=1;
+      arrow(g,cx+30,cyy,34,'#46e08a'); label(g,'minik itki ~90 mN',cx+95,cyy-10,'#46e08a',11);
+      // hız göstergesi (yavaş tırmanan)
+      const v=Math.floor(t*41000);
+      label(g,'biriken hız (Δv):',cx,F.midY+70,'#9fb0ff',13);
+      label(g, v.toLocaleString('tr')+' km/s', cx, F.midY+96,'#ffd76a',20);
+      // bilgi notları
+      label(g,'⚡ elektrik gerekir → güneş paneli',195,70,'#7fd6ff',12);
+      label(g,'⏳ yıllarca durmadan',195,94,'#9fb0ff',12);
+      label(g,'⛔ yerden kalkış yapamaz',F.W-180,70,'#ff6b6b',12);
+      label(g,'🏆 uzayda zamanla rakipsiz',F.W-180,94,'#46e08a',12);
+      banner(g,'Dawn: 425 kg xenon, ~11 yıl, 41.000 km/s Δv','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#9aa6c8',t:'Nötr xenon atomu'},
+  {c:'#ffcf5a',t:'Pozitif iyon (hızlandırılan)'},
+  {c:'#7fd6ff',t:'Elektron / iyon motoru'}
+]});
+</script>
+</body>
+</html>
