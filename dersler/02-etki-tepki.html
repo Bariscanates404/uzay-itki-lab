@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 02 · Etki – Tepki</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 02</div>
+  <h1>Ders 02 · Etki – Tepki</h1>
+  <div class="sub">Newton'un 3. Yasası: her kuvvete karşı, eşit büyüklükte ve ters yönde bir kuvvet vardır.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Uzayda ilerlemek istiyorsan mutlaka <b>bir şeyi ters yöne itmen</b> gerekir. Astronot duvarı iter (duvar onu iter),
+    roket gazı geri atar (gaz roketi ileri iter). Geriye itecek bir şey yoksa, ileri gidemezsin. Bir sonraki ders bunu sayıya döker.
+  </div>
+
+  <div class="navrow">
+    <a href="01-eylemsizlik.html">← Ders 01</a>
+    <a href="03-momentum.html">Ders 03: Momentum →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+Lab.start([
+  {
+    tab:'1 · Astronot duvarı iter',
+    html:`<h2>Duvarı itersin → duvar seni iter</h2>Uzay istasyonunun duvarını ittiğinde, duvar da seni <b class="key">tam aynı kuvvetle</b> ters yöne iter.
+          Sen hafifsin, geriye süzülürsün; istasyon ağır, neredeyse kıpırdamaz. İşte uzayda hareketin temeli bu.`,
+    loop:false,
+    draw:(g,t)=>{
+      // istasyon duvarı sağda
+      g.fillStyle='#16205a';g.strokeStyle='#5ad1ff';g.lineWidth=2.5;
+      rrect(g,F.W-90,40,90,F.H-80,12);g.fill();g.stroke();
+      label(g,'İSTASYON',F.W-45,30,'#9fb0ff');
+      // astronot itip uzaklaşır
+      let ax;
+      if(t<0.2){ ax=F.W-150 - ease(t/0.2)*6; }     // itme anı (hafif yaklaşma)
+      else { ax=F.W-156 - (t-0.2)*620; }            // geriye süzülme
+      drawAstro(g,ax,false);
+      if(t<0.2){
+        arrow(g,ax+22,F.midY,40,'#46e08a'); label(g,'etki',ax+50,F.midY-40,'#46e08a');
+        arrow(g,ax-10,F.midY,-40,'#ffcf5a'); label(g,'tepki',ax-44,F.midY+44,'#ffcf5a');
+      } else {
+        arrow(g,ax-26,F.midY,-36,'#5ad1ff'); label(g,'astronot uzaklaşır',ax-10,F.midY-44,'#5ad1ff');
+      }
+      banner(g,'Eşit ve ters: sen duvarı, duvar seni — ama sen hafif olduğun için sen gidersin','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Roket: gaz geri, roket ileri',
+    html:`<h2>Roketin sırrı</h2>Roket sıcak gazı <b class="keybad">aşağı/geri</b> fırlatır. Gaz da roketi <b class="key">yukarı/ileri</b> iter.
+          Roket havayı "itmiyor" — kendi attığı kütleyi itiyor. Bu yüzden boşlukta da çalışır. (Ders 03'te neden tam olarak işe yaradığını göreceğiz.)`,
+    loop:true,
+    draw:(g,t)=>{
+      const ry = F.midY+60 - Math.min(t,1)*120;   // roket yukarı çıkar
+      drawRocket(g, F.cx, ry, 1.4);
+      // egzoz parçacıkları aşağı
+      for(let i=0;i<7;i++){
+        const pp=( (t*2.2 + i/7) % 1 );
+        const py=ry+34+pp*70, px=F.cx+(i-3)*5*pp;
+        g.globalAlpha=1-pp;g.fillStyle=i%2?'#ffcf5a':'#ff6b6b';
+        g.beginPath();g.arc(px,py,6-pp*4,0,7);g.fill();g.globalAlpha=1;
+      }
+      arrowXY(g,F.cx-46,ry+10,0,40,'#ff6b6b'); label(g,'gaz (etki)',F.cx-86,ry+30,'#ff6b6b');
+      arrowXY(g,F.cx+46,ry+6,0,-40,'#46e08a'); label(g,'itki (tepki)',F.cx+92,ry-18,'#46e08a');
+      banner(g,'Aşağı attığın gaz, seni yukarı iter','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'Etki / itki kuvveti'},
+  {c:'#ffcf5a',t:'Tepki / atılan kütle'},
+  {c:'#5ad1ff',t:'Hareket eden hafif cisim'}
+]});
+</script>
+</body>
+</html>

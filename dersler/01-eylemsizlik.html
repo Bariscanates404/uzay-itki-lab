@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 01 · Eylemsizlik</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 01</div>
+  <h1>Ders 01 · Eylemsizlik</h1>
+  <div class="sub">Newton'un 1. Yasası: bir cisme kuvvet uygulanmazsa, hızını ve yönünü sonsuza dek korur.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Uzayda ilerlemek için sürekli motor çalıştırmana <b>gerek yok</b>. Bir kez hızlandın mı, sonsuza dek o hızla gidersin.
+    Yani itki sistemi sadece <b>hızı değiştirmek</b> (hızlanmak, yavaşlamak, dönmek) için lazım. Bu yüzden uzayda az yakıtla çok yol gidilir.
+  </div>
+
+  <div class="navrow">
+    <a href="../index.html">⌂ Müfredat</a>
+    <a href="02-etki-tepki.html">Ders 02: Etki–Tepki →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+Lab.start([
+  {
+    tab:'1 · Dünya (sürtünme var)',
+    html:`<h2>Dünya'da: it, bırak, durur</h2>Kutuyu itersin, gider ama <b class="keybad">sürtünme</b> onu yavaşlatıp durdurur.
+          Hareketi sürdürmek için sürekli itmen gerekir sanırsın. Aslında yanıltıcı olan bu.`,
+    loop:true,
+    draw:(g,t)=>{
+      // zemin
+      g.fillStyle='#1a1f3a';g.fillRect(0,F.midY+40,F.W,F.H-(F.midY+40));
+      g.strokeStyle='#33406f';g.lineWidth=2;g.beginPath();g.moveTo(0,F.midY+40);g.lineTo(F.W,F.midY+40);g.stroke();
+      // pozisyon: hızlanıp sürtünmeyle durur
+      let x, moving;
+      if(t<0.18){ x=120 + ease(t/0.18)*70; moving=true; }
+      else { const u=Math.min((t-0.18)/0.55,1); x=190 + (1-(1-u)*(1-u))*330; moving=u<1; }
+      drawBox(g,x,'#c9a24b');
+      if(t<0.18){ arrow(g,x+34,F.midY,46,'#46e08a'); label(g,'itiş',x+60,F.midY-34,'#46e08a'); }
+      else if(moving){ arrow(g,x-30,F.midY,-34,'#ff6b6b'); label(g,'sürtünme',x-58,F.midY-34,'#ff6b6b'); }
+      else { label(g,'DURDU',x,F.midY-40,'#ff6b6b',16); }
+      banner(g,'Sürtünme hareketi yer; bu yüzden "gitmek için itmek lazım" sanırız','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Uzay (sürtünme yok)',
+    html:`<h2>Uzayda: bir kez it → sonsuza git</h2>Aynı kutuyu uzayda bir kez itersin. <b class="key">Hiçbir şey yavaşlatmaz.</b>
+          Aynı hızla, aynı yönde, sonsuza kadar süzülür. Ekranın kenarından çıkar, öbür taraftan girer — hız hep aynı.`,
+    loop:true,
+    draw:(g,t)=>{
+      let x = 120 + ease(Math.min(t/0.15,1))*60;     // kısa itiş
+      if(t>=0.15){ x = 180 + (t-0.15)*900; }           // sabit hız
+      x = ((x-60) % (F.W+80)) + 60;                    // ekranı sarar
+      drawBox(g,x,'#c9a24b');
+      if(t<0.15){ arrow(g,x+34,F.midY,46,'#46e08a'); label(g,'tek itiş',x+64,F.midY-34,'#46e08a'); }
+      else { arrow(g,x+34,F.midY,40,'#5ad1ff'); label(g,'sabit hız → sonsuza',x,F.midY-44,'#5ad1ff'); }
+      banner(g,'Kuvvet yok ama hareket sürüyor — eylemsizlik','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'İtiş kuvveti'},
+  {c:'#ff6b6b',t:'Sürtünme (sadece Dünya)'},
+  {c:'#5ad1ff',t:'Sabit hızla süzülme'}
+]});
+</script>
+</body>
+</html>

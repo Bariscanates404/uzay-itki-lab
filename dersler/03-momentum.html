@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 03 · Momentumun Korunumu</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 03</div>
+  <h1>Ders 03 · Momentumun Korunumu</h1>
+  <div class="sub">Senin mıknatıslı top fikrin. Kapalı sistemin toplam momentumu değişmez → kütle merkezi sabit kalır.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Top gemide kalırsa (kapalı boru) gemi sadece sallanır, <b class="keybad">hiçbir yere gitmez</b> — kütle merkezi sabit.
+    Topu <b class="key">dışarı</b> atarsan (mass driver) gemi kalıcı itki kazanır. Tek kural: ilerlemek için bir kütleyi gerçekten dışarı fırlatmalısın.
+  </div>
+
+  <div class="navrow">
+    <a href="02-etki-tepki.html">← Ders 02</a>
+    <a href="../index.html">Sıradaki: Ders 04 (yakında) →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const M=8, m=1;
+Lab.start([
+  {
+    tab:'1 · Kapalı boru (top içeride)',
+    html:`<h2>Top gemide kalırsa → hiçbir yere gidemezsin</h2>Topu ileri ittiğinde gemi <b class="keybad">geri teper</b>; top duvara çarpıp durunca gemi ileri sıçrar.
+          İkisi <b>tam tamına</b> birbirini götürür. <b class="key">Yeşil çizgi hiç kıpırdamıyor.</b> Ateşle, doldur, tekrarla — gemi başladığı yere döner.`,
+    loop:true,
+    draw:(g,t)=>{
+      const maxRel=95; let rel;
+      if(t<0.45) rel=ease(t/0.45)*maxRel;
+      else if(t<0.55) rel=maxRel;
+      else rel=(1-ease((t-0.55)/0.45))*maxRel;
+      const shipC=F.cx - m*rel/(M+m), slugX=shipC+rel;
+      comLine(g,F.cx);
+      drawShip(g,shipC,false);
+      drawSlug(g,slugX);
+      const dir = t<0.45?1:(t<0.55?0:-1);
+      arrow(g,slugX,F.midY-40,46*dir,'#ffcf5a');
+      arrow(g,shipC,F.midY+62,-30*dir,'#5ad1ff');
+      banner(g, t<0.45?'1) ATEŞLE → gemi geri teper':(t<0.55?'2) ÇARPMA':'3) yeniden doldur → gemi geri gelir'),'#ff6b6b');
+    }
+  },
+  {
+    tab:'2 · Açık boru = Mass Driver',
+    html:`<h2>Topu DIŞARI atarsan → gerçek itki!</h2>Tek fark: boru arkadan açık (kırmızı uç), top gemiyi terk ediyor ve <b>geri dönmüyor</b>.
+          Top geriye uçarken gemi <b class="key">kalıcı olarak ileri kayıyor</b> ve hızını koruyor. İşte buna <b>mass driver</b> denir. Bedeli: her atışta bir top harcarsın.`,
+    loop:false,
+    draw:(g,t)=>{
+      const maxRel=120; let rel,shipC,slugX,slugFreeX,gone=false;
+      if(t<0.5){ const u=t/0.5; rel=-ease(u)*maxRel; shipC=F.cx-m*rel/(M+m); slugX=shipC+rel; }
+      else { gone=true; const u=(t-0.5)/0.5; rel=-maxRel; const se=F.cx-m*rel/(M+m); shipC=se+u*200; slugFreeX=(F.cx+rel)-u*470; }
+      comLine(g,F.cx);
+      drawShip(g,shipC,true);
+      if(gone){ if(slugFreeX>-30) drawSlug(g,slugFreeX); arrow(g,slugFreeX,F.midY-40,-40,'#ffcf5a'); }
+      else { drawSlug(g,slugX); arrow(g,slugX,F.midY-40,-40,'#ffcf5a'); }
+      arrow(g,shipC,F.midY+62,40,'#5ad1ff');
+      banner(g, t<0.5?'Topu GERİYE fırlat → gemi öne teper':'Top gitti, gemi hızını KORUYOR → kalıcı itki','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Uzayda bovling topu',
+    html:`<h2>Neden geri tepme kaçınılmaz?</h2>Astronot topu iter — top bir yöne, astronot <b class="keybad">ters yöne</b> süzülür.
+          Yavaş it, hızlı it fark etmez; topa verdiğin momentumun eşitini ters yönde sen alırsın. <b class="key">Kütle merkezi sabit.</b>`,
+    loop:false,
+    draw:(g,t)=>{
+      const u = t<0.4? ease(t/0.4):1;
+      const aX=F.cx - u*60, bX=F.cx + u*200;
+      comLine(g,F.cx);
+      drawAstro(g,aX,false);
+      g.fillStyle='#ffcf5a';g.shadowColor='#ffcf5a';g.shadowBlur=16;
+      g.beginPath();g.arc(bX,F.midY,16,0,7);g.fill();g.shadowBlur=0;
+      label(g,'top',bX,F.midY+4,'#7a5a00',10);
+      arrow(g,bX,F.midY-44,42,'#ffcf5a');
+      arrow(g,aX,F.midY-44,-34,'#5ad1ff');
+      banner(g,'İt → ikiniz ters yöne süzülürsünüz, merkez sabit','#46e08a');
+    }
+  }
+]);
+</script>
+</body>
+</html>
