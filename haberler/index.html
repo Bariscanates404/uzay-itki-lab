@@ -156,7 +156,8 @@ FILTERS.forEach((f,i)=>{ const d=document.createElement('div'); d.className='chi
 
 // dil düğmesi (sağda)
 const langChip=document.createElement('div'); langChip.className='chip on'; langChip.style.marginLeft='auto'; langChip.textContent='🇹🇷 Türkçe';
-langChip.onclick=()=>{ lang=lang==='tr'?'en':'tr'; langChip.textContent=lang==='tr'?'🇹🇷 Türkçe':'🇬🇧 English'; langChip.classList.toggle('on',lang==='tr'); applyLang(); };
+langChip.title='Türkçe çeviri ↔ orijinal (çevirisiz) dil';
+langChip.onclick=()=>{ lang=lang==='tr'?'en':'tr'; langChip.textContent=lang==='tr'?'🇹🇷 Türkçe':'🌐 Orijinal'; langChip.classList.toggle('on',lang==='tr'); applyLang(); };
 chips.appendChild(langChip);
 
 loadAPOD();
