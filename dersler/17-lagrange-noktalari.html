@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 17 · Lagrange Noktaları</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 17</div>
+  <h1>Ders 17 · Lagrange Noktaları</h1>
+  <div class="sub">İki cismin kütle çekiminin "dengelendiği" 5 özel nokta — uzayın bedava park yerleri. JWST burada bekliyor.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> İki büyük cisim (Güneş–Dünya) döner sistemde, kütle çekimi + merkezkaç kuvvetinin dengelendiği <b class="key">5 Lagrange noktası</b> vardır. Bir uydu burada iki cisme göre <b>sabit</b> kalabilir.
+    <b>L1</b> (SOHO), <b>L2</b> (JWST — Güneş/Dünya hep arkada, soğuk & karanlık), <b>L3</b> karşı taraf. <b>L4/L5</b> (60° önde/arkada) <b class="key">kararlı</b> — Truva asteroitleri orada birikir.
+    L1/L2/L3 kararsızdır → az da olsa istasyon-tutma yakıtı gerekir.
+  </div>
+
+  <div class="navrow">
+    <a href="16-hohmann-transfer.html">← Ders 16</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function sun(g,x,y,r){ glowCircle(g,x,y,r*2.4,'rgba(255,200,80,.4)');
+  const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+  g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill(); }
+function Lmark(g,x,y,name,col){ g.strokeStyle=col;g.lineWidth=2;
+  g.beginPath();g.moveTo(x-6,y);g.lineTo(x+6,y);g.moveTo(x,y-6);g.lineTo(x,y+6);g.stroke();
+  g.fillStyle=col;g.font='bold 12px Segoe UI';g.textAlign='center';g.fillText(name,x,y-10);g.textAlign='left'; }
+
+Lab.start([
+  {
+    tab:'1 · Beş denge noktası',
+    html:`<h2>Güneş–Dünya sistemi (döner çerçeve)</h2>Sistem döner ama bu noktalar yerinde kalır. <b>L1</b>: Güneş–Dünya arası. <b>L2</b>: Dünya'nın arkası. <b>L3</b>: karşı taraf.
+          <b>L4/L5</b>: Dünya'nın yörüngesinde 60° önde/arkada (eşkenar üçgen). Her birinde gerçek uydular/asteroitler var.`,
+    loop:true,
+    draw:(g,t)=>{
+      const SX=F.cx-40, SY=F.midY, R=200, a=t*6.283*0.12;
+      const ux=Math.cos(a), uy=Math.sin(a);
+      // yörünge
+      g.strokeStyle='rgba(127,180,255,.3)';g.setLineDash([4,6]);g.lineWidth=1.5;g.beginPath();g.arc(SX,SY,R,0,7);g.stroke();g.setLineDash([]);
+      sun(g,SX,SY,20); label(g,'GÜNEŞ',SX,SY+38,'#ffd24d',12);
+      const E=[SX+R*ux,SY+R*uy];
+      drawPlanet(g,E[0],E[1],11,'#3a6ea5'); label(g,'Dünya',E[0],E[1]+24,'#7fb4ff',11);
+      const L1=[SX+(R-30)*ux,SY+(R-30)*uy], L2=[SX+(R+30)*ux,SY+(R+30)*uy], L3=[SX-(R+6)*ux,SY-(R+6)*uy];
+      const a4=a+Math.PI/3, a5=a-Math.PI/3;
+      const L4=[SX+R*Math.cos(a4),SY+R*Math.sin(a4)], L5=[SX+R*Math.cos(a5),SY+R*Math.sin(a5)];
+      Lmark(g,L1[0],L1[1],'L1','#7fd6ff'); Lmark(g,L2[0],L2[1],'L2','#46e08a'); Lmark(g,L3[0],L3[1],'L3','#b18bff');
+      Lmark(g,L4[0],L4[1],'L4','#ffcf5a'); Lmark(g,L5[0],L5[1],'L5','#ffcf5a');
+      // eşkenar üçgen ipucu
+      g.strokeStyle='rgba(255,207,90,.25)';g.lineWidth=1;g.beginPath();g.moveTo(SX,SY);g.lineTo(L4[0],L4[1]);g.lineTo(E[0],E[1]);g.closePath();g.stroke();
+      label(g,'SOHO/DSCOVR',L1[0],L1[1]+22,'#7fd6ff',10);
+      label(g,'JWST/Gaia',L2[0],L2[1]+22,'#46e08a',10);
+      label(g,'Truva asteroitleri',L4[0],L4[1]-22,'#ffcf5a',10);
+      banner(g,'Kütle çekimi + merkezkaç dengesi → 5 sabit nokta','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Neden L2? (JWST)',
+    html:`<h2>James Webb neden orada bekliyor</h2>L2, Dünya'dan ~1.5 milyon km, Güneş'in tam tersi yönde. Buradan <b class="key">Güneş, Dünya ve Ay hep aynı tarafta (arkada)</b> kalır.
+          Tek bir <b>güneş kalkanı</b> hepsini bloklar → teleskop sürekli soğuk, karanlık ve engelsiz gökyüzü görür. JWST L2 etrafında geniş bir "halo" yörüngesinde döner.`,
+    loop:true,
+    draw:(g,t)=>{
+      const SX=70, EX=430, L2X=580, Y=F.midY-10;
+      sun(g,SX,Y,26); label(g,'GÜNEŞ',SX,Y+44,'#ffd24d',11);
+      // ışın çizgisi
+      g.strokeStyle='rgba(255,220,150,.25)';g.lineWidth=1;g.beginPath();g.moveTo(SX,Y);g.lineTo(L2X+60,Y);g.stroke();
+      drawPlanet(g,EX,Y,16,'#3a6ea5'); label(g,'Dünya',EX,Y+30,'#7fb4ff',11);
+      Lmark(g,L2X,Y,'L2','#46e08a'); label(g,'~1.5 milyon km',(EX+L2X)/2,Y+28,'#9fb0ff',10);
+      // JWST halo
+      const hx=L2X+Math.cos(t*6.283)*42, hy=Y+Math.sin(t*6.283)*30;
+      // güneş kalkanı (güneşe bakan plaka)
+      g.save();g.translate(hx,hy);g.rotate(0.35);
+      g.fillStyle='#caa86a';rrect(g,-4,-26,8,52,2);g.fill();          // kalkan
+      g.fillStyle='#bfe3ff';g.beginPath();g.arc(10,0,7,0,7);g.fill(); // teleskop (soğuk taraf)
+      g.restore();
+      label(g,'JWST (halo yörünge)',hx,hy-40,'#bfe3ff',11);
+      label(g,'☀ kalkan → sıcak yüz',hx-2,hy+46,'#ff9f6b',10);
+      label(g,'❄ teleskop → soğuk yüz',hx+2,hy+62,'#7fd6ff',10);
+      label(g,'Güneş + Dünya + Ay → hep arkada, tek kalkan yeter',F.cx,70,'#46e08a',13);
+      banner(g,'L2: sürekli soğuk, karanlık, engelsiz gökyüzü — teleskop cenneti','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Kararlı mı, kararsız mı?',
+    html:`<h2>Kimi nokta çukur, kimi tepe</h2><b style="color:#ffcf5a">L4/L5 kararlı:</b> top bir çukurdadır, itilse geri döner — bu yüzden Truva asteroitleri orada kendiliğinden birikir.
+          <b style="color:#ff6b6b">L1/L2/L3 kararsız:</b> top bir tepededir, en ufak itişte kayıp gider → uydular az da olsa <b>istasyon-tutma yakıtı</b> harcar.`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: kararlı ÇUKUR (∪) — L4/L5
+      const lx=240, cy=F.midY-10, K=200;
+      g.strokeStyle='#ffcf5a';g.lineWidth=2.5;g.beginPath();
+      for(let x=-130;x<=130;x+=4){ g.lineTo(lx+x, cy - (x*x)/K); } g.stroke();
+      const off1=70*Math.sin(t*6.283); const bx=lx+off1, by=cy-(off1*off1)/K;
+      g.fillStyle='#46e08a';g.beginPath();g.arc(bx,by-9,9,0,7);g.fill();
+      for(let i=0;i<5;i++){ const ox=(i-2)*15; g.fillStyle='#caa86a';g.beginPath();g.arc(lx+ox, cy-(ox*ox)/K-5,3,0,7);g.fill(); }
+      label(g,'L4 / L5 — KARARLI',lx,cy-100,'#ffcf5a',13);
+      label(g,'top çukurda → geri döner',lx,cy+30,'#9fb0ff',11);
+      label(g,'Truva asteroitleri burada toplanır',lx,cy+48,'#caa86a',11);
+      // sağ: kararsız TEPE (∩) — L1/L2/L3
+      const rx=620, ry=F.midY-70;
+      g.strokeStyle='#ff6b6b';g.lineWidth=2.5;g.beginPath();
+      for(let x=-130;x<=130;x+=4){ g.lineTo(rx+x, ry + (x*x)/K); } g.stroke();
+      const cyc=(t*1.0)%1; const off=(cyc<0.85? cyc/0.85*100 : 0);
+      const tx=rx+off, ty=ry + (off*off)/K;
+      g.fillStyle='#5ad1ff';g.beginPath();g.arc(tx,ty-9,9,0,7);g.fill();
+      if(cyc>=0.85){ for(let k=0;k<4;k++){ g.globalAlpha=1-(cyc-0.85)/0.15; g.fillStyle='#ffcf5a';
+        g.beginPath();g.arc(tx+10+k*5,ty-9,3,0,7);g.fill(); } g.globalAlpha=1; label(g,'thruster düzeltme!',tx+44,ty-18,'#ffcf5a',11); }
+      label(g,'L1 / L2 / L3 — KARARSIZ',rx,ry-16,'#ff6b6b',13);
+      label(g,'top tepeden kayar → yakıt gerek',rx,ry+120,'#9fb0ff',11);
+      banner(g,'L4/L5 kendiliğinden tutar; L1/L2/L3 sürekli düzeltme ister','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'L2 / JWST / kararlı top'},
+  {c:'#ffcf5a',t:'L4-L5 / Truva / düzeltme'},
+  {c:'#7fb4ff',t:'Dünya / yörünge'}
+]});
+</script>
+</body>
+</html>
