@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 07 · Güneş Yelkeni</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 07</div>
+  <h1>Ders 07 · Güneş Yelkeni</h1>
+  <div class="sub">İlk yakıtsız itki! Işık kütlesiz ama momentum taşır. Parlak bir yelkene çarpan fotonlar onu iter — sonsuza dek, bedava.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Foton kütlesizdir ama momentumu vardır (p = E/c). Aynaya çarpıp geri sekince momentumunu yelkene aktarır — <b class="key">yansıtma = 2 kat itki</b>.
+    İtki minicik ama <b>yakıt sıfır</b>; yelken yıllarca hızlanır. İtki yelken alanıyla artar, Güneş'ten uzaklaştıkça (uzaklık²) azalır. Yelkeni eğerek yörüngeyi büyütüp küçültebilirsin.
+    Not: bu <b>ışık basıncı</b>dır (güneş rüzgarı/parçacık değil — o çok daha zayıf; onu Ders 08'de göreceğiz).
+  </div>
+
+  <div class="navrow">
+    <a href="06-iyon-thruster.html">← Ders 06</a>
+    <a href="../index.html">Sıradaki: Ders 08 (yakında) →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value : def; }
+function sun(g,x,y,r,time){
+  glowCircle(g,x,y,r*2.6,'rgba(255,200,80,.45)');
+  const grd=g.createRadialGradient(x,y,0,x,y,r);
+  grd.addColorStop(0,'#fff4c2');grd.addColorStop(.6,'#ffd24d');grd.addColorStop(1,'#ff9b2d');
+  g.fillStyle=grd;g.beginPath();g.arc(x,y,r,0,7);g.fill();
+}
+function sail(g,x,y,h,col,ang){
+  g.save();g.translate(x,y);g.rotate(ang||0);
+  const grd=g.createLinearGradient(-6,-h/2,6,h/2);
+  grd.addColorStop(0,col[0]);grd.addColorStop(.5,col[1]);grd.addColorStop(1,col[0]);
+  g.fillStyle=grd;rrect(g,-5,-h/2,10,h,3);g.fill();
+  g.strokeStyle='#cfe8ff';g.lineWidth=1.5;g.strokeRect(-5,-h/2,10,h);
+  // direk
+  g.strokeStyle='#9fb0ff';g.beginPath();g.moveTo(5,0);g.lineTo(22,0);g.stroke();
+  g.fillStyle='#5ad1ff';g.beginPath();g.arc(26,0,5,0,7);g.fill();
+  g.restore();
+}
+
+Lab.start([
+  {
+    tab:'1 · Işık momentum taşır',
+    html:`<h2>Foton çarpar, yelken itilir</h2>Güneş'ten fotonlar akar. <b style="color:#7fd6ff">Parlak (yansıtıcı)</b> yelkende foton geri seker → hem gelen hem giden momentum →
+          <b class="key">2 kat itki</b>. <b style="color:#9aa6c8">Siyah (yutucu)</b> yelkende foton durur → sadece 1 kat itki. Aynı ışık, iki kat fark.`,
+    loop:true,
+    draw:(g,t)=>{
+      sun(g,64,F.midY,34,t);
+      label(g,'GÜNEŞ',64,F.midY+58,'#ffd24d',12);
+      const sailX=640, yT=F.midY-72, yB=F.midY+72;
+      // yansıtıcı (üst)
+      sail(g,sailX,yT,96,['#bfe3ff','#eaf6ff']);
+      label(g,'YANSITICI',sailX,yT-58,'#7fd6ff',12);
+      arrow(g,sailX+30,yT,60,'#46e08a'); label(g,'2× itki',sailX+108,yT-8,'#46e08a',12);
+      // yutucu (alt)
+      sail(g,sailX,yB,96,['#2a3252','#3c4668']);
+      label(g,'YUTUCU (siyah)',sailX,yB-58,'#9aa6c8',12);
+      arrow(g,sailX+30,yB,30,'#8b93c7'); label(g,'1× itki',sailX+90,yB-8,'#8b93c7',12);
+      // fotonlar üst (gidiş + sekme)
+      const N=12;
+      for(let i=0;i<N;i++){
+        let p=((t*0.7+i/N)%1);
+        if(p<0.5){ const x=100+(p/0.5)*(sailX-120), y=yT+Math.sin(i)*30;
+          g.fillStyle='#ffe28a';g.beginPath();g.arc(x,y,3.5,0,7);g.fill(); }
+        else { const x=(sailX-20)-((p-0.5)/0.5)*(sailX-120), y=yT+Math.sin(i)*30+12;
+          g.globalAlpha=1-(p-0.5)*1.4;g.fillStyle='#fff0b0';g.beginPath();g.arc(x,y,3,0,7);g.fill();g.globalAlpha=1; }
+      }
+      // fotonlar alt (gidiş + yutulma)
+      for(let i=0;i<N;i++){
+        let p=((t*0.7+i/N+0.3)%1);
+        if(p<0.5){ const x=100+(p/0.5)*(sailX-120), y=yB+Math.sin(i+2)*30;
+          g.fillStyle='#ffe28a';g.beginPath();g.arc(x,y,3.5,0,7);g.fill(); }
+        else { const x=sailX-22, y=yB+Math.sin(i+2)*30;
+          g.globalAlpha=Math.max(0,1-(p-0.5)*3);g.fillStyle='#ff8a3d';g.beginPath();g.arc(x,y,4*(1-(p-0.5)*2),0,7);g.fill();g.globalAlpha=1; }
+      }
+      banner(g,'p = E/c · yansıyan foton momentumun 2 katını aktarır','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Alan & uzaklık',
+    html:`<h2>Daha büyük yelken, daha yakın Güneş</h2>İtki, <b style="color:#7fd6ff">yelken alanıyla</b> doğru, <b style="color:#ffcf5a">Güneş'e uzaklığın karesiyle</b> ters orantılı. Kaydırıcılarla dene.
+      <div class="sliders">
+        <div class="row"><label>Yelken alanı</label><input id="s_a" type="range" min="1" max="10" step="1" value="5"><span id="o_a">5</span></div>
+        <div class="row"><label>Güneş'e uzaklık (AU)</label><input id="s_d" type="range" min="1" max="5" step="0.5" value="1"><span id="o_d">1</span></div>
+        <div class="res">İtki (göreli) = alan ÷ uzaklık² = <b class="vs" id="o_T">5.0</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const a=rd('s_a',5), d=rd('s_d',1), T=a/(d*d);
+      const oa=document.getElementById('o_a'),od=document.getElementById('o_d'),oT=document.getElementById('o_T');
+      if(oa)oa.textContent=a; if(od)od.textContent=d; if(oT)oT.textContent=T.toFixed(1);
+      sun(g,64,F.midY,30,t); label(g,'GÜNEŞ',64,F.midY+52,'#ffd24d',12);
+      const sailX=130 + ((d-1)/4)*620;        // uzaklık → x
+      const h=40 + a*16;                        // alan → yükseklik
+      sail(g,sailX,F.midY,h,['#bfe3ff','#eaf6ff']);
+      // foton yoğunluğu ~ 1/d² (uzakta seyrek)
+      const N=Math.max(3,Math.round(16/(d*d)));
+      for(let i=0;i<N;i++){ const p=((t*0.8+i/N)%1); const x=100+p*(sailX-110), y=F.midY+(Math.sin(i*1.7))*Math.min(h/2,60);
+        g.fillStyle='#ffe28a';g.beginPath();g.arc(x,y,3.5,0,7);g.fill(); }
+      arrow(g,sailX+30,F.midY, 14+T*9,'#46e08a'); label(g,'itki '+T.toFixed(1),sailX+30+14+T*9+30,F.midY-8,'#46e08a',12);
+      banner(g,'İtki ∝ alan / uzaklık²  — yelken ne kadar büyük & Güneş ne kadar yakınsa o kadar çok','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Yakıtsız, sonsuza (spiral)',
+    html:`<h2>Bedava ama sabırlı</h2>Yelken hiç yakıt harcamaz; ışık bedava. İtki çok küçük olduğundan hızlanma yavaş, ama <b class="key">durmaz</b> — yelken Güneş etrafında
+          giderek genişleyen bir spiralde dışarı tırmanır. Yelkeni eğerek hızlanır ya da yavaşlarsın. Gerçek: <b>IKAROS</b> (2010, ilk), <b>LightSail-2</b> (2019).`,
+    loop:true,
+    draw:(g,t)=>{
+      const sx=300, sy=F.midY;
+      // yörünge izi
+      g.strokeStyle='rgba(127,214,255,.35)';g.lineWidth=1.5;g.beginPath();
+      for(let u=0;u<=t;u+=0.01){ const r=70+u*150, ang=u*7; const X=sx+Math.cos(ang)*r, Y=sy+Math.sin(ang)*r*0.62;
+        u===0?g.moveTo(X,Y):g.lineTo(X,Y); }
+      g.stroke();
+      sun(g,sx,sy,32,t); label(g,'GÜNEŞ',sx,sy+56,'#ffd24d',12);
+      const r=70+t*150, ang=t*7, X=sx+Math.cos(ang)*r, Y=sy+Math.sin(ang)*r*0.62;
+      // güneşten yelkene fotonlar
+      for(let i=0;i<5;i++){ const p=((t*2+i/5)%1); const px=sx+(X-sx)*p, py=sy+(Y-sy)*p;
+        g.fillStyle='#ffe28a';g.globalAlpha=.8;g.beginPath();g.arc(px,py,3,0,7);g.fill();g.globalAlpha=1; }
+      sail(g,X,Y,52,['#bfe3ff','#eaf6ff'], ang+1.2);
+      // dışa itki oku (güneşten kaçış yönü)
+      const ox=Math.cos(ang)*22, oy=Math.sin(ang)*0.62*22;
+      arrowXY(g,X,Y,ox,oy,'#46e08a');
+      label(g,'0 yakıt · ışıkla',X,Y-40,'#7fd6ff',11);
+      // notlar
+      label(g,'⛽ yakıt: SIFIR',640,70,'#46e08a',13);
+      label(g,'🛰️ IKAROS 2010 (ilk)',640,96,'#9fb0ff',12);
+      label(g,'🛰️ LightSail-2 2019',640,120,'#9fb0ff',12);
+      label(g,'🎚️ yelkeni eğ → yörünge ayarla',640,144,'#7fd6ff',12);
+      banner(g,'Yavaş ama bitmez: yelken Güneş etrafında dışa spiral çizer','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ffe28a',t:'Foton (ışık)'},
+  {c:'#7fd6ff',t:'Yansıtıcı yelken'},
+  {c:'#46e08a',t:'Kazanılan itki'}
+]});
+</script>
+</body>
+</html>
