@@ -52,10 +52,12 @@ Lab.start([
     draw:(g,t)=>{
       const v=rd('s_v',20), R0=150;
       if(!s1 || Math.abs(v-s1v)>0.01){ s1={x:CX+R0,y:CY,vx:0,vy:-v,trail:[]}; s1v=v; }
-      step(s1,6);
-      const dx=s1.x-CX,dy=s1.y-CY,r=Math.hypot(dx,dy);
-      if(r>560||r<22){ s1={x:CX+R0,y:CY,vx:0,vy:-v,trail:[]}; }
-      s1.trail.push({x:s1.x,y:s1.y}); if(s1.trail.length>160)s1.trail.shift();
+      if(Lab.playing){
+        step(s1,Math.max(1,Math.round(6*Lab.speed)));
+        const r=Math.hypot(s1.x-CX,s1.y-CY);
+        if(r>560||r<22){ s1={x:CX+R0,y:CY,vx:0,vy:-v,trail:[]}; }
+        s1.trail.push({x:s1.x,y:s1.y}); if(s1.trail.length>160)s1.trail.shift();
+      }
       // iz
       g.strokeStyle='rgba(127,180,255,.5)';g.lineWidth=2;g.beginPath();
       s1.trail.forEach((p,i)=>i===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y));g.stroke();
@@ -93,7 +95,8 @@ Lab.start([
       label(g,'(iki alan EŞİT)',CX,CY+95,'#dfe8ff',12);
       // gezegen: dθ ∝ 1/r² (Kepler 2)
       if(s1===null||true){} // bağımsız açı
-      window._kth=(window._kth||0); const rr=rOf(window._kth); window._kth+=520/(rr*rr); if(window._kth>6.283)window._kth-=6.283;
+      window._kth=(window._kth||0); const rr=rOf(window._kth);
+      if(Lab.playing){ window._kth+=520/(rr*rr)*Lab.speed; if(window._kth>6.283)window._kth-=6.283; }
       const px=CX+rr*Math.cos(window._kth), py=CY+rr*Math.sin(window._kth);
       g.fillStyle='#5ad1ff';g.beginPath();g.arc(px,py,7,0,7);g.fill();
       banner(g,'Kepler 2: çizgi Güneş–gezegen eşit zamanda eşit alan süpürür','#46e08a');
