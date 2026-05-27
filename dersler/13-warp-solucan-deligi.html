@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 13 · Warp & Solucan Delikleri</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 13</div>
+  <h1>Ders 13 · Warp Sürücüsü & Solucan Delikleri</h1>
+  <div class="sub">Son sınır: c'yi aşmak yasak (Ders 12) — ama ya uzayın kendisini bükersek? Uzay-zaman "hile"leri ve neden hâlâ inşa edemiyoruz.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> <b class="key">Warp sürücüsü</b> (Alcubierre 1994) gemiyi hızlandırmaz — önündeki uzayı sıkıştırıp arkasındakini genişletir; gemi düz bir baloncukta durur, uzay onu taşır.
+    Yerel olarak c aşılmaz, ama varış ışıktan hızlı "görünür". <b>Solucan deliği</b> ise uzay-zamanı katlayıp iki noktayı kestirmeden bağlar.
+    İkisi de Einstein denklemleriyle <b>matematiksel olarak tutarlı</b> — ama <b class="keybad">negatif enerji / egzotik madde</b> gerektiriyor (var olduğu bilinmiyor), artı nedensellik (zaman makinesi) paradoksları. Henüz teori; ama yasak değil.
+  </div>
+
+  <div class="navrow">
+    <a href="12-gorelilik.html">← Ders 12</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function pathAt(pts,f){ const seg=(pts.length-1)*Math.max(0,Math.min(1,f)); const i=Math.min(Math.floor(seg),pts.length-2); const s=seg-i;
+  return {x:pts[i].x+(pts[i+1].x-pts[i].x)*s, y:pts[i].y+(pts[i+1].y-pts[i].y)*s}; }
+
+Lab.start([
+  {
+    tab:'1 · Warp: uzayı bük, gemiyi taşı',
+    html:`<h2>Gemi hareket etmez — uzay hareket eder</h2>Warp baloncuğu <b style="color:#ff9f6b">önde</b> uzayı sıkıştırır, <b style="color:#7fd6ff">arkada</b> genişletir.
+          Gemi ortadaki <b class="key">düz</b> bölgede durur (yerel hızı sıfır, hiçbir kural çiğnenmez), ama baloncuk ışıktan hızlı kayabilir. Izgaranın baloncukla nasıl büküldüğünü izle.`,
+    loop:true,
+    draw:(g,t)=>{
+      const bx=((t*(F.W+240))-120); // baloncuk sağa süzülür
+      // yıldız çizgileri (hız hissi)
+      for(let i=0;i<6;i++){ const sx=((t*900+i*160)%(F.W+80))-40; g.strokeStyle='rgba(200,220,255,.25)';g.lineWidth=2;
+        g.beginPath();g.moveTo(sx,70+i*45);g.lineTo(sx-26,70+i*45);g.stroke(); }
+      // ızgara (warp ile bükülür)
+      const w=120,A=44;
+      for(let X0=-40;X0<=F.W+40;X0+=30){ const s=X0-bx; const d=-A*Math.exp(-((s/w)**2));
+        g.globalAlpha=0.18+0.5*Math.exp(-((s/(w*1.7))**2));
+        g.strokeStyle='#7fb4ff';g.lineWidth=1;g.beginPath();g.moveTo(X0+d,46);g.lineTo(X0+d,F.H-30);g.stroke(); }
+      g.globalAlpha=1;
+      // baloncuk
+      glowCircle(g,bx,F.midY,120,'rgba(120,160,255,.2)');
+      g.strokeStyle='rgba(160,200,255,.7)';g.lineWidth=2.5;g.beginPath();g.ellipse(bx,F.midY,68,86,0,0,7);g.stroke();
+      g.fillStyle='rgba(8,12,32,.78)';g.beginPath();g.ellipse(bx,F.midY,50,66,0,0,7);g.fill();
+      // gemi (baloncuk içinde sabit)
+      g.save();g.translate(bx,F.midY);g.fillStyle='#eaf6ff';g.beginPath();g.moveTo(16,0);g.lineTo(-10,-9);g.lineTo(-10,9);g.closePath();g.fill();g.restore();
+      label(g,'önde SIKIŞIR',F.W-120,66,'#ff9f6b',13);
+      label(g,'arkada GENİŞLER',150,F.H-50,'#7fd6ff',13);
+      label(g,'gemi: düz baloncukta, yerel hız = 0',bx,F.midY-98,'#46e08a',12);
+      banner(g,'Uzayın kendisi taşır → ışıktan hızlı "görünür", ama yerel c aşılmaz','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Solucan deliği: kestirme',
+    html:`<h2>Uzay-zamanı katla, deliği geç</h2>İki nokta normal uzayda çok uzak olabilir. Ama uzay-zamanı bir kâğıt gibi katlarsan, <b class="key">delip geçerek</b> kısa yoldan ulaşırsın.
+          Aşağıda iki gemi yarışıyor: biri normal yoldan (uzun), biri solucan deliğinden (kısa). Hangisi önce varır?`,
+    loop:true,
+    draw:(g,t)=>{
+      const yU=120,yL=300, A={x:180,y:yU}, B={x:180,y:yL}, tx=F.cx+60;
+      // iki evren düzlemi
+      g.strokeStyle='rgba(127,180,255,.45)';g.lineWidth=2;
+      g.beginPath();g.moveTo(120,yU);g.lineTo(740,yU);g.stroke();
+      g.beginPath();g.moveTo(120,yL);g.lineTo(740,yL);g.stroke();
+      // sağ kenar: düzlemleri birleştiren büyük kıvrım (normal uzun yol)
+      g.beginPath();g.moveTo(740,yU);g.bezierCurveTo(820,yU,820,yL,740,yL);g.stroke();
+      // solucan deliği boğazı (orta)
+      g.strokeStyle='rgba(177,139,255,.8)';g.lineWidth=2;
+      g.beginPath();g.moveTo(tx-26,yU);g.bezierCurveTo(tx-10,yU+50,tx-10,yL-50,tx-26,yL);g.stroke();
+      g.beginPath();g.moveTo(tx+26,yU);g.bezierCurveTo(tx+10,yU+50,tx+10,yL-50,tx+26,yL);g.stroke();
+      glowCircle(g,tx,(yU+yL)/2,40,'rgba(177,139,255,.3)');
+      label(g,'solucan deliği',tx,(yU+yL)/2-46,'#b18bff',12);
+      // A ve B
+      g.fillStyle='#46e08a';g.beginPath();g.arc(A.x,A.y,6,0,7);g.fill();label(g,'A',A.x-16,A.y-6,'#46e08a',13);
+      g.fillStyle='#ffcf5a';g.beginPath();g.arc(B.x,B.y,6,0,7);g.fill();label(g,'B (hedef)',B.x-2,B.y+22,'#ffcf5a',12);
+      // uzun yol (A → sağ → aşağı → B)
+      const longP=[A,{x:740,y:yU},{x:800,y:(yU+yL)/2},{x:740,y:yL},B];
+      g.strokeStyle='rgba(127,180,255,.25)';g.setLineDash([4,5]);g.lineWidth=1.5;
+      g.beginPath();g.moveTo(A.x,A.y);g.lineTo(740,yU);g.bezierCurveTo(820,yU,820,yL,740,yL);g.lineTo(B.x,B.y);g.stroke();g.setLineDash([]);
+      const lp=pathAt(longP,t);
+      g.fillStyle='#7fd6ff';g.beginPath();g.arc(lp.x,lp.y,6,0,7);g.fill();
+      // kısa yol (A → boğaz → B), 3x hızlı (t*3)
+      const shortP=[A,{x:tx,y:(yU+yL)/2},B]; const sp=pathAt(shortP,Math.min(t*3,1));
+      g.fillStyle='#b18bff';g.beginPath();g.arc(sp.x,sp.y,6,0,7);g.fill();
+      label(g,'normal uzay: uzun',430,yU-14,'#7fd6ff',12);
+      label(g, t*3>=1?'★ solucan deliği önce vardı!':'solucan deliği: kısa',tx+70,(yU+yL)/2,'#b18bff',12);
+      banner(g,'Mesafe uzay-zamanın şeklidir; katlarsan kestirme açılır','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Sorun: egzotik madde',
+    html:`<h2>Matematik tamam, malzeme yok</h2>İkisi de <b>negatif enerji yoğunluğu</b> (egzotik madde) ister — uzayı "dışarı itip" baloncuğu/boğazı açık tutmak için. Böyle madde bilinmiyor;
+          <b style="color:#b18bff">Casimir etkisi</b> azıcık negatif enerji verir ama dev ölçekte yok. Ayrıca warp/solucan deliği bir <b class="keybad">zaman makinesine</b> dönüşüp nedensellik paradoksları doğurabilir.`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: Casimir plakaları
+      const cx=190; g.fillStyle='#7fb4ff';g.fillRect(cx-40,120,8,120);g.fillRect(cx+34,120,8,120);
+      label(g,'Casimir plakaları',cx,108,'#7fb4ff',12);
+      for(let k=0;k<6;k++){ const yy=130+k*18; const pp=(t*2+k/6)%1;
+        g.globalAlpha=.6;g.fillStyle='#b18bff';g.beginPath();g.arc(cx-32+pp*62,yy,2.5,0,7);g.fill();g.globalAlpha=1; }
+      label(g,'−E (negatif enerji)',cx,256,'#b18bff',11);
+      label(g,'ama çok az!',cx,274,'#ff6b6b',11);
+      // orta: warp baloncuğu egzotik halka
+      const wx=470,wy=F.midY-10;
+      g.strokeStyle='#ff6bd6';g.lineWidth=3;g.beginPath();g.ellipse(wx,wy,70,50,0,0,7);g.stroke();
+      g.fillStyle='rgba(8,12,32,.7)';g.beginPath();g.ellipse(wx,wy,48,34,0,0,7);g.fill();
+      g.save();g.translate(wx,wy);g.fillStyle='#eaf6ff';g.beginPath();g.moveTo(12,0);g.lineTo(-8,-7);g.lineTo(-8,7);g.closePath();g.fill();g.restore();
+      label(g,'egzotik madde halkası',wx,wy-62,'#ff6bd6',11);
+      // sağ: durum/verdict
+      label(g,'📐 Einstein denklemlerine uygun',700,118,'#46e08a',12);
+      label(g,'1994 Alcubierre önerdi',700,142,'#9fb0ff',12);
+      label(g,'2012 White: enerji ~Voyager',700,166,'#9fb0ff',12);
+      label(g,'kütlesine indi (hâlâ egzotik)',700,184,'#9fb0ff',12);
+      label(g,'⛔ negatif enerji bulunamadı',700,212,'#ff6b6b',12);
+      label(g,'⏳ nedensellik paradoksu riski',700,236,'#ffcf5a',12);
+      label(g,'🔬 şimdilik teori — ama yasak değil',700,264,'#7fd6ff',12);
+      banner(g,'Fizik izin veriyor olabilir; mühendislik (egzotik madde) henüz imkansız','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#7fb4ff',t:'Uzay-zaman ızgarası'},
+  {c:'#b18bff',t:'Negatif enerji / boğaz'},
+  {c:'#46e08a',t:'Düz baloncuk / kısa yol'}
+]});
+</script>
+</body>
+</html>
