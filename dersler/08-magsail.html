@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 08 · Magsail</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 08</div>
+  <h1>Ders 08 · Magsail (Manyetik Yelken)</h1>
+  <div class="sub">Senin ilk fikrin geri döndü! Dev bir mıknatıs alanı, Güneş'ten gelen yüklü parçacıkları saptırır — mıknatısın uzayda gerçekten ittiği tek yakıtsız yol.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Magsail, süperiletken bir halkanın yarattığı <b class="key">dev manyetik balonla</b> güneş rüzgarındaki yüklü parçacıkları saptırır. Parçacıklar sapınca momentumlarını halkaya verir → itki.
+    İşte mıknatıs intuisyonun <b>burada doğru</b>: çünkü gemi <b>dışarıdaki</b> parçacıklara yaslanıyor (Ders 03'teki "içerideki mıknatıs" değil). Yakıt yok (sadece halkayı sürdürecek elektrik).
+    Bedeli: itki minik, dev halka gerekir, güneş rüzgarı uzakta zayıflar.
+  </div>
+
+  <div class="navrow">
+    <a href="07-gunes-yelkeni.html">← Ders 07</a>
+    <a href="../index.html">Sıradaki: Ders 09 — Senin Tasarımın →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function sun(g,x,y,r){
+  glowCircle(g,x,y,r*2.6,'rgba(255,200,80,.45)');
+  const grd=g.createRadialGradient(x,y,0,x,y,r);
+  grd.addColorStop(0,'#fff4c2');grd.addColorStop(.6,'#ffd24d');grd.addColorStop(1,'#ff9b2d');
+  g.fillStyle=grd;g.beginPath();g.arc(x,y,r,0,7);g.fill();
+}
+function pcl(g,x,y,plus){            // yüklü parçacık
+  g.fillStyle=plus?'#ff7a6b':'#7fd6ff';g.beginPath();g.arc(x,y,4,0,7);g.fill();
+  g.fillStyle='#fff';g.font='bold 9px Segoe UI';g.fillText(plus?'+':'–',x-2.5,y+3);
+}
+function bubble(g,bx,by,R){
+  const bg=g.createRadialGradient(bx,by,8,bx,by,R);
+  bg.addColorStop(0,'rgba(90,150,255,.22)');bg.addColorStop(1,'rgba(90,150,255,0)');
+  g.fillStyle=bg;g.beginPath();g.arc(bx,by,R,0,7);g.fill();
+  g.strokeStyle='rgba(127,180,255,.5)';g.setLineDash([4,5]);g.lineWidth=1.5;
+  g.beginPath();g.arc(bx,by,R,0,7);g.stroke();g.setLineDash([]);
+  g.strokeStyle='rgba(127,180,255,.3)';g.lineWidth=1;
+  for(const rr of [R*0.42,R*0.7]){ g.beginPath();g.ellipse(bx,by,rr*0.5,rr,0,0,7);g.stroke(); }
+}
+function loop(g,bx,by){              // süperiletken halka (kenardan)
+  glowCircle(g,bx,by,30,'rgba(90,210,255,.5)');
+  g.strokeStyle='#5ad1ff';g.lineWidth=4;g.beginPath();g.ellipse(bx,by,15,64,0,0,7);g.stroke();
+}
+
+Lab.start([
+  {
+    tab:'1 · Güneş rüzgarı ≠ ışık',
+    html:`<h2>İki ayrı şey Güneş'ten akar</h2><b style="color:#ffe28a">Işık (foton):</b> kütlesiz, güneş yelkenini iter (Ders 07).
+          <b style="color:#ff7a6b">Güneş rüzgarı:</b> <b>yüklü parçacıklar</b> (protonlar +, elektronlar –), saniyede ~400 km. İşte magsail <b class="key">bunları</b> kullanır — çünkü yüklüler, manyetik alan onları saptırabilir.`,
+    loop:true,
+    draw:(g,t)=>{
+      sun(g,64,F.midY,34); label(g,'GÜNEŞ',64,F.midY+58,'#ffd24d',12);
+      const yL=F.midY-66, yW=F.midY+60;
+      label(g,'ışık (foton) — Ders 07',300,yL-30,'#ffe28a',12);
+      label(g,'güneş rüzgarı (yüklü parçacık) — magsail bunu kullanır',360,yW+44,'#ff7a6b',12);
+      const N=12;
+      for(let i=0;i<N;i++){ const p=((t*0.9+i/N)%1); const x=110+p*(F.W-150);
+        g.fillStyle='#ffe28a';g.beginPath();g.arc(x,yL+Math.sin(i)*10,3.5,0,7);g.fill(); }
+      for(let i=0;i<N;i++){ const p=((t*0.55+i/N)%1); const x=110+p*(F.W-150);
+        pcl(g,x,yW+Math.sin(i*1.5)*16, i%2===0); }
+      banner(g,'Işık ≠ parçacık. Magsail yüklü parçacıkları manyetik alanla saptırır','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Manyetik balon saptırır',
+    html:`<h2>Parçacıklar balonun etrafından dolanır</h2>Halkadan geçen akım dev bir <b style="color:#7fb4ff">manyetik balon</b> yaratır. Güneş rüzgarı parçacıkları balona çarpamaz —
+          <b class="key">etrafından saparlar</b> (Lorentz kuvveti). Saparken momentumlarını halkaya verir → halka <b style="color:#46e08a">Güneş'ten uzağa</b> itilir.`,
+    loop:true,
+    draw:(g,t)=>{
+      sun(g,56,F.midY,26); label(g,'GÜNEŞ',56,F.midY+46,'#ffd24d',11);
+      const bx=600,by=F.midY,R=92;
+      bubble(g,bx,by,R);
+      // parçacıklar: balona yaklaşınca dışa saparlar
+      const N=16;
+      for(let i=0;i<N;i++){
+        const p=((t*0.6+i/N)%1);
+        const x=110+p*(F.W-150);
+        const y0=((i/N)-0.5)*2*R*1.25;
+        const g0=Math.exp(-Math.pow((x-bx)/(R*0.95),2));     // balon yakını
+        const push=(R*1.05 - Math.min(Math.abs(y0),R*1.05)); // merkeze yakın → çok sapar
+        const y=by+y0+Math.sign(y0||1)*g0*push;
+        pcl(g,x,y, i%2===0);
+      }
+      loop(g,bx,by);
+      label(g,'manyetik balon',bx,by-R-12,'#7fb4ff',12);
+      label(g,'süperiletken halka',bx+10,by+R+22,'#5ad1ff',11);
+      arrow(g,bx+24,by,60,'#46e08a'); label(g,'itki',bx+120,by-8,'#46e08a',13);
+      banner(g,'Sapan parçacık = halkaya verilen momentum = itki','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Senin fikrin doğruydu',
+    html:`<h2>İçeride değil — dışarıya yaslan</h2>Hatırla: <b class="keybad">gemi içindeki</b> mıknatıs itki üretmez (Ders 03, iç kuvvet). Ama magsailde mıknatıs
+          <b class="key">dışarıdaki güneş rüzgarına</b> yaslanıyor — işte o zaman gerçekten iter. <b>M2P2</b>: plazma enjekte edip balonu büyütürsün, az telle dev alan. Senin sezgin doğru yöndeymiş!`,
+    loop:true,
+    draw:(g,t)=>{
+      sun(g,56,F.midY,24); label(g,'GÜNEŞ',56,F.midY+44,'#ffd24d',11);
+      const bx=560,by=F.midY,R=80+18*Math.sin(t*2.4);     // M2P2: balon nabız gibi şişer
+      bubble(g,bx,by,R);
+      const N=14;
+      for(let i=0;i<N;i++){ const p=((t*0.6+i/N)%1); const x=110+p*(F.W-160);
+        const y0=((i/N)-0.5)*2*R*1.2; const g0=Math.exp(-Math.pow((x-bx)/(R*0.95),2));
+        const push=(R*1.05-Math.min(Math.abs(y0),R*1.05)); const y=by+y0+Math.sign(y0||1)*g0*push;
+        pcl(g,x,y,i%2===0); }
+      loop(g,bx,by);
+      arrow(g,bx+22,by,46,'#46e08a');
+      // plazma enjeksiyonu (M2P2)
+      for(let k=0;k<5;k++){ const pp=(t*3+k/5)%1; g.globalAlpha=1-pp;g.fillStyle='#b18bff';
+        g.beginPath();g.arc(bx-pp*30,by-40+pp*8,3,0,7);g.fill(); } g.globalAlpha=1;
+      label(g,'plazma enjekte (M2P2) → balon büyür',bx,by-R-14,'#b18bff',12);
+      // callback notları
+      label(g,'❌ Ders 03: içerideki mıknatıs → itki yok',250,66,'#ff6b6b',12);
+      label(g,'✅ Magsail: dışarıdaki rüzgara yaslan → itki var',250,90,'#46e08a',12);
+      label(g,'⚙️ dev halka · minik itki · rüzgar uzakta zayıf',250,114,'#9fb0ff',12);
+      banner(g,'Mıknatıs uzayda iter — yeter ki dışarıdaki bir şeye yaslansın','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ff7a6b',t:'Proton (+) / güneş rüzgarı'},
+  {c:'#7fd6ff',t:'Elektron (–)'},
+  {c:'#7fb4ff',t:'Manyetik balon + halka'}
+]});
+</script>
+</body>
+</html>
