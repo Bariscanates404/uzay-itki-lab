@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 19 · Atmosfer Girişi & Aerobraking</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 19</div>
+  <h1>Ders 19 · Atmosfer Girişi & Aerobraking</h1>
+  <div class="sub">Uzaydan dönüş tehlikeli bir dans: çok dik girersen yanarsın, çok sığ girersen sekip uzaya geri dönersin. Ve atmosferi yakıtsız fren olarak kullanmak.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Atmosfere giriş dar bir <b class="key">koridor</b>dur: çok <b>sığ</b> açı → taş gibi sekip uzaya döner; çok <b>dik</b> → aşırı ısı ve G-kuvveti, araç yanar. Aradaki açı doğruysa güvenli iniş.
+    Hız, sürtünmeyle ısıya döner → <b>künt</b> ısı kalkanı şok dalgasıyla ısıyı uzakta tutar (ablatif kalkan eriyerek ısıyı taşır). <b>Aerobraking:</b> tekrarlı sığ geçişlerle yörüngeyi yakıtsız küçültmek (Mars yörünge araçları böyle yaptı).
+  </div>
+
+  <div class="navrow">
+    <a href="18-uc-cisim-kaos.html">← Ders 18</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+function pathAt(pts,f){ const seg=(pts.length-1)*Math.max(0,Math.min(1,f)); const i=Math.min(Math.floor(seg),pts.length-2); const s=seg-i;
+  return {x:pts[i].x+(pts[i+1].x-pts[i].x)*s, y:pts[i].y+(pts[i+1].y-pts[i].y)*s}; }
+
+Lab.start([
+  {
+    tab:'1 · Giriş koridoru (açıyı dene)',
+    html:`<h2>Açı her şeydir</h2>Giriş açısını ayarla. Çok <b style="color:#7fd6ff">sığ</b> (≲4°) → atmosferden seker, uzaya döner. <b style="color:#46e08a">Tam</b> (≈5–8°) → güvenli iniş.
+          Çok <b style="color:#ff6b6b">dik</b> (≳9°) → aşırı ısı, araç yanar.
+      <div class="sliders">
+        <div class="row"><label>Giriş açısı (°)</label><input id="s_ang" type="range" min="1" max="14" step="0.5" value="6.5"><span id="o_ang">6.5°</span></div>
+        <div class="res">Sonuç: <b id="o_res" style="color:#46e08a">—</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const ang=rd('s_ang',6.5);
+      const surfaceY=F.H-34, atmTop=surfaceY-120;
+      // gezegen yüzeyi + atmosfer
+      g.fillStyle='#15305a';g.fillRect(0,surfaceY,F.W,F.H-surfaceY);
+      g.fillStyle='rgba(90,150,255,.12)';g.fillRect(0,atmTop,F.W,surfaceY-atmTop);
+      g.strokeStyle='rgba(127,180,255,.4)';g.lineWidth=1;g.beginPath();g.moveTo(0,atmTop);g.lineTo(F.W,atmTop);g.stroke();
+      label(g,'ATMOSFER',70,atmTop+18,'#7fb4ff',11); label(g,'YÜZEY',60,surfaceY+22,'#9fb0ff',11);
+      // giriş çizgisi & yol
+      const S={x:110,y:60}, rad=ang*Math.PI/180, xEnter=S.x+(atmTop-S.y)/Math.tan(rad);
+      let pts, regime, col;
+      if(ang<4){ regime='SEKTİ — uzaya geri döndü (çok sığ)'; col='#7fd6ff';
+        pts=[S,{x:xEnter,y:atmTop},{x:xEnter+150,y:atmTop+44},{x:xEnter+330,y:atmTop-30},{x:xEnter+470,y:70}]; }
+      else if(ang<=8.5){ regime='GÜVENLİ İNİŞ ✓'; col='#46e08a';
+        pts=[S,{x:xEnter,y:atmTop},{x:xEnter+130,y:surfaceY-55},{x:xEnter+230,y:surfaceY-8}]; }
+      else { regime='YANDI — aşırı ısı & G (çok dik)'; col='#ff6b6b';
+        pts=[S,{x:xEnter,y:atmTop},{x:xEnter+70,y:surfaceY-8}]; }
+      // yörünge izi
+      g.strokeStyle='rgba(200,220,255,.3)';g.setLineDash([4,5]);g.lineWidth=1.5;g.beginPath();
+      pts.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y));g.stroke();g.setLineDash([]);
+      const c=pathAt(pts,t), inAtm=c.y>atmTop;
+      // ısı (atmosferde, rejime göre)
+      if(inAtm){ const hot = ang>8.5?1 : ang<4?0.35:0.6;
+        glowCircle(g,c.x,c.y,16+10*hot,`rgba(255,${Math.round(160-120*hot)},60,${0.5+0.4*hot})`);
+        for(let k=0;k<4;k++){ g.globalAlpha=.6;g.fillStyle=ang>8.5?'#ff6b6b':'#ffcf5a';
+          g.beginPath();g.arc(c.x-8-k*7,c.y-4+ (k%2)*6,3,0,7);g.fill(); } g.globalAlpha=1; }
+      g.fillStyle='#eaf6ff';g.beginPath();g.arc(c.x,c.y,6,0,7);g.fill();
+      const oa=document.getElementById('o_ang'),or=document.getElementById('o_res');
+      if(oa)oa.textContent=ang.toFixed(1)+'°'; if(or){or.textContent=regime;or.style.color=col;}
+      banner(g,'Dar koridor: sığ→sekme, dik→yanma, doğru→iniş','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Isı kalkanı & plazma',
+    html:`<h2>Neden bu kadar ısınır?</h2>Aracın muazzam kinetik enerjisi, hava sürtünmesiyle <b class="keybad">ısıya</b> döner (~1650°C). <b style="color:#ffcf5a">Künt</b> (yuvarlak) şekil önünde bir şok dalgası kurar;
+          ısının çoğu o şok dalgasında, araçtan <b class="key">uzakta</b> kalır. <b>Ablatif kalkan</b> kasıtlı eriyip buharlaşarak ısıyı söküp atar. Plazma kılıfı kısa süre radyoyu keser ("radyo karası").`,
+    loop:true,
+    draw:(g,t)=>{
+      const cx=F.cx+40, cy=F.midY;
+      // hava molekülleri gelir
+      for(let i=0;i<14;i++){ const pp=((t*2+i/14)%1); const x=cx+180-pp*200, y=cy+(i-7)*16;
+        g.globalAlpha=.5;g.fillStyle='#7fd6ff';g.beginPath();g.arc(x,y,2.5,0,7);g.fill(); } g.globalAlpha=1;
+      // şok dalgası (önde, kavisli)
+      g.strokeStyle='rgba(255,160,60,.7)';g.lineWidth=3;g.beginPath();
+      for(let a=-1.1;a<=1.1;a+=0.05){ g.lineTo(cx+70+30*Math.cos(a*1.3), cy+90*Math.sin(a)); } g.stroke();
+      glowCircle(g,cx+50,cy,70,'rgba(255,140,50,.3)');
+      label(g,'şok dalgası (ısı burada)',cx+120,cy-80,'#ff9f6b',11);
+      // kapsül (künt yüz sağa)
+      g.fillStyle='#cdd6ff';g.beginPath();g.moveTo(cx-40,cy-40);g.lineTo(cx-40,cy+40);g.lineTo(cx+10,cy+24);g.quadraticCurveTo(cx+34,cy,cx+10,cy-24);g.closePath();g.fill();
+      // ablatif kalkan (ön, parlayan)
+      g.strokeStyle='#ff7a3d';g.lineWidth=5;g.beginPath();g.moveTo(cx+10,cy-24);g.quadraticCurveTo(cx+34,cy,cx+10,cy+24);g.stroke();
+      // ablasyon parçacıkları sökülür
+      for(let k=0;k<6;k++){ const pp=(t*3+k/6)%1; g.globalAlpha=1-pp;g.fillStyle='#ffcf5a';
+        g.beginPath();g.arc(cx+24-pp*40,cy-20+k*8,3-pp*2,0,7);g.fill(); } g.globalAlpha=1;
+      label(g,'ablatif kalkan: eriyip ısıyı taşır',cx-30,cy+70,'#ffcf5a',12);
+      label(g,'~1650°C · plazma kılıfı → radyo karası',F.cx,70,'#ff6b6b',12);
+      banner(g,'Künt şekil + ablatif kalkan = ısıyı araçtan uzak tutar','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Aerobraking: yakıtsız fren',
+    html:`<h2>Atmosferi fren olarak kullan</h2>Yörüngenin en alçak noktası (periapsis) atmosferin üst katmanına değecek şekilde ayarlanır. Her geçişte sürtünme biraz hız alır →
+          <b class="key">yörünge her turda küçülür</b>, sonunda daireselleşir. Yakıt harcamadan! Mars Odyssey ve MRO aylarca bunu yaptı.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx,CY=F.midY;
+      // gezegen + atmosfer
+      drawPlanet(g,CX,CY,42,'#c0502a');
+      g.strokeStyle='rgba(255,150,90,.4)';g.lineWidth=1;g.beginPath();g.arc(CX,CY,64,0,7);g.stroke();
+      g.fillStyle='rgba(255,150,90,.10)';g.beginPath();g.arc(CX,CY,64,0,7);g.fill();
+      label(g,'atmosfer',CX,CY+78,'#ff9f6b',10);
+      // yörünge: apoapsis küçülerek
+      window._ab=window._ab||{ra:250,th:0};
+      const rp=80, a=(rp+window._ab.ra)/2, e=(window._ab.ra-rp)/(window._ab.ra+rp);
+      g.strokeStyle='#ffcf5a';g.lineWidth=2;g.beginPath();
+      for(let th=0;th<=6.3;th+=0.05){ const r=a*(1-e*e)/(1+e*Math.cos(th)); g.lineTo(CX+r*Math.cos(th),CY-r*Math.sin(th)); }
+      g.closePath();g.stroke();
+      // araç
+      if(Lab.playing){ const r=a*(1-e*e)/(1+e*Math.cos(window._ab.th));
+        window._ab.th += (520/(r*r))*Lab.speed*0.5;
+        if(window._ab.th>6.283){ window._ab.th-=6.283; window._ab.ra=Math.max(rp+12, window._ab.ra-26); if(window._ab.ra<=rp+13) window._ab.ra=250; } }
+      const r=a*(1-e*e)/(1+e*Math.cos(window._ab.th));
+      const px=CX+r*Math.cos(window._ab.th), py=CY-r*Math.sin(window._ab.th);
+      const inAtm=r<66;
+      if(inAtm){ glowCircle(g,px,py,14,'rgba(255,120,60,.6)'); label(g,'sürtünme → fren!',px,py-22,'#ff6b6b',11); }
+      g.fillStyle='#eaf6ff';g.beginPath();g.arc(px,py,6,0,7);g.fill();
+      label(g,'her geçişte yörünge küçülür (yakıtsız)',CX,70,'#46e08a',13);
+      banner(g,'Aerobraking: atmosfere sür, yakıt yerine sürtünmeyle yavaşla','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'Güvenli / fren'},
+  {c:'#ff6b6b',t:'Aşırı ısı'},
+  {c:'#ffcf5a',t:'Yörünge / kalkan'}
+]});
+</script>
+</body>
+</html>
