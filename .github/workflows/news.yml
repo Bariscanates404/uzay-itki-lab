@@ -1,0 +1,29 @@
+name: Bilim Haberleri çeviri (günlük)
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # her gün 06:00 UTC
+  workflow_dispatch:        # elle de tetiklenebilir
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Haberleri çevir
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/translate-news.mjs
+      - name: Değişikliği commit'le
+        run: |
+          git config user.name "news-bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          git add data/news-tr.json 2>/dev/null || true
+          git commit -m "Günlük haber çevirisi" || echo "değişiklik yok"
+          git push || true

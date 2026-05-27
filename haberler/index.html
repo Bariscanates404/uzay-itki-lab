@@ -45,13 +45,69 @@ const FILTERS=[
   {label:'🌑 Ay & Artemis', q:'Moon'},
   {label:'🛰️ Uydular', q:'satellite'},
 ];
-let activeQ='';
+let activeQ='', lang='tr';
 
 function fmtDate(s){ try{ const d=new Date(s); return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}); }catch(e){return '';} }
 
+// ---- ücretsiz çeviri (Google gtx → MyMemory yedek), localStorage önbellekli ----
+let tcache={}; try{ tcache=JSON.parse(localStorage.getItem('tr_cache')||'{}'); }catch(e){}
+let saveT=null; function saveCache(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem('tr_cache',JSON.stringify(tcache)); }catch(e){} },800); }
+async function tr(text){
+  text=(text||'').trim(); if(!text) return text;
+  if(tcache[text]) return tcache[text];
+  try{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=tr&dt=t&q='+encodeURIComponent(text));
+    const j=await r.json(); const out=j[0].map(s=>s[0]).join('');
+    if(out){ tcache[text]=out; saveCache(); return out; }
+  }catch(e){}
+  try{
+    const r2=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=en|tr');
+    const j2=await r2.json(); const out=j2.responseData.translatedText; if(out){ tcache[text]=out; saveCache(); return out; }
+  }catch(e){}
+  return text;
+}
+async function translateVisible(){
+  if(lang!=='tr') return;
+  const cards=[...document.querySelectorAll('.ncard')];
+  for(const card of cards){
+    if(card.dataset.ai) continue;            // AI çevirisi zaten Türkçe, dokunma
+    const h=card.querySelector('h4'), p=card.querySelector('p');
+    if(h&&h.dataset.en){ tr(h.dataset.en).then(v=>{ if(lang==='tr')h.textContent=v; }); }
+    if(p&&p.dataset.en){ tr(p.dataset.en).then(v=>{ if(lang==='tr')p.textContent=v+(p.dataset.more||''); }); }
+  }
+}
+function applyLang(){
+  document.querySelectorAll('.ncard').forEach(card=>{
+    const h=card.querySelector('h4'), p=card.querySelector('p');
+    if(lang==='en'){ if(h)h.textContent=h.dataset.en; if(p)p.textContent=(p.dataset.en||'')+(p.dataset.more||''); }
+    else if(card.dataset.ai){ if(h)h.textContent=h.dataset.tr; if(p)p.textContent=(p.dataset.tr||'')+(p.dataset.more||''); }
+  });
+  if(lang==='tr') translateVisible();
+}
+
+function renderAI(dj,grid,st){
+  st.style.display='none';
+  grid.innerHTML=dj.items.map(a=>{
+    const L=matchLesson((a.title||'')+' '+(a.summary||''));
+    return `<div class="ncard" data-ai="1">
+      ${a.image_url?`<div class="thumb" style="background-image:url('${a.image_url.replace(/'/g,'')}')"></div>`:''}
+      <div class="body">
+        <div class="meta">✨ ${(a.news_site||'').toUpperCase()} · ${fmtDate(a.published_at)}</div>
+        <h4 data-en="${esc(a.title)}" data-tr="${esc(a.tr_title||a.title)}">${esc(a.tr_title||a.title)}</h4>
+        <p data-en="${esc((a.summary||'').slice(0,160))}" data-tr="${esc(a.tr_summary||'')}" data-more="">${esc(a.tr_summary||'')}</p>
+        <div class="row">
+          <a class="src" href="${esc(a.url)}" target="_blank" rel="noopener">Kaynağı oku ↗</a>
+          <a class="lesson" href="../dersler/${L.file}">🔭 ${L.name}</a>
+        </div>
+      </div></div>`;
+  }).join('');
+}
 async function loadNews(){
   const grid=document.getElementById('grid'), st=document.getElementById('status');
   grid.innerHTML=''; st.style.display='block'; st.textContent='Haberler yükleniyor…';
+  // önce AI-çevrilmiş JSON'u dene (cron üretir); yoksa canlı API + ücretsiz çeviri
+  if(!activeQ){ try{ const rj=await fetch('../data/news-tr.json',{cache:'no-store'});
+    if(rj.ok){ const dj=await rj.json(); if(dj.items&&dj.items.length&&dj.items[0].tr_title){ renderAI(dj,grid,st); return; } } }catch(e){} }
   let url='https://api.spaceflightnewsapi.net/v4/articles/?limit=18&ordering=-published_at';
   if(activeQ) url+='&search='+encodeURIComponent(activeQ);
   try{
@@ -60,13 +116,13 @@ async function loadNews(){
     st.style.display='none';
     grid.innerHTML=j.results.map(a=>{
       const L=matchLesson((a.title||'')+' '+(a.summary||''));
-      const sum=(a.summary||'').trim().slice(0,160);
+      const full=(a.summary||'').trim(); const sum=full.slice(0,160); const more=full.length>160?'…':'';
       return `<div class="ncard">
         ${a.image_url?`<div class="thumb" style="background-image:url('${a.image_url.replace(/'/g,'')}')"></div>`:''}
         <div class="body">
           <div class="meta">${(a.news_site||'').toUpperCase()} · ${fmtDate(a.published_at)}</div>
-          <h4>${esc(a.title)}</h4>
-          <p>${esc(sum)}${sum.length>=160?'…':''}</p>
+          <h4 data-en="${esc(a.title)}">${esc(a.title)}</h4>
+          <p data-en="${esc(sum)}" data-more="${more}">${esc(sum)}${more}</p>
           <div class="row">
             <a class="src" href="${esc(a.url)}" target="_blank" rel="noopener">Kaynağı oku ↗</a>
             <a class="lesson" href="../dersler/${L.file}" title="${L.name}">🔭 ${L.name}</a>
@@ -74,6 +130,7 @@ async function loadNews(){
         </div>
       </div>`;
     }).join('');
+    translateVisible();
   }catch(e){
     st.textContent='Haberler yüklenemedi (internet bağlantısı gerekir). '+e.message;
   }
@@ -96,6 +153,11 @@ const chips=document.getElementById('chips');
 FILTERS.forEach((f,i)=>{ const d=document.createElement('div'); d.className='chip'+(i===0?' on':''); d.textContent=f.label;
   d.onclick=()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); d.classList.add('on'); activeQ=f.q; loadNews(); };
   chips.appendChild(d); });
+
+// dil düğmesi (sağda)
+const langChip=document.createElement('div'); langChip.className='chip on'; langChip.style.marginLeft='auto'; langChip.textContent='🇹🇷 Türkçe';
+langChip.onclick=()=>{ lang=lang==='tr'?'en':'tr'; langChip.textContent=lang==='tr'?'🇹🇷 Türkçe':'🇬🇧 English'; langChip.classList.toggle('on',lang==='tr'); applyLang(); };
+chips.appendChild(langChip);
 
 loadAPOD();
 loadNews();
