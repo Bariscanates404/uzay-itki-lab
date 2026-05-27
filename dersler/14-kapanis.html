@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 14 · Kapanış</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 14</div>
+  <h1>Ders 14 · Kapanış — Eylemsizlikten Warp'a 🎓</h1>
+  <div class="sub">Bütün yolculuğu bağlayalım: tek bir basit yasadan, uzay-zamanı bükmeye kadar nereden nereye geldik.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Büyük resim:</b> Bütün itki sistemleri tek bir cümleye iner — <b class="key">bir şeyi geriye at (kütle/foton), ya da uzayın kendisini bük.</b>
+    Kimyasaldan iyona, yelkenden magsail'e, yerçekimi sapanından warp'a; hepsi momentum korunumu + genel göreliliğe uyar. Senin ilk mıknatıs fikrin bu haritada gerçek bir yere oturdu (magsail).
+    Yeni bir motor icat etmek = bu haritada kimsenin doldurmadığı bir köşeyi zekice doldurmak. Sıra sende.
+  </div>
+
+  <div class="navrow">
+    <a href="13-warp-solucan-deligi.html">← Ders 13</a>
+    <a href="../index.html">⌂ Müfredatı tamamladın 🏆</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function wrap(g,text,cx,y,maxW,lh,col,size){ g.fillStyle=col;g.font=(size||14)+'px Segoe UI';g.textAlign='center';
+  const words=text.split(' ');let line='',yy=y;
+  for(const w of words){ const test=line+w+' '; if(g.measureText(test).width>maxW&&line){g.fillText(line,cx,yy);line=w+' ';yy+=lh;} else line=test; }
+  g.fillText(line,cx,yy);g.textAlign='left'; }
+function pathAt(pts,f){ const seg=(pts.length-1)*Math.max(0,Math.min(1,f)); const i=Math.min(Math.floor(seg),pts.length-2); const s=seg-i;
+  return {x:pts[i].x+(pts[i+1].x-pts[i].x)*s, y:pts[i].y+(pts[i+1].y-pts[i].y)*s}; }
+
+const LESSONS=[
+ 'Eylemsizlik: uzayda hareket bedava; itki sadece hızlanmak için',
+ 'Etki–Tepki: ileri gitmek için bir şeyi geriye it',
+ 'Momentum: dışarı kütle atmadan gidemezsin',
+ 'İtki = kütle × hız: az kütle × çok hız = verim',
+ 'Roket denklemi: hız doğrusal, yakıt ÜSTEL büyür',
+ 'İyon thruster: minik itki, yıllarca, dev Δv',
+ 'Güneş yelkeni: yakıtsız — ışık iter (yansıt = 2×)',
+ 'Magsail: dışarıdaki güneş rüzgarına yaslan (senin fikrin!)',
+ 'Tasarım: itki + verim + fizibilite dengesi',
+ 'Yerçekimi sapanı: gezegenden bedava hız çal',
+ 'Gerçek motorlar: iyon/Hall uçuyor, füzyon bekliyor',
+ 'Görelilik: c geçilemez; hızda zaman bükülür',
+ 'Warp & solucan deliği: uzayı bük (teori; egzotik madde gerek)'
+];
+
+Lab.start([
+  {
+    tab:'1 · Yolculuk haritası',
+    html:`<h2>13 dersin tamamı, tek bir yolda</h2>Gemi yolculuğu baştan sona kat ediyor; her durakta o dersin özü beliriyor. Eylemsizlikten warp'a — nereden nereye geldik.`,
+    loop:true,
+    draw:(g,t)=>{
+      const N=LESSONS.length, nodes=[];
+      for(let i=0;i<N;i++) nodes.push({x:80+i*(720/(N-1)), y:F.midY-50+Math.sin(i*0.85)*64});
+      // yol
+      g.strokeStyle='rgba(127,180,255,.35)';g.lineWidth=2;g.beginPath();
+      nodes.forEach((p,i)=>i===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y));g.stroke();
+      const seg=(N-1)*t, cur=Math.round(seg);
+      nodes.forEach((p,i)=>{ const on=i===cur, done=i<seg;
+        if(on) glowCircle(g,p.x,p.y,18,'rgba(70,224,138,.5)');
+        g.fillStyle=on?'#46e08a':done?'#5ad1ff':'#2a3566';g.beginPath();g.arc(p.x,p.y,on?10:6,0,7);g.fill();
+        g.fillStyle=on?'#06203a':'#9fb0ff';g.font='bold 10px Segoe UI';g.textAlign='center';
+        g.fillText(i+1,p.x,p.y+3.5);g.textAlign='left'; });
+      const c=pathAt(nodes,t);
+      g.save();g.translate(c.x,c.y-16);g.fillStyle='#eaf6ff';g.beginPath();g.moveTo(11,0);g.lineTo(-8,-7);g.lineTo(-8,7);g.closePath();g.fill();g.restore();
+      // mevcut dersin özü
+      g.fillStyle='#46e08a';g.font='bold 15px Segoe UI';g.textAlign='center';g.fillText('Ders '+(cur+1),F.cx,F.H-70);g.textAlign='left';
+      wrap(g,LESSONS[cur],F.cx,F.H-48,620,20,'#dfe8ff',14);
+      banner(g,'Eylemsizlikten warp sürücüsüne — bütün bir yolculuk','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Tek yasa, bin motor',
+    html:`<h2>Hepsi iki aileye iner</h2><b style="color:#7fd6ff">Reaksiyon:</b> bir şeyi geriye at (kimyasal, iyon, yelken, magsail). <b style="color:#b18bff">Geometri:</b> uzayın kendisini bük (yerçekimi sapanı, warp, solucan deliği).
+          İkisinin de tek patronu var: momentum korunumu + genel görelilik.`,
+    loop:true,
+    draw:(g,t)=>{
+      const ax=110,aw=660,ay=F.midY+10;
+      g.strokeStyle='#33406f';g.lineWidth=2;g.beginPath();g.moveTo(ax,ay);g.lineTo(ax+aw,ay);g.stroke();
+      arrow(g,ax+aw-40,ay,40,'#33406f');
+      label(g,'← KÜTLE / FOTON AT',ax+120,ay+42,'#7fd6ff',13);
+      label(g,'UZAYI BÜK →',ax+aw-110,ay+42,'#b18bff',13);
+      const items=[
+        {x:.05,n:'Kimyasal',c:'#ff9f6b'},{x:.16,n:'İyon/Hall',c:'#46e08a'},{x:.27,n:'Yelken',c:'#ffe28a'},
+        {x:.38,n:'Magsail',c:'#7fb4ff'},{x:.5,n:'Nükleer/Füzyon',c:'#ff6bd6'},
+        {x:.66,n:'Yerçekimi sapanı',c:'#e0b07a'},{x:.82,n:'Warp',c:'#b18bff'},{x:.94,n:'Solucan deliği',c:'#c9a0ff'}
+      ];
+      items.forEach((it,i)=>{ const x=ax+it.x*aw; const up=i%2===0; const y=ay+(up?-1:1)*(28+(i%3)*16);
+        g.strokeStyle='#2a3566';g.beginPath();g.moveTo(x,ay);g.lineTo(x,y);g.stroke();
+        const pulse=8+2*Math.sin(t*4+i);
+        glowCircle(g,x,y,pulse,'rgba(255,255,255,.12)');
+        g.fillStyle=it.c;g.beginPath();g.arc(x,y,6,0,7);g.fill();
+        g.fillStyle='#dfe8ff';g.font='11px Segoe UI';g.textAlign='center';g.fillText(it.n,x,up?y-12:y+18);g.textAlign='left'; });
+      label(g,'TEK PATRON: momentum korunumu + genel görelilik',F.cx,70,'#46e08a',15);
+      banner(g,'Yöntemler farklı, yasa aynı','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Senin fikrin & sıradaki adım',
+    html:`<h2>Mıknatıs fikrinden buraya</h2>Başta "mıknatısla itki" dedin. Yolculuk onu gerçek bir yere oturttu: içeride işe yaramaz (Ders 03), ama dışarıdaki rüzgara yaslanınca <b class="key">magsail</b> olur (Ders 08).
+          Şimdi araçların var: tasarım sandığı (Ders 09) ve bilgi tabanı. Sıradaki büyük fikir senden gelebilir.`,
+    loop:true,
+    draw:(g,t)=>{
+      // üç aşamalı yay
+      const stages=[
+        {x:170,t:'BAŞLANGIÇ',s:'"Mıknatısla\nuzayda itki"',c:'#9fb0ff'},
+        {x:F.cx,t:'DERS 03',s:'içeride mıknatıs\n→ itki yok',c:'#ff6b6b'},
+        {x:710,t:'DERS 08',s:'dışarı rüzgar\n→ Magsail ✓',c:'#46e08a'}
+      ];
+      g.strokeStyle='rgba(127,180,255,.4)';g.lineWidth=2;g.setLineDash([5,5]);
+      g.beginPath();g.moveTo(170,150);g.lineTo(710,150);g.stroke();g.setLineDash([]);
+      stages.forEach((st,i)=>{ const on=((t*3)%3|0)===i;
+        if(on) glowCircle(g,st.x,150,26,'rgba(70,224,138,.35)');
+        g.fillStyle=st.c;g.beginPath();g.arc(st.x,150,on?12:8,0,7);g.fill();
+        label(g,st.t,st.x,120,st.c,12);
+        st.s.split('\n').forEach((ln,k)=>label(g,ln,st.x,178+k*18,'#dfe8ff',12)); });
+      // kupa + mesaj
+      label(g,'🏆',F.cx,250,'#ffd76a',34);
+      wrap(g,'13 derslik yolculuğu tamamladın: eylemsizlikten warp sürücüsüne.',F.cx,290,640,22,'#dfe8ff',15);
+      wrap(g,'Sıra sende — tasarım sandığında (Ders 09) ve bilgi tabanıyla kendi motorunu kur.',F.cx,318,640,20,'#46e08a',14);
+      banner(g,'Bir fikirle başladın, bir haritayla bitirdin. Şimdi keşfet.','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#5ad1ff',t:'Tamamlanan dersler'},
+  {c:'#46e08a',t:'Mevcut / başarı'},
+  {c:'#b18bff',t:'Geometri (uzayı bük)'}
+]});
+</script>
+</body>
+</html>
