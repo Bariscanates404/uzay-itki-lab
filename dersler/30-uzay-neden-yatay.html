@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 30 · Uzay Neden Hep Yatay?</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 30 ⭐</div>
+  <h1>Ders 30 · ⭐ Özel: Uzay Neden Hep Yatay Görünüyor?</h1>
+  <div class="sub">Barış'ın özel sorusu — biriktirdik, şimdi cevap zamanı. Cevabın 3 katmanı var.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Cevap 3 katmanda:</b>
+    <b>1) Güneş Sistemi GERÇEKTEN düz</b> (~ekliptik düzleminin 7°'sinde). Sebep: <b class="key">açısal momentum korunumu</b>. Çöken bir gaz bulutunun ortalama dönme ekseni var; çarpışmalar dik yönlü hareketleri söndürür, geriye <b>disk</b> kalır.
+    Bu yüzden Güneş Sistemi, galaksiler, Satürn halkaları ve akret diskleri hep "krep" şeklindedir.
+    <b>2) Galaksi/evren 3B</b>; çizimlerimiz 2B kâğıda izdüşüm. Aynı galaksi yüzden bakınca sarmal, kenardan bakınca ince çizgi.
+    <b>3) Uzayda "üst" yok</b> — yalnızca yerel yerçekimi "aşağı"yı tanımlar. Yüzen bir astronot için yatay/dikey diye bir şey yoktur. "Kuzey yukarı" sadece geleneksel bir tercih.
+  </div>
+
+  <div class="navrow">
+    <a href="29-notron-yildizi-pulsar.html">← Ders 29</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+let parts=null;
+function initParts(){
+  parts=[];
+  for(let i=0;i<70;i++){
+    parts.push({
+      r:30+Math.random()*150, a:Math.random()*6.28,
+      z:(Math.random()-0.5)*120,    // başlangıçta 3B dağınık
+      vz:(Math.random()-0.5)*0.5,
+      c:i%4===0?'#ffd870':(i%3===0?'#ff9550':'#a0c8ff')
+    });
+  }
+}
+
+Lab.start([
+  {
+    tab:'1 · Neden hep disk?',
+    html:`<h2>Açısal momentum kreple bitirir</h2>Dönen bir gaz bulutunun bir <b class="key">net dönme ekseni</b> vardır. Çarpışmalar bu eksene dik hareketleri yer, paralel hareketleri tutar.
+          Sonuç: bulut zamanla <b>diske dönüşür</b>. Aynı sebep solar sistem, galaksiler, Satürn halkaları, kara delik akret diskleri için geçerli.`,
+    loop:true,
+    draw:(g,t)=>{
+      if(!parts) initParts();
+      const CX=F.cx-100, CY=F.midY;
+      // z'yi söndür (zamanla disk olur)
+      if(Lab.playing){
+        parts.forEach(p=>{ p.a += 0.01*Lab.speed*(1+50/p.r);  // Kepler-vari
+          p.z *= (1 - 0.012*Lab.speed);                        // z söndür
+          p.vz *= (1 - 0.02*Lab.speed);
+          p.z += p.vz*Lab.speed;
+        });
+      }
+      // sıralı çiz (önde olanlar üstte) — z'ye göre sırala
+      const ps=parts.slice().sort((a,b)=>a.z-b.z);
+      // bakış açısı (30°)
+      const tiltY = 0.5;     // disk eğimi (görselsel)
+      // merkez (büyüyen yıldız)
+      const formed = 1 - Math.abs(parts[0].z)/120;     // ortalama düzleşme
+      const Rstar=8+formed*14;
+      ps.forEach(p=>{
+        const x=CX + p.r*Math.cos(p.a);
+        const yPlane = p.r*Math.sin(p.a)*tiltY;
+        const yScreen = CY + yPlane + p.z*0.7;
+        const depth = (p.z+120)/240;             // 0..1
+        const sz = 2 + depth*2;
+        g.fillStyle=p.c;g.globalAlpha=0.5+0.4*depth;
+        g.beginPath();g.arc(x,yScreen,sz,0,7);g.fill();
+      });
+      g.globalAlpha=1;
+      // merkez yıldız
+      glowCircle(g,CX,CY,Rstar*2.2,'rgba(255,200,80,.5)');
+      const rg=g.createRadialGradient(CX,CY,0,CX,CY,Rstar);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,Rstar,0,7);g.fill();
+      // dönme ekseni
+      g.strokeStyle='rgba(70,224,138,.4)';g.setLineDash([4,5]);g.lineWidth=1.5;
+      g.beginPath();g.moveTo(CX,CY-150);g.lineTo(CX,CY+150);g.stroke();g.setLineDash([]);
+      label(g,'dönme ekseni',CX,CY-150,'#46e08a',11);
+      // sağ: örnekler
+      const ex=F.W-200, ey=80;
+      label(g,'EVRENİN HER YERİNDE DİSK ŞEKLİ:',ex,ey,'#46e08a',12);
+      [
+        {n:'Güneş Sistemi (ekliptik)',c:'#ffd870'},
+        {n:'Galaksiler (Samanyolu)',c:'#7fb4ff'},
+        {n:'Satürn halkaları',c:'#e8d08a'},
+        {n:'Kara delik akret diski',c:'#ff6b6b'},
+        {n:'Protoplanetar diskler',c:'#b18bff'}
+      ].forEach((it,i)=>{ const y=ey+24+i*22;
+        g.fillStyle=it.c;g.beginPath();g.arc(ex,y,5,0,7);g.fill();
+        g.fillStyle='#fff';g.font='11px Segoe UI';g.fillText(it.n,ex+12,y+4); });
+      // büyük açıklama
+      label(g,'Yaklaşık düzleşme: '+(Math.round((1-Math.abs(parts.reduce((a,p)=>a+Math.abs(p.z),0))/(parts.length*60))*100))+'%',CX,F.H-50,'#46e08a',13);
+      banner(g,'Açısal momentum korunumu → spinning bulut → disk. Universal kural.','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Hangi taraftan bakıyorsun?',
+    html:`<h2>Aynı disk, çok farklı görünür</h2>Bir galaksiyi/yörüngeyi yüzünden görürsen sarmal/çember. Kenarından bakarsan <b>düz çizgi</b>. Kaydırıcı: galaksinin bakış açısını çevir.
+      <div class="sliders">
+        <div class="row"><label>Bakış açısı</label><input id="s_a" type="range" min="0" max="90" step="1" value="20"><span id="o_a">20°</span></div>
+        <div class="res">0° = yüzden (tam sarmal) · 90° = kenardan (ince disk) · Çoğu galaksi fotoğrafı kaza/seçim ile bu spektrumda bir yerdedir.</div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const a=rd('s_a',20);
+      const CX=F.cx, CY=F.midY-10;
+      const squish=Math.cos(a*Math.PI/180);
+      // halka çerçeve
+      g.strokeStyle='rgba(127,180,255,.3)';g.lineWidth=1;g.setLineDash([3,5]);
+      g.beginPath();g.ellipse(CX,CY,180,180*squish,0,0,7);g.stroke();g.setLineDash([]);
+      // sarmal kollar
+      for(let arm=0;arm<4;arm++){ const off=arm*Math.PI/2;
+        for(let s=0;s<60;s++){ const th=s*0.08+t*0.05; const r=15+th*10; if(r>180) continue;
+          const x=CX+r*Math.cos(th+off), y=CY+r*Math.sin(th+off)*squish;
+          const tw=0.4+0.6*Math.sin(t*4+s+arm);
+          g.fillStyle=s%4===0?'#fff':(s%2===0?'#ffd870':'#a0c8ff');
+          g.globalAlpha=tw;g.beginPath();g.arc(x,y,1.5,0,7);g.fill();
+        }
+      } g.globalAlpha=1;
+      // bulge
+      glowCircle(g,CX,CY,28,'rgba(255,200,80,.5)');
+      const rg=g.createRadialGradient(CX,CY,0,CX,CY,18);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.ellipse(CX,CY,18,18*squish+3,0,0,7);g.fill();
+      // 3B yönlendirici (sol üst)
+      const ix=120, iy=120;
+      label(g,'bakış açısı: '+a+'°',ix,iy-40,'#46e08a',13);
+      // ufak temsil
+      g.strokeStyle='#46e08a';g.lineWidth=2;
+      g.beginPath();g.moveTo(ix-30,iy);g.lineTo(ix+30,iy);g.stroke();
+      // göz/izleyici
+      g.fillStyle='#7fd6ff';g.beginPath();g.arc(ix-60,iy-25*Math.cos(a*Math.PI/180)+15*Math.sin(a*Math.PI/180), 6,0,7);g.fill();
+      label(g,'izleyici',ix-60,iy+25,'#7fd6ff',11);
+      // sağ panel
+      const px=F.W-200, py=120;
+      label(g,'GERÇEK ÖRNEKLER',px,py,'#fff',12);
+      if(a<15){ label(g,'M51 (Whirlpool) → yüzden',px,py+22,'#7fb4ff',11);
+        label(g,'NGC 1300 → çubuk sarmal',px,py+38,'#ffd76a',11); }
+      else if(a<70){ label(g,'M101 (Pinwheel) → eğik',px,py+22,'#7fb4ff',11);
+        label(g,'Samanyolu (içinden) → çetrefilli',px,py+38,'#ffd76a',11); }
+      else { label(g,'NGC 4565 → kenardan ince disk',px,py+22,'#7fb4ff',11);
+        label(g,'Sombrero galaksisi → "şapka"',px,py+38,'#ffd76a',11); }
+      label(g,'(Aynı galaksi türü, farklı yön)',px,py+60,'#9fb0ff',11);
+      document.getElementById('o_a').textContent=a+'°';
+      banner(g,'Tek bir 3B nesne, izleme açısına göre farklı görünür','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Uzayda "yukarı" yok',
+    html:`<h2>Üst/alt — sadece yerel yerçekimi</h2>Dünya'da "yukarı" yerçekiminin tersidir. Uzayda yüzen astronot için yukarı diye bir şey yoktur. Çizdiğimiz haritalardaki "kuzey" — sadece <b>insan tercihi</b>.
+          Galaksi haritalarında bile "yukarı" kararsızdır; farklı yıldız atlasları farklı yönelimler kullanır.`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: Dünya yerçekimi referansı
+      const ex=180,ey=F.midY-10;
+      drawPlanet(g,ex,ey,40,'#3a6ea5');
+      // adam (yer çekimi var → ayakta)
+      g.save();g.translate(ex,ey-50);
+      g.fillStyle='#cdd6ff';g.beginPath();g.arc(0,-12,7,0,7);g.fill();
+      g.fillStyle='#7fb4ff';rrect(g,-6,-3,12,18,3);g.fill();
+      g.restore();
+      // ok: yukarı/aşağı belli
+      arrow(g,ex+58,ey-30,0,'#46e08a'); // kullan vert ekleme yapamam... burası placeholder
+      // Yatay/dikey okları
+      const upText=70;
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();g.moveTo(ex+60,ey-30);g.lineTo(ex+60,ey-10);g.stroke();
+      g.fillStyle='#46e08a';g.beginPath();g.moveTo(ex+60,ey-32);g.lineTo(ex+55,ey-22);g.lineTo(ex+65,ey-22);g.closePath();g.fill();
+      label(g,'YUKARI',ex+85,ey-22,'#46e08a',11);
+      g.strokeStyle='#ff6b6b';g.beginPath();g.moveTo(ex+60,ey+10);g.lineTo(ex+60,ey+30);g.stroke();
+      g.fillStyle='#ff6b6b';g.beginPath();g.moveTo(ex+60,ey+32);g.lineTo(ex+55,ey+22);g.lineTo(ex+65,ey+22);g.closePath();g.fill();
+      label(g,'aşağı',ex+85,ey+22,'#ff6b6b',11);
+      label(g,'Dünya: yerçekimi var',ex,ey+60,'#9fb0ff',12);
+      label(g,'→ yukarı net',ex,ey+78,'#46e08a',11);
+      // sağ: uzayda yüzen astronot, "yukarı" yok
+      const sx=F.cx+170, sy=F.midY-10;
+      // bg yıldızlar
+      for(let k=0;k<20;k++){ const xx=sx-150+k*15+Math.sin(k+t)*4, yy=sy-100+Math.cos(k*2+t)*100;
+        g.fillStyle='#fff';g.globalAlpha=.5;g.beginPath();g.arc(xx,yy,1,0,7);g.fill(); } g.globalAlpha=1;
+      // astronot serbest pozda dönüyor
+      const rot=t*1.2;
+      g.save();g.translate(sx,sy);g.rotate(rot);
+      g.fillStyle='#cdd6ff';g.beginPath();g.arc(0,-14,9,0,7);g.fill();
+      g.fillStyle='#7fb4ff';rrect(g,-8,-4,16,22,4);g.fill();
+      // kollar
+      g.strokeStyle='#7fb4ff';g.lineWidth=4;g.beginPath();g.moveTo(-8,2);g.lineTo(-18,12);g.moveTo(8,2);g.lineTo(18,-6);g.stroke();
+      // bacaklar
+      g.strokeStyle='#7fb4ff';g.lineWidth=4;g.beginPath();g.moveTo(-4,18);g.lineTo(-10,30);g.moveTo(4,18);g.lineTo(10,28);g.stroke();
+      g.restore();
+      // soru işaretleri dönüyor
+      ['?','?','?','?'].forEach((q,i)=>{ const ang=t+i*1.57; const xx=sx+Math.cos(ang)*55, yy=sy+Math.sin(ang)*55;
+        g.fillStyle='#ffcf5a';g.font='bold 16px Segoe UI';g.textAlign='center';g.fillText(q,xx,yy);
+      }); g.textAlign='left';
+      label(g,'Uzayda yüzen: yukarı yok',sx,sy+70,'#9fb0ff',12);
+      label(g,'→ yön = kişisel tercih',sx,sy+88,'#ffcf5a',11);
+      // alt mesaj
+      label(g,'⭐ Sonuç: Disk şekli — fizik. Yatay çizim — gelenek + kâğıt kısıtı. "Yukarı" — geleneksel.',F.cx,F.H-50,'#46e08a',13);
+      banner(g,'Galaksi haritalarında "kuzey" — sadece geleneksel; evren için anlamsız','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#ffd870',t:'Yıldız / disk parçacığı'},
+  {c:'#46e08a',t:'Dönme ekseni / yön'},
+  {c:'#ff6b6b',t:'Yerçekimi'}
+]});
+</script>
+</body>
+</html>
