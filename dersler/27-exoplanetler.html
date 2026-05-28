@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 27 · Exoplanetler</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 27</div>
+  <h1>Ders 27 · Exoplanetler</h1>
+  <div class="sub">Başka yıldızların gezegenlerini nasıl buluyoruz? 5.800+ doğrulanmış exoplanet, çoğu görülmeden tespit edildi.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Exoplanet görmek imkansıza yakındır — yıldızlar parlak, gezegenler minicik & sönük. İki dolaylı yöntem işi çözdü:
+    <b>1) Transit:</b> gezegen yıldızın önünden geçince parlaklık <b class="key">çok az</b> azalır (Dünya boyutu için ~%0.01). Kepler (2009-2018) + TESS (2018-).
+    <b>2) Radyal hız:</b> yıldız, gezegenin çekimiyle <b>sallanır</b>; spektrumu mavi-kırmızı arasında periyodik kayar (Doppler). Jüpiter'i Güneş'te ölçebiliriz.
+    <b>Yaşanabilir bölge</b>: yıldıza ne çok yakın (sıcak) ne çok uzak (donar) — sıvı su mümkün. 5.800+ exoplanet (2024), bir kısmı yaşam adayı.
+  </div>
+
+  <div class="navrow">
+    <a href="26-big-bang-genisleme.html">← Ders 26</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Transit metodu',
+    html:`<h2>Gezegen yıldızın önünden geçer → ışık azalır</h2>Kaydırıcı: gezegen boyutu. Daha büyük gezegen → daha derin düşüş.
+          Düşüş miktarı = (R_gezegen / R_yıldız)². Dünya'nın Güneş'i geçişi sadece <b style="color:#46e08a">%0.008</b>!
+      <div class="sliders">
+        <div class="row"><label>Gezegen yarıçapı (R_Dünya)</label><input id="s_r" type="range" min="0.5" max="15" step="0.1" value="3"><span id="o_r">3.0 R_⊕</span></div>
+        <div class="res">Işık düşüşü: <b id="o_dip" style="color:#46e08a">—</b> &nbsp;·&nbsp; Gezegen tipi: <b id="o_typ" style="color:#7fd6ff">—</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const Rp_E=rd('s_r',3);
+      const Rs_E=110;        // yıldız yarıçapı Dünya birimlerinde (Güneş ~109)
+      const dipPct=(Rp_E/Rs_E)*(Rp_E/Rs_E)*100;
+      // gezegen tipi
+      let typ;
+      if(Rp_E<1.25) typ='Dünya-benzeri (taşlı)';
+      else if(Rp_E<2) typ='Süper-Dünya';
+      else if(Rp_E<4) typ='Mini-Neptün';
+      else if(Rp_E<10) typ='Neptün-büyüklüğü';
+      else typ='Jüpiter-büyüklüğü';
+      document.getElementById('o_r').textContent=Rp_E.toFixed(1)+' R_⊕';
+      document.getElementById('o_dip').textContent=dipPct<0.01?dipPct.toFixed(4)+'%':dipPct.toFixed(2)+'%';
+      document.getElementById('o_typ').textContent=typ;
+      // canvas: yıldız + gezegen üstte, ışık eğrisi altta
+      const Sx=F.cx, Sy=160, RsPx=60, RpPx=RsPx*(Rp_E/Rs_E);
+      // yıldız
+      glowCircle(g,Sx,Sy,RsPx*1.5,'rgba(255,220,140,.45)');
+      const rg=g.createRadialGradient(Sx,Sy,0,Sx,Sy,RsPx);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(Sx,Sy,RsPx,0,7);g.fill();
+      // gezegen sol-sağ geçiş (cos drives x; sin = depth — hide when behind)
+      const omega=2*Math.PI*1.5;
+      const th=t*omega;
+      const orbR=180;
+      const px=Sx+orbR*Math.cos(th);
+      const inFront = Math.sin(th)>0;             // ön yarıda
+      const py=Sy + orbR*Math.sin(th)*0.02;       // edge-on, neredeyse yatay
+      const xOnDisc = Math.abs(px-Sx) < RsPx+RpPx;
+      const transiting = inFront && xOnDisc;
+      if(inFront){
+        g.fillStyle='#2a2a4a';g.beginPath();g.arc(px,py,RpPx,0,7);g.fill();
+        g.strokeStyle='#9fb0ff';g.lineWidth=1;g.beginPath();g.arc(px,py,RpPx,0,7);g.stroke();
+      }
+      // ışık eğrisi alt panel
+      const px2=60,py2=270,pw2=760,ph2=90;
+      g.strokeStyle='#33406f';g.lineWidth=1.5;g.strokeRect(px2,py2,pw2,ph2);
+      label(g,'ışık eğrisi (zaman içinde yıldızın parlaklığı)',px2+pw2/2,py2-8,'#9fb0ff',12);
+      // baseline 100%
+      const baseY=py2+18;
+      g.strokeStyle='rgba(255,215,80,.4)';g.setLineDash([3,4]);g.beginPath();g.moveTo(px2,baseY);g.lineTo(px2+pw2,baseY);g.stroke();g.setLineDash([]);
+      label(g,'100% (referans)',px2+10,baseY-4,'#ffcf5a',10);
+      // dip line: planet visible position in time gives dip
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      const samples=200;
+      for(let i=0;i<samples;i++){
+        const tt=i/samples; const thh=tt*omega + t*omega - omega; // history
+        const phi=thh%(2*Math.PI);
+        const sx=Sx+orbR*Math.cos(phi);
+        const inF=Math.sin(phi)>0;
+        const inDisc = Math.abs(sx-Sx) < RsPx - RpPx*0.3;
+        let bright=100;
+        if(inF){
+          if(inDisc) bright = 100 - dipPct;
+          else if(Math.abs(sx-Sx) < RsPx + RpPx){ // partial transit
+            const frac = 1 - (Math.abs(sx-Sx)-RsPx+RpPx)/(2*RpPx);
+            bright = 100 - dipPct*Math.max(0,Math.min(1,frac));
+          }
+        }
+        const X=px2 + (i/samples)*pw2;
+        const Y=baseY + (100-bright)*4;  // her %1 düşüş = 4 px
+        i===0?g.moveTo(X,Y):g.lineTo(X,Y);
+      }
+      g.stroke();
+      // şu anki nokta
+      const nowX=px2+pw2-2;
+      const nowB= transiting? 100-dipPct : 100;
+      g.fillStyle='#ffd76a';g.beginPath();g.arc(nowX, baseY+(100-nowB)*4, 4, 0, 7);g.fill();
+      if(transiting){ label(g,'TRANSİT!',Sx,Sy-RsPx-12,'#46e08a',14); }
+      label(g,'%0 (tam karanlık olmaz; sadece çok küçük düşüş)',px2+pw2-260,py2+ph2-8,'#9fb0ff',10);
+      banner(g,'Kepler & TESS misyonu binlerce gezegen böyle keşfetti','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Radyal hız metodu',
+    html:`<h2>Yıldız sallar, biz spektrumda görürüz</h2>Yıldız ve gezegen ortak <b>barycenter</b> etrafında döner. Gezegen ağırsa, yıldız belirgin sallanır.
+          Yıldızın bize doğru hareketinde → ışık <b style="color:#7fd6ff">maviye kayar</b>. Uzaklaşırken → <b style="color:#ff6b6b">kırmızıya kayar</b>. Bu sallantıyı Doppler kayması ile ölçeriz.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-100, CY=F.midY-30;
+      // gezegen kütlesi: Jupiter sınıfı
+      const planetM = 0.001;   // Jupiter ≈ 1/1000 Sun
+      const orbR = 130;
+      const starOrbR = orbR * planetM * 8000;  // amplified for visibility (~10 px)
+      const omega = 2*Math.PI*0.6;
+      const th = t*omega;
+      // konum: barycenter sabit, yıldız ters yönde döner
+      const sx = CX - starOrbR*Math.cos(th);
+      const sy = CY - starOrbR*Math.sin(th)*0.3;
+      const px = CX + orbR*Math.cos(th);
+      const py = CY + orbR*Math.sin(th)*0.3;
+      // yörünge izleri
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);
+      g.beginPath();g.ellipse(CX,CY,starOrbR,starOrbR*0.3,0,0,7);g.stroke();
+      g.beginPath();g.ellipse(CX,CY,orbR,orbR*0.3,0,0,7);g.stroke();g.setLineDash([]);
+      // barycenter işareti
+      g.fillStyle='#46e08a';g.beginPath();g.arc(CX,CY,3,0,7);g.fill();
+      label(g,'barycenter',CX+8,CY-6,'#46e08a',10);
+      // yıldız (görselsel olarak büyütülmüş)
+      glowCircle(g,sx,sy,32,'rgba(255,220,140,.55)');
+      const rg=g.createRadialGradient(sx,sy,0,sx,sy,18);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(sx,sy,18,0,7);g.fill();
+      label(g,'yıldız (sallanır)',sx,sy-30,'#ffd76a',11);
+      // gezegen
+      g.fillStyle='#d8a05a';g.beginPath();g.arc(px,py,7,0,7);g.fill();
+      label(g,'gezegen',px,py-14,'#d8a05a',10);
+      // radyal hız (yıldızın bize doğru/uzak bileşeni)
+      // Diyelim biz aşağıdan bakıyoruz; "radyal" y-bileşeni
+      const v_radial = Math.sin(th); // -1..+1
+      // spektrum: tam ortada referans, sallanıyor
+      const sx2=520, sy2=80, sw=300, sh=40;
+      g.strokeStyle='#33406f';g.strokeRect(sx2,sy2,sw,sh);
+      const gradient=g.createLinearGradient(sx2,0,sx2+sw,0);
+      gradient.addColorStop(0,'#7f5fff');gradient.addColorStop(0.25,'#7fd6ff');gradient.addColorStop(0.5,'#46e08a');gradient.addColorStop(0.75,'#ffd76a');gradient.addColorStop(1,'#ff6b6b');
+      g.fillStyle=gradient;g.fillRect(sx2+1,sy2+1,sw-2,sh-2);
+      // kayan çizgi
+      const lineX = sx2 + sw/2 - v_radial*30;
+      g.strokeStyle='#000';g.lineWidth=3;g.beginPath();g.moveTo(lineX,sy2+2);g.lineTo(lineX,sy2+sh-2);g.stroke();
+      label(g,'yıldız spektrum çizgisi',sx2+sw/2,sy2-8,'#cdd6ff',11);
+      label(g,'mavi ←',sx2+10,sy2+sh+18,'#7fd6ff',12);
+      label(g,'→ kırmızı',sx2+sw-50,sy2+sh+18,'#ff6b6b',12);
+      // radyal hız grafiği
+      const px3=520,py3=170,pw3=300,ph3=100;
+      g.strokeStyle='#33406f';g.strokeRect(px3,py3,pw3,ph3);
+      label(g,'radyal hız vs zaman',px3+pw3/2,py3-8,'#9fb0ff',11);
+      // sinusoid
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      for(let i=0;i<pw3;i++){ const tt=i/pw3*Math.PI*4 + t*omega*4;
+        const v=Math.sin(tt); const X=px3+i, Y=py3+ph3/2 - v*ph3*0.4;
+        i===0?g.moveTo(X,Y):g.lineTo(X,Y); } g.stroke();
+      const curY=py3+ph3/2 - v_radial*ph3*0.4;
+      g.fillStyle='#ffd76a';g.beginPath();g.arc(px3+pw3-2,curY,4,0,7);g.fill();
+      // bilgi panel
+      label(g,'Doppler kayması: ışığın dalga boyu',60,80,'#9fb0ff',12);
+      label(g,'yıldız bize gelirken kısalır (mavi)',60,100,'#7fd6ff',11);
+      label(g,'uzaklaşırken uzar (kırmızı)',60,118,'#ff6b6b',11);
+      label(g,'Yıldız 1 km/s sallantı bile ölçülebilir!',60,144,'#46e08a',11);
+      label(g,'İlk doğrulanan exoplanet:',60,180,'#cdd6ff',12);
+      label(g,'51 Pegasi b (1995, Mayor & Queloz)',60,198,'#ffd76a',11);
+      label(g,'(Nobel 2019)',60,214,'#9fb0ff',11);
+      banner(g,'Doppler etkisi ile yıldızın milimetrik sallanması bile saptanabilir','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Yaşanabilir bölge',
+    html:`<h2>Sıvı su mümkün mü? Yıldız kütlesi belirler</h2>"Goldilocks": ne çok sıcak ne çok soğuk. Yıldıza yakın → su buharlaşır; uzak → donar.
+          Yıldız kütlesini ayarla → yaşanabilir bölge mesafesi değişir.
+      <div class="sliders">
+        <div class="row"><label>Yıldız kütlesi (M☉)</label><input id="s_M" type="range" min="0.1" max="2" step="0.05" value="1"><span id="o_M">1.00 M☉</span></div>
+        <div class="res" style="line-height:1.7">
+          Yıldız tipi: <b id="o_st" style="color:#ffd76a">G</b> &nbsp;·&nbsp; YB içi: <b id="o_in" style="color:#46e08a">0.95</b> AU &nbsp;·&nbsp; YB dışı: <b id="o_out" style="color:#46e08a">1.37</b> AU<br>
+          Gerçek örnek: <b id="o_ex" style="color:#7fd6ff">—</b>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const M=rd('s_M',1);
+      // luminosity ∝ M^3.5
+      const L=Math.pow(M,3.5);
+      // habitable zone (kabaca): inner=0.95*sqrt(L), outer=1.37*sqrt(L) AU
+      const hi=0.95*Math.sqrt(L), ho=1.37*Math.sqrt(L);
+      // yıldız tipi
+      const T=5778*Math.pow(M,0.55);
+      let cls,col;
+      if(T>=30000){cls='O';col='#5080ff';}
+      else if(T>=10000){cls='B';col='#a0c8ff';}
+      else if(T>=7500){cls='A';col='#ffffff';}
+      else if(T>=6000){cls='F';col='#fff8a0';}
+      else if(T>=5200){cls='G';col='#ffd870';}
+      else if(T>=3700){cls='K';col='#ff9550';}
+      else {cls='M';col='#ff5040';}
+      document.getElementById('o_M').textContent=M.toFixed(2)+' M☉';
+      document.getElementById('o_st').textContent=cls;
+      document.getElementById('o_st').style.color=col;
+      document.getElementById('o_in').textContent=hi.toFixed(2);
+      document.getElementById('o_out').textContent=ho.toFixed(2);
+      // gerçek örnek
+      let ex='—';
+      if(M<0.15) ex='Trappist-1 (0.09 M☉) — 7 gezegen, 3 YB içinde';
+      else if(M<0.4) ex='Proxima Centauri (0.12 M☉) — Proxima b YB içinde';
+      else if(M<0.85) ex='Kepler-186 (0.48 M☉)';
+      else if(M<1.15) ex='Güneş (1.0 M☉)';
+      else ex='Daha sıcak, YB daha uzakta — yıldız hızlı ölür (kısa pencere)';
+      document.getElementById('o_ex').textContent=ex;
+      // çizim
+      const CX=F.cx, CY=F.midY-10;
+      // yıldız
+      const Rs=8+M*8;
+      glowCircle(g,CX,CY,Rs*3,col.replace(')',',.4)').replace('#','rgba(').length>10?col:'rgba(255,200,80,.4)');
+      glowCircle(g,CX,CY,Rs*2.5,'rgba(255,220,150,.4)');
+      const rg=g.createRadialGradient(CX,CY,0,CX,CY,Rs);
+      rg.addColorStop(0,'#fff');rg.addColorStop(.6,col);rg.addColorStop(1,'#400');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,Rs,0,7);g.fill();
+      // ölçek: AU başına px
+      const PX_per_AU = 120;
+      const hiPx=hi*PX_per_AU, hoPx=ho*PX_per_AU;
+      // yaşanabilir bölge halkası
+      g.fillStyle='rgba(70,224,138,.15)';g.beginPath();g.arc(CX,CY,hoPx,0,7);g.arc(CX,CY,hiPx,0,7,true);g.fill();
+      g.strokeStyle='#46e08a';g.lineWidth=2;
+      g.beginPath();g.arc(CX,CY,hiPx,0,7);g.stroke();
+      g.beginPath();g.arc(CX,CY,hoPx,0,7);g.stroke();
+      label(g,'YAŞANABİLİR BÖLGE',CX,CY-hoPx-12,'#46e08a',12);
+      // gezegen örnekleri yörüngede
+      const planets=[{au:0.3,c:'#a8a59c',n:'çok yakın (sıcak)'},{au:0.7,c:'#e8c878',n:'sıcak'},{au:Math.max(hi,0.5),c:'#3a6ea5',n:'YB içi! 🌍'},{au:Math.min(ho,4),c:'#3a6ea5',n:'YB içi'},{au:3,c:'#c0502a',n:'soğuk'}];
+      planets.forEach((p,i)=>{
+        const r=p.au*PX_per_AU;
+        if(r>Math.min(F.W,F.H)*0.45) return;
+        const ang=t*(0.3+i*0.1);
+        const x=CX+r*Math.cos(ang), y=CY+r*Math.sin(ang)*0.7;
+        const inHZ = p.au>=hi && p.au<=ho;
+        drawPlanet(g,x,y,5,p.c);
+        if(inHZ) glowCircle(g,x,y,12,'rgba(70,224,138,.5)');
+        label(g,p.au.toFixed(2)+' AU',x,y+14,inHZ?'#46e08a':'#9fb0ff',9);
+      });
+      banner(g,'YB ∝ √L · L = M^3.5 → küçük yıldızda YB yakın & dar; büyükte uzak ama yıldız kısa yaşar','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Yıldız'},
+  {c:'#46e08a',t:'Yaşanabilir bölge / transit dip'},
+  {c:'#ff6b6b',t:'Kırmızıya kayma'}
+]});
+</script>
+</body>
+</html>
