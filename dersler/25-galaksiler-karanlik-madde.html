@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 25 · Galaksiler & Karanlık Madde</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 25</div>
+  <h1>Ders 25 · Galaksiler & Karanlık Madde</h1>
+  <div class="sub">Samanyolu'nu tanıyalım, galaksi türlerini görelim, ve evrenin %85'inin "görünmez" olduğunu nasıl bildiğimizi öğrenelim.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Samanyolu = 100 milyar yıldız, ~100.000 ışık yılı çapında sarmal disk. Biz <b>Orion kolunda</b>, merkezden ~26.000 ışık yılı uzaktayız. Merkezde süperkütleli kara delik <b>Sgr A*</b>.
+    Galaksi dönme eğrileri <b class="key">düz</b>: dış yıldızlar Kepler'in beklediği kadar yavaş değil → görünmeyen kütle olmalı. Buna <b>karanlık madde</b> dedik (galaksi kütlesinin ~%85'i).
+    Vera Rubin (1970'ler) bu gözlemi yaptı; bugün modern kozmolojinin temel taşı. Galaksi türleri: <b>sarmal, çubuklu sarmal, eliptik, düzensiz, mercek-şekilli</b>.
+  </div>
+
+  <div class="navrow">
+    <a href="24-kara-delikler.html">← Ders 24</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Samanyolu',
+    html:`<h2>Bizim galaksimiz</h2>~<b>100 milyar yıldız</b>, ~<b>100.000 ışık yılı</b> çapında sarmal bir disk. Merkezde süperkütleli kara delik <b style="color:#a058ff">Sgr A*</b> (4.3 milyon M☉).
+          Güneş Sistemi <b style="color:#ffd76a">Orion kolunda</b>, merkezden ~26.000 ışık yılı uzakta. Galaksiyi saran görünmez <b style="color:#46e08a">karanlık madde halosu</b> dış yıldızları yörüngede tutuyor.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-100,CY=F.midY;
+      // karanlık madde halosu
+      glowCircle(g,CX,CY,260,'rgba(70,224,138,.10)');
+      g.strokeStyle='rgba(70,224,138,.25)';g.setLineDash([4,8]);g.lineWidth=1;g.beginPath();g.arc(CX,CY,220,0,7);g.stroke();g.setLineDash([]);
+      label(g,'karanlık madde halosu',CX,CY-200,'#46e08a',11);
+      // sarmal kollar (4)
+      const armCount=4, starsPerArm=80;
+      for(let a=0;a<armCount;a++){
+        const offset=a*Math.PI/2;
+        for(let s=0;s<starsPerArm;s++){
+          const theta = s*0.06 + t*0.05;
+          const r = 12 + theta*8;
+          if(r>180) continue;
+          const x=CX + r*Math.cos(theta+offset);
+          const y=CY + r*Math.sin(theta+offset)*0.7; // hafif disk eğimi
+          const tw=0.4+0.6*Math.sin(t*4+s+a);
+          g.globalAlpha=tw;
+          g.fillStyle=s%5===0?'#fff':(s%3===0?'#ffd870':'#a0c8ff');
+          g.beginPath();g.arc(x,y,1.4,0,7);g.fill();
+        }
+      } g.globalAlpha=1;
+      // bulge (merkez)
+      glowCircle(g,CX,CY,40,'rgba(255,200,80,.5)');
+      const rg=g.createRadialGradient(CX,CY,0,CX,CY,28);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,28,0,7);g.fill();
+      // Sgr A*
+      g.fillStyle='#000';g.beginPath();g.arc(CX,CY,3,0,7);g.fill();
+      label(g,'Sgr A*',CX+30,CY-20,'#a058ff',11);
+      // bizim konumumuz
+      const usR=110, usAng=0.4+t*0.02;
+      const ux=CX+usR*Math.cos(usAng), uy=CY+usR*Math.sin(usAng)*0.7;
+      g.fillStyle='#ffd76a';g.beginPath();g.arc(ux,uy,5,0,7);g.fill();
+      g.strokeStyle='#ffd76a';g.lineWidth=1;g.beginPath();g.arc(ux,uy,10,0,7);g.stroke();
+      label(g,'BURADAYIZ',ux+12,uy-8,'#ffd76a',11);
+      label(g,'(Orion kolu)',ux+12,uy+8,'#9fb0ff',10);
+      // edge-on inset (sağ üst)
+      const ex=F.W-160, ey=80;
+      label(g,'kenardan görünüm',ex,ey-12,'#9fb0ff',11);
+      g.strokeStyle='#33406f';g.strokeRect(ex-70,ey-5,140,40);
+      // ince disk
+      glowCircle(g,ex,ey+18,12,'rgba(255,200,80,.5)');
+      g.fillStyle='#a0c8ff';g.globalAlpha=.7;
+      for(let s=0;s<60;s++){ const xx=ex-65+s*2.1, yy=ey+18+(Math.sin(s)*2-1);
+        g.beginPath();g.arc(xx,yy,1,0,7);g.fill(); } g.globalAlpha=1;
+      label(g,'~1.000 ışık yılı kalınlık',ex,ey+50,'#9fb0ff',9);
+      // bilgi paneli
+      const px=F.W-200, py=180;
+      label(g,'SAMANYOLU',px,py,'#fff',13);
+      label(g,'~100 milyar yıldız',px,py+22,'#9fb0ff',11);
+      label(g,'~100.000 ışık yılı çap',px,py+38,'#9fb0ff',11);
+      label(g,'~13.6 milyar yıl yaşında',px,py+54,'#9fb0ff',11);
+      label(g,'1 tam dönüş = ~230 milyon yıl',px,py+70,'#9fb0ff',11);
+      label(g,'(Güneş 26 tur attı)',px,py+86,'#7fd6ff',11);
+      banner(g,'Sarmal galaksi, ince disk, merkezde süperkütleli kara delik','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Dönme eğrisi (KM kanıtı)',
+    html:`<h2>Vera Rubin'in keşfi: bir şey eksik!</h2>Kepler'e göre dış yıldızlar yavaş dönmeli (v ∝ 1/√r). Ama gözlemde <b class="key">düz</b> bir eğri görüyoruz — dış yıldızlar da hızlı dönüyor.
+          Tek açıklama: görünmeyen <b style="color:#46e08a">karanlık madde</b> kütlesi galaksiyi sarıyor. Kaydırıcı ile karanlık maddenin etkisini aç/kapat.
+      <div class="sliders">
+        <div class="row"><label>Karanlık madde</label><input id="s_dm" type="range" min="0" max="1" step="0.05" value="1"><span id="o_dm">%100</span></div>
+        <div class="res">Eğri tipi: <b id="o_typ" style="color:#46e08a">DÜZ (KM var)</b> &nbsp;·&nbsp; Beklenen Kepler eğrisi: <b style="color:#ff6b6b">düşen</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const dm=rd('s_dm',1);
+      const CX=240, CY=F.midY;
+      // 6 yörünge halkası
+      const rings=[40,70,100,130,160,190];
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);
+      rings.forEach(r=>{ g.beginPath();g.arc(CX,CY,r,0,7);g.stroke(); }); g.setLineDash([]);
+      // her halkada bir yıldız döner
+      // Kepler: v ∝ 1/sqrt(r). Flat: v sabit.
+      // omega = v/r
+      rings.forEach((r,i)=>{
+        const v_k = 100/Math.sqrt(r);   // Kepler hızı
+        const v_f = 5.5;                // düz hız (sabit)
+        const v = v_k*(1-dm) + v_f*dm;   // KM oranıyla karışım
+        const omega = v/r;
+        const ang = t*omega*30 + i*1.3;
+        const x = CX + r*Math.cos(ang), y = CY + r*Math.sin(ang)*0.85;
+        g.fillStyle=dm>0.5?'#46e08a':'#7fd6ff';
+        g.beginPath();g.arc(x,y,4,0,7);g.fill();
+        // hız oku
+        const tx=-Math.sin(ang)*v*3, ty=Math.cos(ang)*v*3*0.85;
+        arrow(g,x,y,tx,'#ffcf5a');
+      });
+      // bulge
+      glowCircle(g,CX,CY,24,'rgba(255,200,80,.5)');
+      g.fillStyle='#ffd24d';g.beginPath();g.arc(CX,CY,12,0,7);g.fill();
+      // dönme eğrisi plotu sağda
+      const px=520,py=80,pw=300,ph=200;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'dönme eğrisi (v vs r)',px+pw/2,py-8,'#9fb0ff',12);
+      // eksenler etiketi
+      label(g,'r →',px+pw-20,py+ph+18,'#9fb0ff',11);
+      g.save();g.translate(px-14,py+ph/2);g.rotate(-Math.PI/2);label(g,'hız v',0,0,'#9fb0ff',11);g.restore();
+      // Kepler beklenti (kırmızı düşen)
+      g.strokeStyle='#ff6b6b';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();
+      for(let r=20;r<=200;r+=5){ const v=100/Math.sqrt(r); const X=px+(r/200)*pw, Y=py+ph-(v/16)*ph; r===20?g.moveTo(X,Y):g.lineTo(X,Y); } g.stroke();g.setLineDash([]);
+      label(g,'Kepler (beklenen)',px+pw-90,py+ph-26,'#ff6b6b',10);
+      // gerçek (yeşil düz) — dm oranıyla
+      g.strokeStyle='#46e08a';g.lineWidth=2.5;g.beginPath();
+      for(let r=20;r<=200;r+=5){ const v_k=100/Math.sqrt(r), v_f=5.5; const v=v_k*(1-dm)+v_f*dm;
+        const X=px+(r/200)*pw, Y=py+ph-(v/16)*ph; r===20?g.moveTo(X,Y):g.lineTo(X,Y); } g.stroke();
+      label(g,'gözlem',px+pw-50,py+22,'#46e08a',11);
+      // spans
+      document.getElementById('o_dm').textContent='%'+Math.round(dm*100);
+      const ot=document.getElementById('o_typ');
+      ot.textContent = dm>0.7?'DÜZ (KM var ✓)' : dm>0.3?'kısmen düz' : 'düşen (Kepler — KM yok)';
+      ot.style.color = dm>0.7?'#46e08a':dm>0.3?'#ffcf5a':'#ff6b6b';
+      banner(g,'Düz eğri = görünmeyen kütle = karanlık madde (galaksi kütlesinin ~%85\'i)','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Galaksi türleri',
+    html:`<h2>4 ana tür</h2>Galaksiler şekillerine göre Hubble sınıflamasıyla gruplanır.
+      <ul style="line-height:1.7;padding-left:20px;font-size:14px;margin-top:6px">
+        <li><b style="color:#7fd6ff">Sarmal (Sa-Sc):</b> Disk + sarmal kollar. Samanyolu, Andromeda. ~%60.</li>
+        <li><b style="color:#ffd76a">Çubuklu sarmal (SBa-SBc):</b> Merkezde çubuk + sarmal. Samanyolu da aslında çubuklu! NGC 1300.</li>
+        <li><b style="color:#ff9f6b">Eliptik (E0-E7):</b> Topak şekilli, az gaz, yaşlı yıldızlar. M87, dev galaksi kümelerinde.</li>
+        <li><b style="color:#b18bff">Düzensiz (Irr):</b> Belirgin şekli yok. Büyük/Küçük Macellan bulutları (LMC/SMC).</li>
+      </ul>`,
+    loop:true,
+    draw:(g,t)=>{
+      const Y=F.midY-10, R=78;
+      const cells=[
+        {x:F.cx-300, type:'spiral',  name:'SARMAL',     ex:'Samanyolu, Andromeda',     c:'#7fd6ff'},
+        {x:F.cx-100, type:'barred',  name:'ÇUBUKLU',    ex:'NGC 1300',                  c:'#ffd76a'},
+        {x:F.cx+100, type:'ellip',   name:'ELİPTİK',    ex:'M87 (dev)',                 c:'#ff9f6b'},
+        {x:F.cx+300, type:'irreg',   name:'DÜZENSİZ',   ex:'Macellan bulutları',        c:'#b18bff'}
+      ];
+      cells.forEach(c=>{
+        const X=c.x;
+        // çekirdek glow
+        glowCircle(g,X,Y,R,'rgba(255,200,150,.18)');
+        if(c.type==='spiral'){
+          for(let a=0;a<4;a++){ const off=a*Math.PI/2;
+            for(let s=0;s<32;s++){ const th=s*0.08+t*0.05; const r=5+th*9; if(r>R)continue;
+              const xx=X+r*Math.cos(th+off), yy=Y+r*Math.sin(th+off)*0.75;
+              g.fillStyle=s%4===0?'#fff':'#a0c8ff';g.globalAlpha=.7;g.beginPath();g.arc(xx,yy,1.2,0,7);g.fill(); } } g.globalAlpha=1;
+        } else if(c.type==='barred'){
+          // çubuk
+          g.fillStyle='#ffd870';g.globalAlpha=.65;rrect(g,X-30,Y-5,60,10,5);g.fill();g.globalAlpha=1;
+          for(let a=0;a<2;a++){ const off=a*Math.PI;
+            for(let s=0;s<30;s++){ const th=s*0.1+t*0.05; const r=22+th*7; if(r>R)continue;
+              const xx=X+r*Math.cos(th+off), yy=Y+r*Math.sin(th+off)*0.7;
+              g.fillStyle=s%3===0?'#fff':'#ffd870';g.globalAlpha=.7;g.beginPath();g.arc(xx,yy,1.2,0,7);g.fill(); } } g.globalAlpha=1;
+        } else if(c.type==='ellip'){
+          // eliptik bulut
+          for(let s=0;s<120;s++){ const ang=Math.random()*6.28, rr=Math.sqrt(Math.random())*R;
+            const xx=X+rr*Math.cos(ang)*0.9, yy=Y+rr*Math.sin(ang)*0.65;
+            g.fillStyle='#ffd870';g.globalAlpha=.4*(1-rr/R);g.beginPath();g.arc(xx,yy,1.2,0,7);g.fill(); } g.globalAlpha=1;
+          glowCircle(g,X,Y,R*0.7,'rgba(255,200,120,.25)');
+        } else { // irreg
+          for(let s=0;s<70;s++){ const ang=s*1.7+t, rr=20+Math.sin(s+t*2)*30;
+            const xx=X+rr*Math.cos(ang)+Math.cos(s)*20, yy=Y+rr*Math.sin(ang)*0.7+Math.sin(s*2)*10;
+            g.fillStyle='#cdd6ff';g.globalAlpha=.6;g.beginPath();g.arc(xx,yy,1.3,0,7);g.fill(); } g.globalAlpha=1;
+        }
+        // bulge merkez
+        glowCircle(g,X,Y,12,'rgba(255,220,150,.6)');
+        g.fillStyle='#fff4c2';g.beginPath();g.arc(X,Y,5,0,7);g.fill();
+        // etiket
+        label(g,c.name,X,Y+R+18,c.c,12);
+        label(g,c.ex,X,Y+R+36,'#9fb0ff',10);
+      });
+      banner(g,'Edwin Hubble (1926) galaksileri şekillerine göre sınıflandırdı','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#7fd6ff',t:'Sarmal kol yıldızları'},
+  {c:'#ffd76a',t:'Bulge / çekirdek'},
+  {c:'#46e08a',t:'Karanlık madde halosu'}
+]});
+</script>
+</body>
+</html>
