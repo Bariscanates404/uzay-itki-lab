@@ -36,25 +36,33 @@ function pathAt(pts,f){ const seg=(pts.length-1)*Math.max(0,Math.min(1,f)); cons
   return {x:pts[i].x+(pts[i+1].x-pts[i].x)*s, y:pts[i].y+(pts[i+1].y-pts[i].y)*s}; }
 
 const LESSONS=[
- 'Eylemsizlik: uzayda hareket bedava; itki sadece hızlanmak için',
- 'Etki–Tepki: ileri gitmek için bir şeyi geriye it',
- 'Momentum: dışarı kütle atmadan gidemezsin',
- 'İtki = kütle × hız: az kütle × çok hız = verim',
- 'Roket denklemi: hız doğrusal, yakıt ÜSTEL büyür',
- 'İyon thruster: minik itki, yıllarca, dev Δv',
- 'Güneş yelkeni: yakıtsız — ışık iter (yansıt = 2×)',
- 'Magsail: dışarıdaki güneş rüzgarına yaslan (senin fikrin!)',
- 'Tasarım: itki + verim + fizibilite dengesi',
- 'Yerçekimi sapanı: gezegenden bedava hız çal',
- 'Gerçek motorlar: iyon/Hall uçuyor, füzyon bekliyor',
- 'Görelilik: c geçilemez; hızda zaman bükülür',
- 'Warp & solucan deliği: uzayı bük (teori; egzotik madde gerek)'
+ '01 Eylemsizlik: uzayda hareket bedava; itki sadece hızlanmak için',
+ '02 Etki–Tepki: ileri gitmek için bir şeyi geriye it',
+ '03 Momentum: dışarı kütle atmadan gidemezsin',
+ '04 İtki = kütle × hız: az kütle × çok hız = verim',
+ '05 Roket denklemi: hız doğrusal, yakıt ÜSTEL büyür',
+ '06 İyon thruster: minik itki, yıllarca, dev Δv',
+ '07 Güneş yelkeni: yakıtsız — ışık iter (yansıt = 2×)',
+ '08 Magsail: dışarıdaki güneş rüzgarına yaslan (senin fikrin!)',
+ '11 Gerçek motorlar: NASA verisi — iyon/Hall uçuyor, füzyon bekliyor',
+ '09 Tasarım: itki + verim + fizibilite dengesi',
+ '15 Kütle çekimi & yörüngeler: düşmeye devam etmek = yörünge',
+ '10 Yerçekimi sapanı: gezegenden bedava hız çal',
+ '16 Hohmann: iki ateşleme + uzun kayış (Mars\'a en ucuz yol)',
+ '17 Lagrange: uzayın 5 park yeri (JWST L2\'de)',
+ '18 Üç cisim: kapalı çözüm yok, kaos',
+ '19 Atmosfer girişi: dar koridor — açı her şey',
+ '20 Kepler 3: T² ∝ a³ (LEO/MEO/GEO/Molniya/Sun-sync)',
+ '21 Güneş Sistemi: 8 gezegen, devasa mesafeler',
+ '22 Kütle simülatörü: gezegen kütlesi → kaos',
+ '12 Görelilik: c geçilemez; zaman bükülür',
+ '13 Warp & solucan deliği: uzayı bük (teori; egzotik madde gerek)'
 ];
 
 Lab.start([
   {
     tab:'1 · Yolculuk haritası',
-    html:`<h2>13 dersin tamamı, tek bir yolda</h2>Gemi yolculuğu baştan sona kat ediyor; her durakta o dersin özü beliriyor. Eylemsizlikten warp'a — nereden nereye geldik.`,
+    html:`<h2>22 dersin tamamı, tek bir yolda</h2>Gemi yolculuğu baştan sona kat ediyor; her durakta o dersin özü beliriyor. Eylemsizlikten warp'a — nereden nereye geldik.`,
     loop:true,
     draw:(g,t)=>{
       const N=LESSONS.length, nodes=[];
@@ -123,7 +131,7 @@ Lab.start([
         st.s.split('\n').forEach((ln,k)=>label(g,ln,st.x,178+k*18,'#dfe8ff',12)); });
       // kupa + mesaj
       label(g,'🏆',F.cx,250,'#ffd76a',34);
-      wrap(g,'13 derslik yolculuğu tamamladın: eylemsizlikten warp sürücüsüne.',F.cx,290,640,22,'#dfe8ff',15);
+      wrap(g,'22 derslik yolculuğu tamamladın: eylemsizlikten warp sürücüsüne.',F.cx,290,640,22,'#dfe8ff',15);
       wrap(g,'Sıra sende — tasarım sandığında (Ders 09) ve bilgi tabanıyla kendi motorunu kur.',F.cx,318,640,20,'#46e08a',14);
       banner(g,'Bir fikirle başladın, bir haritayla bitirdin. Şimdi keşfet.','#46e08a');
     }
