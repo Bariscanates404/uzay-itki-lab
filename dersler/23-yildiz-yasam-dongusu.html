@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 23 · Yıldız Yaşam Döngüsü</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 23</div>
+  <h1>Ders 23 · Yıldız Yaşam Döngüsü</h1>
+  <div class="sub">Bir gaz bulutu nasıl yıldız olur, ne kadar yaşar, nasıl ölür — hepsi <b>başlangıçtaki kütleye</b> bağlı.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Yıldızın <b class="key">kütlesi</b> tüm kaderini belirler. Büyük yıldızlar muhteşem parlaktır ama <b>hızla</b> ölür (10⁶-10⁷ yıl);
+    küçük kırmızı cüceler trilyonlarca yıl yanar. Ölümde 3 yol var: <b>≤8 M☉</b> → beyaz cüce; <b>8-25 M☉</b> → süpernova + nötron yıldızı; <b>&gt;25 M☉</b> → süpernova + <b class="keybad">kara delik</b>.
+    Ana kol ömrü ≈ 10 milyar yıl / M^2.5. Parlaklık ≈ M^3.5 (L☉ cinsinden).
+  </div>
+
+  <div class="navrow">
+    <a href="22-kutle-simulatoru.html">← Ders 22</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+function colorFromT(T){
+  if(T<3500) return '#ff5040';
+  if(T<5000) return '#ff9550';
+  if(T<6000) return '#ffd870';
+  if(T<7500) return '#fff8a0';
+  if(T<10000) return '#ffffff';
+  if(T<30000) return '#a0c8ff';
+  return '#5080ff';
+}
+function spectralClass(T){
+  if(T>=30000) return 'O';
+  if(T>=10000) return 'B';
+  if(T>=7500) return 'A';
+  if(T>=6000) return 'F';
+  if(T>=5200) return 'G';
+  if(T>=3700) return 'K';
+  return 'M';
+}
+function lifetime(M){ return 10e9 / Math.pow(M, 2.5); }
+function fmtYears(y){
+  if(y>1e12) return (y/1e12).toFixed(1)+' trilyon yıl';
+  if(y>1e9) return (y/1e9).toFixed(2)+' milyar yıl';
+  if(y>1e6) return (y/1e6).toFixed(1)+' milyon yıl';
+  return (y/1e3).toFixed(0)+' bin yıl';
+}
+function deathOf(M){
+  if(M<0.5) return {short:'Kırmızı cüce — neredeyse ölmez', long:'Trilyon yıl yanar, çok yavaş söner. Evrenin yaşından eski olur.'};
+  if(M<=8) return {short:'Beyaz Cüce', long:'Kızıl dev → dış kabuğunu atar (gezegenimsi bulutsu) → küçük yoğun beyaz cüce'};
+  if(M<=25) return {short:'Nötron Yıldızı', long:'Süpernova patlaması → dev çekirdek çöker → atom-sıkı nötron küresi (pulsar olabilir)'};
+  return {short:'Kara Delik', long:'Süpernova → çekirdek o kadar ağır çöker ki kütle çekim ışığı bile tutsak eder'};
+}
+
+// Sahne 1 parçacıkları
+let neb=null;
+function initNeb(){ neb=[]; for(let i=0;i<90;i++){ neb.push({a:Math.random()*Math.PI*2, r:90+Math.random()*140, ph:Math.random()*6.28, c:['#7fb4ff','#cdd6ff','#b18bff'][i%3]}); } }
+
+Lab.start([
+  {
+    tab:'1 · Doğum',
+    html:`<h2>Bir bulutsu yıldıza dönüşür</h2>Yıldız doğumu 4 aşama:
+      <ol style="line-height:1.7;padding-left:20px;margin-top:6px;font-size:14px">
+        <li><b>Bulutsu:</b> Soğuk gaz+toz bulutu (hidrojen ağırlıkta).</li>
+        <li><b>Çöküş:</b> Yerçekimi gaz bulutu kendi içine düşer.</li>
+        <li><b>Protoyıldız:</b> Merkez sıkışır, ısınır (~milyon kelvin).</li>
+        <li><b>Füzyon!</b> Sıcaklık 10 milyon K aşınca hidrojen helyuma dönmeye başlar → ana kol yıldızı.</li>
+      </ol>`,
+    loop:true,
+    draw:(g,t)=>{
+      if(!neb) initNeb();
+      const CX=F.cx,CY=F.midY;
+      // faz: 0-0.25 bulutsu, 0.25-0.65 çöküş, 0.65-0.85 protoyıldız, 0.85-1 füzyon
+      let collapseT=0;
+      if(t<0.25) collapseT=0;
+      else if(t<0.65) collapseT=(t-0.25)/0.4;
+      else collapseT=1;
+      // bulutsu nebula glow (faz başında)
+      if(t<0.6){ glowCircle(g,CX,CY,180*(1-collapseT*0.5),'rgba(120,80,180,'+(0.25*(1-collapseT))+')');
+        glowCircle(g,CX-40,CY-20,140*(1-collapseT*0.5),'rgba(80,120,200,'+(0.2*(1-collapseT))+')'); }
+      // parçacıklar
+      neb.forEach(p=>{ const rr=p.r*(1-collapseT*0.95);
+        if(rr<2) return;
+        const tw=0.5+0.5*Math.sin(t*4+p.ph);
+        g.globalAlpha=tw*(1-collapseT*0.7);
+        g.fillStyle=p.c;g.beginPath();g.arc(CX+rr*Math.cos(p.a+t*0.1), CY+rr*Math.sin(p.a+t*0.1), 2, 0, 7);g.fill();
+      }); g.globalAlpha=1;
+      // protoyıldız / yıldız
+      if(t>0.5){
+        const u=Math.min((t-0.5)/0.35,1);
+        const protoR=8+u*24;
+        const hot=t>0.85;
+        const col=hot?'#fff4a0':(t>0.7?'#ff9050':'#ff5040');
+        glowCircle(g,CX,CY, protoR*(hot?3:2.2), hot?'rgba(255,240,160,0.6)':'rgba(255,120,60,0.4)');
+        const rg=g.createRadialGradient(CX,CY,0,CX,CY,protoR);
+        rg.addColorStop(0,'#fff'); rg.addColorStop(0.6,col); rg.addColorStop(1,'#ff5040');
+        g.fillStyle=rg;g.beginPath();g.arc(CX,CY,protoR,0,7);g.fill();
+      }
+      if(t>0.87){ // ignition flash
+        const fu=(t-0.87)/0.13;
+        g.globalAlpha=1-fu;g.strokeStyle='#ffd76a';g.lineWidth=2;
+        g.beginPath();g.arc(CX,CY,40+fu*100,0,7);g.stroke();g.globalAlpha=1;
+        label(g,'⚡ FÜZYON BAŞLADI',CX,CY-70,'#ffd76a',14);
+      }
+      // aşama etiketi
+      const phase = t<0.25?'1. Bulutsu (gaz+toz)' : t<0.65?'2. Çöküş (yerçekimi)' : t<0.85?'3. Protoyıldız (sıcak)' : '4. Füzyon → Ana kol yıldızı!';
+      label(g,phase,CX,F.H-40,t>0.85?'#46e08a':'#9fb0ff',14);
+      banner(g,'Hidrojen → helyum dönüşümü başlar; yıldız doğdu','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · HR Diyagramı (interaktif)',
+    html:`<h2>Yıldız kütlesi → her şey</h2>Kütleyi ayarla. Yıldızın <b style="color:#ffd76a">parlaklığı</b>, <b style="color:#7fd6ff">sıcaklığı</b>, <b style="color:#46e08a">yaşam süresi</b> ve ölümü anlık hesaplanır.
+      <div class="sliders">
+        <div class="row"><label>Yıldız kütlesi (M☉)</label><input id="s_M" type="range" min="-1" max="1.7" step="0.02" value="0"><span id="o_M">1.0 M☉</span></div>
+        <div class="res" style="line-height:1.7">
+          Sınıf: <b id="o_cls" style="color:#7fd6ff">G</b> &nbsp;·&nbsp; Sıcaklık: <b id="o_T" style="color:#7fd6ff">—</b> K &nbsp;·&nbsp; Parlaklık: <b id="o_L" style="color:#ffd76a">—</b> L☉<br>
+          Ömür: <b id="o_lf" style="color:#46e08a">—</b> &nbsp;·&nbsp; Ölüm: <b id="o_dt" style="color:#ff9f6b">—</b>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const logM=rd('s_M',0), M=Math.pow(10,logM);
+      const L=Math.pow(M,3.5);
+      const T_sun=5778, T=T_sun*Math.pow(M,0.55);
+      const lf=lifetime(M);
+      const cls=spectralClass(T), col=colorFromT(T);
+      const dth=deathOf(M);
+      // spans
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+      set('o_M',(M>=1?M.toFixed(M>10?0:1):M.toFixed(2))+' M☉');
+      set('o_cls',cls); document.getElementById('o_cls').style.color=col;
+      set('o_T',Math.round(T).toLocaleString('tr'));
+      set('o_L', L<0.01? L.toExponential(1) : L<1?L.toFixed(2) : L<100?L.toFixed(1) : L.toExponential(1));
+      set('o_lf',fmtYears(lf));
+      set('o_dt',dth.short);
+      // HR diyagramı çiz
+      const px=60,py=60,pw=440,ph=270;
+      g.strokeStyle='#33406f';g.lineWidth=1;g.strokeRect(px,py,pw,ph);
+      label(g,'sıcaklık (K) — ters →',px+pw/2,py+ph+20,'#9fb0ff',12);
+      g.save();g.translate(px-22,py+ph/2);g.rotate(-Math.PI/2);label(g,'parlaklık (L☉, log) →',0,0,'#ffd76a',12);g.restore();
+      // T ekseni 30000 (sol) - 3000 (sağ), log10 → 4.477..3.477
+      const Tmap=tk=>px+(4.477-Math.log10(tk))/(4.477-3.477)*pw;
+      // L ekseni 0.001..1e6, log10 → -3..6
+      const Lmap=ll=>py+ph-(Math.log10(ll)-(-3))/(6-(-3))*ph;
+      // ana kol bandı (sol-üst → sağ-alt)
+      g.strokeStyle='#5ad1ff';g.lineWidth=2;g.globalAlpha=0.4;g.beginPath();
+      for(let logm=-1;logm<=1.7;logm+=0.05){ const mm=Math.pow(10,logm), ll=Math.pow(mm,3.5), tt=T_sun*Math.pow(mm,0.55);
+        const X=Tmap(tt), Y=Lmap(ll); logm===-1?g.moveTo(X,Y):g.lineTo(X,Y); } g.stroke();g.globalAlpha=1;
+      // sınıf yazıları
+      ['O','B','A','F','G','K','M'].forEach((c,i)=>{ const x=px+i*(pw/6.5)+pw/12; label(g,c,x,py+12,'#9fb0ff',11); });
+      // Güneş işareti
+      const sx=Tmap(T_sun), sy=Lmap(1);
+      g.fillStyle='#ffd24d';g.beginPath();g.arc(sx,sy,5,0,7);g.fill();
+      label(g,'☉',sx+8,sy+4,'#ffd24d',13);
+      // şu anki yıldız
+      const X=Tmap(T), Y=Lmap(L);
+      glowCircle(g,X,Y,18,'rgba(255,255,255,.35)');
+      g.fillStyle=col;g.beginPath();g.arc(X,Y,8+Math.min(M,10)*0.4,0,7);g.fill();
+      label(g,M.toFixed(M>=10?0:2)+' M☉',X,Y-18,col,12);
+      // yıldızın resmi sağda
+      const vx=620,vy=F.midY;
+      glowCircle(g,vx,vy,60,'rgba(255,220,150,.4)');
+      const vR=14+Math.min(M,30)*1.2;
+      const rg=g.createRadialGradient(vx,vy,0,vx,vy,vR);
+      rg.addColorStop(0,'#fff');rg.addColorStop(0.5,col);rg.addColorStop(1,'#400');
+      g.fillStyle=rg;g.beginPath();g.arc(vx,vy,vR,0,7);g.fill();
+      label(g,'tip '+cls+' yıldız',vx,vy+vR+18,col,12);
+      label(g,'ölümünde:',vx,vy+vR+38,'#9fb0ff',11);
+      label(g,dth.short,vx,vy+vR+54,'#ff9f6b',12);
+      banner(g,'L ∝ M^3.5  ·  T ∝ M^0.55  ·  Ömür ∝ 1/M^2.5  (kabaca)','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Ölüm: 3 yol',
+    html:`<h2>Yıldız nasıl ölür? Kütle kaderdir</h2>
+      <ul style="line-height:1.85;padding-left:20px;font-size:14.5px">
+        <li><b style="color:#46e08a">≤ 8 M☉:</b> Kızıl dev → dış kabuk atılır (gezegenimsi bulutsu) → küçük yoğun <b>beyaz cüce</b> kalır. Güneş'in kaderi.</li>
+        <li><b style="color:#ffcf5a">8 – 25 M☉:</b> Yakıt biter → çekirdek çöker → <b>süpernova</b> patlaması → geriye <b>nötron yıldızı</b> (1 çay kaşığı = 10 milyar ton).</li>
+        <li><b style="color:#ff6b6b">&gt; 25 M☉:</b> Süpernova → çekirdek o kadar ağır ki <b>kara delik</b> oluşur. Olay ufkundan ışık bile kaçamaz.</li>
+      </ul>`,
+    loop:true,
+    draw:(g,t)=>{
+      const Y=F.midY-10, BW=240, GAP=20;
+      const cols=[
+        {x:60+BW/2, c:'#46e08a', name:'≤ 8 M☉', end:'Beyaz Cüce'},
+        {x:60+BW+GAP+BW/2, c:'#ffcf5a', name:'8-25 M☉', end:'Nötron Yıldızı'},
+        {x:60+2*(BW+GAP)+BW/2, c:'#ff6b6b', name:'> 25 M☉', end:'Kara Delik'}
+      ];
+      cols.forEach((co,i)=>{
+        const x=co.x;
+        // çerçeve
+        g.strokeStyle=co.c;g.lineWidth=1;g.globalAlpha=.3;g.strokeRect(x-BW/2+5,Y-110,BW-10,250);g.globalAlpha=1;
+        label(g,co.name,x,Y-92,co.c,14);
+        // animasyon: 3 faz: yıldız → patlama/kabuk → kalıntı
+        const phase=Math.floor(t*3)%3;
+        const sub=(t*3)%1;
+        if(i===0){ // düşük kütle: kızıl dev → bulutsu → beyaz cüce
+          if(phase===0){ // ana kol
+            const r=14; glowCircle(g,x,Y,r*2.4,'rgba(255,220,150,.4)');
+            g.fillStyle='#ffd870';g.beginPath();g.arc(x,Y,r,0,7);g.fill();
+            label(g,'ana kol',x,Y+40,'#ffd870',11);
+          } else if(phase===1){ // kızıl dev
+            const r=40+sub*10; glowCircle(g,x,Y,r*1.4,'rgba(255,100,80,.5)');
+            const rg=g.createRadialGradient(x,Y,0,x,Y,r);rg.addColorStop(0,'#ffd870');rg.addColorStop(1,'#ff5040');
+            g.fillStyle=rg;g.beginPath();g.arc(x,Y,r,0,7);g.fill();
+            label(g,'kızıl dev',x,Y+r+18,'#ff5040',11);
+            // dış kabuk atılıyor
+            for(let k=0;k<6;k++){ const ang=k/6*6.28+sub*2; const rr=r+sub*60;
+              g.globalAlpha=1-sub;g.fillStyle='#b18bff';g.beginPath();g.arc(x+rr*Math.cos(ang),Y+rr*Math.sin(ang),3,0,7);g.fill(); } g.globalAlpha=1;
+          } else { // beyaz cüce
+            const r=4; glowCircle(g,x,Y,18,'rgba(220,240,255,.6)');
+            g.fillStyle='#dfe8ff';g.beginPath();g.arc(x,Y,r,0,7);g.fill();
+            label(g,'BEYAZ CÜCE',x,Y+22,'#dfe8ff',12);
+            label(g,'Güneş\'in kaderi',x,Y+40,'#9fb0ff',11);
+          }
+        } else if(i===1){ // orta kütle: süpernova → nötron yıldızı
+          if(phase===0){ const r=20; glowCircle(g,x,Y,r*2.4,'rgba(160,200,255,.5)');
+            g.fillStyle='#a0c8ff';g.beginPath();g.arc(x,Y,r,0,7);g.fill();
+            label(g,'mavi dev',x,Y+38,'#a0c8ff',11);
+          } else if(phase===1){ // süpernova
+            const r=20+sub*120; g.globalAlpha=1-sub*0.6;
+            glowCircle(g,x,Y,r,'rgba(255,255,200,'+(1-sub)+')');
+            for(let k=0;k<14;k++){ const ang=k/14*6.28; const rr=sub*150;
+              g.strokeStyle='#ffd76a';g.lineWidth=2;g.beginPath();g.moveTo(x,Y);g.lineTo(x+rr*Math.cos(ang),Y+rr*Math.sin(ang));g.stroke(); }
+            g.globalAlpha=1;
+            label(g,'💥 SÜPERNOVA',x,Y+80,'#ffd76a',12);
+          } else { // nötron yıldızı
+            glowCircle(g,x,Y,20,'rgba(180,140,255,.6)');
+            g.fillStyle='#fff';g.beginPath();g.arc(x,Y,3,0,7);g.fill();
+            // pulsar ışınları
+            const a=t*8; g.strokeStyle='rgba(180,140,255,.7)';g.lineWidth=2;
+            g.beginPath();g.moveTo(x-40*Math.cos(a),Y-40*Math.sin(a));g.lineTo(x+40*Math.cos(a),Y+40*Math.sin(a));g.stroke();
+            label(g,'NÖTRON YILDIZI',x,Y+28,'#b18bff',12);
+            label(g,'pulsar olabilir',x,Y+44,'#9fb0ff',11);
+          }
+        } else { // ağır: süpernova → kara delik
+          if(phase===0){ const r=26; glowCircle(g,x,Y,r*2.4,'rgba(80,128,255,.6)');
+            g.fillStyle='#5080ff';g.beginPath();g.arc(x,Y,r,0,7);g.fill();
+            label(g,'mavi süperdev',x,Y+44,'#5080ff',11);
+          } else if(phase===1){ const r=26+sub*140; g.globalAlpha=1-sub*0.6;
+            glowCircle(g,x,Y,r,'rgba(255,255,200,'+(1-sub)+')');
+            for(let k=0;k<18;k++){ const ang=k/18*6.28; const rr=sub*170;
+              g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x,Y);g.lineTo(x+rr*Math.cos(ang),Y+rr*Math.sin(ang));g.stroke(); }
+            g.globalAlpha=1;
+            label(g,'💥 SÜPER SÜPERNOVA',x,Y+90,'#fff',12);
+          } else { // kara delik
+            // akret diski
+            g.strokeStyle='#ff6b6b';g.lineWidth=2;g.globalAlpha=.6;
+            g.beginPath();g.ellipse(x,Y,40,12,0,0,7);g.stroke();g.globalAlpha=1;
+            // olay ufku
+            glowCircle(g,x,Y,30,'rgba(180,80,255,.4)');
+            g.fillStyle='#000';g.beginPath();g.arc(x,Y,12,0,7);g.fill();
+            g.strokeStyle='#a058ff';g.lineWidth=1;g.beginPath();g.arc(x,Y,14,0,7);g.stroke();
+            label(g,'KARA DELİK',x,Y+30,'#a058ff',12);
+            label(g,'ışık bile kaçamaz',x,Y+46,'#9fb0ff',11);
+          }
+        }
+      });
+      banner(g,'Yıldızın başlangıçtaki kütlesi, ölümünün şeklini belirler','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#ffd870',t:'Güneş benzeri yıldız'},
+  {c:'#a0c8ff',t:'Sıcak / mavi'},
+  {c:'#ff5040',t:'Soğuk / kırmızı'}
+]});
+</script>
+</body>
+</html>
