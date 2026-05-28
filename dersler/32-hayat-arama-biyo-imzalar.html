@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 32 · Hayat Arıyoruz</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 32</div>
+  <h1>Ders 32 · Hayatı Nasıl Arıyoruz?</h1>
+  <div class="sub">Bir yere gitmeden, milyarlarca km öteden, başka bir Dünya'da hayat var mı diye nasıl bakıyoruz?</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Hayat aramanın 3 ana yolu var:
+    <b>1) Transit spektroskopisi:</b> Yıldız ışığı gezegen atmosferinden geçer → bazı dalga boyları yutulur → spektrumda hangi moleküller var söyler. JWST bu işi yapıyor.
+    <b>2) Biyo-imzalar:</b> O₂ + CH₄ birlikte (denge dışı, yaşam üretmeden kaybolurdu), su buharı, ozon, klorofilin "kırmızı sınırı". Yaşam bunları yapar.
+    <b>3) Teknoimzalar (SETI):</b> Radyo teleskoplarla yapay sinyalleri ararız. <b>Drake denklemi</b>: N = R × fp × ne × fl × fi × fc × L — galakside iletişim kurulabilir kaç medeniyet var?
+    <b>Fermi paradoksu</b>: "Hesap milyonlarca diyor ama nerede onlar?"
+  </div>
+
+  <div class="navrow">
+    <a href="31-em-spektrum-coklu-dalga.html">← Ders 31</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Transit spektroskopisi',
+    html:`<h2>Yıldız ışığı atmosferden geçerken sırrını söyler</h2>Gezegen yıldızın önünden geçtiğinde, ışığın bir kısmı atmosferden süzülür. Her molekül belirli dalga boylarını <b>yutar</b>.
+          Geçişte yıldız + atmosfer spektrumunu, geçişsiz yıldız spektrumundan çıkarınca → <b class="key">atmosfer parmak izi</b> elde edilir. JWST 2022'den beri bu işi yapıyor.`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: yıldız + gezegen sahnesi
+      const Sx=140, Sy=F.midY-20, R=42;
+      glowCircle(g,Sx,Sy,R*2,'rgba(255,220,140,.45)');
+      const rg=g.createRadialGradient(Sx,Sy,0,Sx,Sy,R);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(Sx,Sy,R,0,7);g.fill();
+      label(g,'yıldız',Sx,Sy+R+18,'#ffd76a',11);
+      // gezegen önünden geçiyor
+      const orbR=140;
+      const th=t*0.4;
+      const inTransit = Math.abs(Math.cos(th))>0.92 && Math.sin(th)>0;
+      const px = Sx + orbR*Math.cos(th);
+      const py = Sy + orbR*Math.sin(th)*0.05;
+      if(Math.sin(th)>0){
+        // atmosfer halkası
+        g.strokeStyle='rgba(70,224,138,.6)';g.lineWidth=2;
+        g.beginPath();g.arc(px,py,16,0,7);g.stroke();
+        g.fillStyle='#2a2a4a';g.beginPath();g.arc(px,py,12,0,7);g.fill();
+        // ışık atmosferden geçiyor
+        if(inTransit){
+          g.strokeStyle='#46e08a';g.lineWidth=1;g.globalAlpha=.6;
+          for(let k=-3;k<=3;k++){ g.beginPath();g.moveTo(px,py+k*3);g.lineTo(px+180,py+k*3);g.stroke(); }g.globalAlpha=1;
+          label(g,'ATMOSFER ÖRNEKLENDİ',F.cx,80,'#46e08a',13);
+        }
+      }
+      // sağ: gözlemci spektrumu
+      const sx=Sx+200, sy=70, sw=340, sh=40;
+      // referans gökkuşağı
+      const grd=g.createLinearGradient(sx,0,sx+sw,0);
+      grd.addColorStop(0,'#7f5fff');grd.addColorStop(0.3,'#7fd6ff');grd.addColorStop(0.55,'#46e08a');grd.addColorStop(0.8,'#ffd76a');grd.addColorStop(1,'#ff6b6b');
+      g.fillStyle=grd;g.fillRect(sx,sy,sw,sh);
+      // soğurma çizgileri (geçişte → daha derin)
+      const mol=[
+        {nm:760,n:'O₂',c:'#46e08a'},
+        {nm:940,n:'H₂O',c:'#7fd6ff'},
+        {nm:1300,n:'CH₄',c:'#ffd76a'},
+        {nm:1500,n:'CO₂',c:'#ff9f6b'}
+      ];
+      // sw covers 400-1800 nm
+      mol.forEach(m=>{ const x=sx+(m.nm-400)/(1800-400)*sw;
+        if(x<sx||x>sx+sw)return;
+        const depth = inTransit? 14 : 4;
+        g.fillStyle='#000';g.globalAlpha=.8;g.fillRect(x-2,sy+1,4,sh-2);g.globalAlpha=1;
+        g.fillStyle=m.c;g.font='bold 11px Segoe UI';g.textAlign='center';
+        g.fillText(m.n, x, sy-4);
+      });
+      g.textAlign='left';
+      label(g,'400 nm',sx,sy+sh+14,'#9fb0ff',10);
+      label(g,'1800 nm (IR)',sx+sw-30,sy+sh+14,'#9fb0ff',10);
+      label(g,'GÖZLENEN spektrum',sx+sw/2,sy-22,'#cdd6ff',12);
+      // bilgi panel altta
+      label(g,'Aranan moleküller (Dünya\'da yaşamla ilişkili):',F.cx,200,'#46e08a',13);
+      const items=[
+        {c:'#46e08a',n:'O₂ — fotosentez (bitki/alg)'},
+        {c:'#7fd6ff',n:'H₂O — su buharı'},
+        {c:'#ffd76a',n:'CH₄ — yaşamın yan ürünü (bazen)'},
+        {c:'#ff9f6b',n:'CO₂ — atmosfer ipucu'},
+        {c:'#b18bff',n:'O₃ — ozon, UV koruma'}
+      ];
+      items.forEach((it,i)=>{ const y=224+i*22; g.fillStyle=it.c;g.beginPath();g.arc(140+(i%2)*340,y,5,0,7);g.fill();
+        g.fillStyle='#fff';g.font='12px Segoe UI';g.fillText(it.n, 152+(i%2)*340, y+4);
+      });
+      banner(g,'JWST kızılötesi spektroskopisi → ötegezegen atmosferi tarama','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Biyo-imzalar: ne aranır?',
+    html:`<h2>Yaşamın parmak izi</h2><b style="color:#46e08a">O₂ + CH₄ birlikte</b> = denge dışı! İki gaz tepkimeye girip yok olur. Yaşam (fotosentez+metan üretimi) sürekli yenileyemese çoktan biterdi.
+          Bu çok güçlü bir biyo-imzadır. <b style="color:#ff9f6b">Klorofilin "kırmızı sınırı"</b>: bitkiler 700-750 nm dalga boylarını ani şekilde yansıtmaya başlar. Yansıma spektrumunda görünür.`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: O2 + CH4 denge dışı görselleştirmesi
+      const lx=210, ly=F.midY-10;
+      label(g,'O₂ + CH₄: bilim insanlarının "altın bileti"',lx,80,'#46e08a',13);
+      // O₂ molekülü
+      const o2x=lx-60, o2y=ly-30;
+      g.fillStyle='#46e08a';g.beginPath();g.arc(o2x-12,o2y,11,0,7);g.fill();
+      g.beginPath();g.arc(o2x+12,o2y,11,0,7);g.fill();
+      g.fillStyle='#000';g.font='bold 11px Segoe UI';g.textAlign='center';g.fillText('O',o2x-12,o2y+4);g.fillText('O',o2x+12,o2y+4);g.textAlign='left';
+      label(g,'O₂',o2x,o2y+30,'#46e08a',13);
+      // CH₄
+      const c4x=lx+60, c4y=ly-30;
+      g.fillStyle='#ffd76a';g.beginPath();g.arc(c4x,c4y,15,0,7);g.fill();
+      g.fillStyle='#cdd6ff';
+      [[-12,-12],[12,-12],[-12,12],[12,12]].forEach(([dx,dy])=>{ g.beginPath();g.arc(c4x+dx,c4y+dy,7,0,7);g.fill(); });
+      g.fillStyle='#000';g.font='bold 11px Segoe UI';g.textAlign='center';g.fillText('C',c4x,c4y+4);g.textAlign='left';
+      label(g,'CH₄',c4x,c4y+30,'#ffd76a',13);
+      // reaction arrow: O2 + CH4 → CO2 + H2O (denge dışı)
+      arrow(g,lx-30,ly+30,60,'#ff6b6b');
+      label(g,'normalde tepkir, yok olur',lx,ly+44,'#ff6b6b',11);
+      label(g,'→ bir kaynak yeniliyor = yaşam!',lx,ly+62,'#46e08a',12);
+      // sağ: klorofil kırmızı sınır
+      const rx=F.cx+180, ry=F.midY-10;
+      label(g,'Klorofil yansıma "kırmızı sınırı"',rx,80,'#ff9f6b',13);
+      const px=rx-130, py=130, pw=260, ph=120;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      // grafik: yansıma vs dalga boyu
+      g.strokeStyle='#46e08a';g.lineWidth=2.5;g.beginPath();
+      for(let i=0;i<pw;i++){ const tt=i/pw; // 500-1000 nm
+        const nm=500+tt*500;
+        let r;
+        if(nm<700) r=0.15+Math.sin(tt*8)*0.04; // düşük, yeşil ufak pik
+        else r=0.45+(nm-700)/300*0.3;          // 700+ sonra çok yüksek
+        const X=px+i, Y=py+ph-r*ph;
+        i===0?g.moveTo(X,Y):g.lineTo(X,Y);
+      } g.stroke();
+      // dalga boyu işaretleri
+      [500,600,700,800,900,1000].forEach(nm=>{ const X=px+(nm-500)/500*pw;
+        g.strokeStyle='#243a86';g.beginPath();g.moveTo(X,py+ph);g.lineTo(X,py+ph+5);g.stroke();
+        g.fillStyle='#9fb0ff';g.font='10px Segoe UI';g.textAlign='center';g.fillText(nm,X,py+ph+18);
+      }); g.textAlign='left';
+      // 700 nm vurgu
+      const X700=px+(700-500)/500*pw;
+      g.strokeStyle='#ff6b6b';g.setLineDash([3,4]);g.beginPath();g.moveTo(X700,py);g.lineTo(X700,py+ph);g.stroke();g.setLineDash([]);
+      label(g,'700 nm',X700,py-4,'#ff6b6b',11);
+      label(g,'ANİ ARTIŞ',X700+30,py+30,'#ff6b6b',11);
+      label(g,'(bitkilerin imzası)',X700+30,py+46,'#46e08a',11);
+      // alt: alternatif biyo-imzalar
+      label(g,'DİĞER BİYO-İMZALAR',F.cx,F.H-90,'#46e08a',13);
+      label(g,'• N₂O — bakteriler · • DMS (dimetil sülfür) — alg · • PH₃ fosfin (tartışmalı, Venüs)',F.cx,F.H-70,'#cdd6ff',11);
+      label(g,'• Sıvı su · • Yörünge & kütle uygun · • Yıldız stabil',F.cx,F.H-50,'#cdd6ff',11);
+      banner(g,'Yaşam, atmosferi "denge dışı" tutar — bulursak güçlü ipucu','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Drake denklemi & SETI',
+    html:`<h2>Galakside kaç medeniyet var? Hesaplayalım</h2>Frank Drake 1961: <b>N = R × fp × ne × fl × fi × fc × L</b>.
+          Faktörleri ayarla; sonuç Samanyolu'nda iletişim kurulabilir medeniyet tahmini.
+      <div class="sliders">
+        <div class="row"><label>R · yıldız oluşum/yıl</label><input id="s_R" type="range" min="1" max="10" step="0.5" value="3"><span id="o_R">3</span></div>
+        <div class="row"><label>f_p · gezegenli yıldız oranı</label><input id="s_fp" type="range" min="0" max="1" step="0.05" value="1"><span id="o_fp">1.0</span></div>
+        <div class="row"><label>n_e · yaşanabilir gezegen sayısı</label><input id="s_ne" type="range" min="0" max="5" step="0.1" value="0.3"><span id="o_ne">0.3</span></div>
+        <div class="row"><label>f_l · hayatın oluşma olasılığı</label><input id="s_fl" type="range" min="0" max="1" step="0.05" value="0.5"><span id="o_fl">0.5</span></div>
+        <div class="row"><label>f_i · zekaya ulaşma oranı</label><input id="s_fi" type="range" min="0" max="1" step="0.05" value="0.1"><span id="o_fi">0.1</span></div>
+        <div class="row"><label>f_c · iletişim teknolojisi oranı</label><input id="s_fc" type="range" min="0" max="1" step="0.05" value="0.2"><span id="o_fc">0.2</span></div>
+        <div class="row"><label>L · medeniyet ömrü (yıl, log)</label><input id="s_L" type="range" min="2" max="9" step="0.1" value="4"><span id="o_L">10⁴ yıl</span></div>
+        <div class="res" style="font-size:15px">Tahmini iletişim kurulabilir medeniyet sayısı: <b id="o_N" style="color:#ffd76a;font-size:18px">—</b> &nbsp;·&nbsp; <span id="o_int" style="color:#9fb0ff;font-size:12px">—</span></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const R=rd('s_R',3), fp=rd('s_fp',1), ne=rd('s_ne',0.3), fl=rd('s_fl',0.5), fi=rd('s_fi',0.1), fc=rd('s_fc',0.2), L=Math.pow(10,rd('s_L',4));
+      const N = R*fp*ne*fl*fi*fc*L;
+      document.getElementById('o_R').textContent=R; document.getElementById('o_fp').textContent=fp.toFixed(2);
+      document.getElementById('o_ne').textContent=ne.toFixed(1); document.getElementById('o_fl').textContent=fl.toFixed(2);
+      document.getElementById('o_fi').textContent=fi.toFixed(2); document.getElementById('o_fc').textContent=fc.toFixed(2);
+      document.getElementById('o_L').textContent='10^'+rd('s_L',4).toFixed(1)+' yıl';
+      document.getElementById('o_N').textContent = N<0.01?N.toFixed(3) : N<1000?N.toFixed(1) : N.toExponential(1);
+      let interp = '';
+      if(N<1) interp='Biz yalnızız (Fermi paradoksu)';
+      else if(N<10) interp='Çok az → buluşmak ~imkansız';
+      else if(N<1000) interp='Az ama belki radyo dinleyince bulabiliriz';
+      else if(N<1e6) interp='Galakside çok, ama mesafeler dev';
+      else interp='Galakside binlerce — neden henüz duymadık? (Fermi)';
+      document.getElementById('o_int').textContent=interp;
+      // sol: SETI radyo teleskopu
+      const tx=140, ty=F.midY-20;
+      g.strokeStyle='#cdd6ff';g.lineWidth=2;
+      g.beginPath();g.ellipse(tx,ty,40,12,0,0,7);g.stroke();
+      g.fillStyle='#1a2348';g.beginPath();g.ellipse(tx,ty,38,10,0,0,7);g.fill();
+      g.strokeStyle='#9fb0ff';g.beginPath();g.moveTo(tx,ty-6);g.lineTo(tx,ty-26);g.stroke();
+      g.fillStyle='#9fb0ff';g.beginPath();g.arc(tx,ty-30,5,0,7);g.fill();
+      // dalgalar gelen
+      for(let k=0;k<4;k++){ const pp=(t*0.6+k/4)%1; g.strokeStyle='#46e08a';g.lineWidth=1.5;g.globalAlpha=1-pp;
+        g.beginPath();g.arc(tx,ty-30,40+pp*60,Math.PI*1.2,Math.PI*1.8);g.stroke(); }g.globalAlpha=1;
+      label(g,'SETI · radyo teleskop',tx,ty+30,'#46e08a',12);
+      label(g,'(Allen Array, FAST, vd.)',tx,ty+48,'#9fb0ff',10);
+      // sağ: galaksi + dağılmış noktalar (medeniyetler)
+      const galX=F.cx+170, galY=F.midY-20;
+      glowCircle(g,galX,galY,80,'rgba(255,200,80,.2)');
+      // sarmal yıldız altyapısı
+      for(let a=0;a<4;a++){ const off=a*Math.PI/2;
+        for(let s=0;s<40;s++){ const th=s*0.08; const r=10+th*10; if(r>90) continue;
+          const xx=galX+r*Math.cos(th+off), yy=galY+r*Math.sin(th+off)*0.7;
+          g.fillStyle='#7fb4ff';g.globalAlpha=.4;g.beginPath();g.arc(xx,yy,1,0,7);g.fill();
+        }
+      } g.globalAlpha=1;
+      // medeniyet noktaları (yeşil parlak)
+      const show=Math.min(Math.floor(Math.log10(Math.max(N,1))*5)+1,40);
+      for(let k=0;k<show;k++){ const a=k*2.3, r=20+Math.random()*60;
+        const xx=galX+r*Math.cos(a), yy=galY+r*Math.sin(a)*0.7;
+        const tw=Math.sin(t*4+k)>0?1:0.3;
+        g.fillStyle='#46e08a';g.globalAlpha=tw;g.beginPath();g.arc(xx,yy,3,0,7);g.fill();
+      } g.globalAlpha=1;
+      label(g,'Samanyolu (~100 milyar yıldız)',galX,galY+95,'#9fb0ff',11);
+      label(g,'yeşil nokta = medeniyet',galX,galY+110,'#46e08a',11);
+      banner(g,'Drake denklemi spekülasyon; gerçek ölçüm henüz sıfır → Fermi paradoksu','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#46e08a',t:'Yaşam belirtisi'},
+  {c:'#ffd76a',t:'Atmosfer/yıldız'},
+  {c:'#9fb0ff',t:'Radyo dalga'}
+]});
+</script>
+</body>
+</html>

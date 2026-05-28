@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 31 · EM Spektrum & Çoklu Dalga Boyu</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 31</div>
+  <h1>Ders 31 · Spektrum: Evreni Nasıl "Görüyoruz"?</h1>
+  <div class="sub">Görünür ışık sadece minik bir pencere. Gerçek astronomide radyo, IR, UV, X-ışını, gamma — hepsi farklı bir hikaye anlatır.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Gözümüz EM spektrumun <b class="key">çok küçük bir penceresini</b> (görünür ışık, 380-750 nm) yakalar. Astronomi 20. yüzyılda <b>tüm spektruma</b> açıldı:
+    <b>Radyo</b> (Jansky 1932, AGN jetleri, 21 cm hidrojen, CMB), <b>kızılötesi</b> (JWST, soğuk toz, ötegezegen), <b>UV</b> (Hubble, sıcak yıldız), <b>X-ışını</b> (Chandra, kara delik akret diski), <b>gamma</b> (Fermi, pulsar, GRB).
+    Aynı gök cismi her bantta <b>tamamen farklı</b> görünür. <b>Spektroskopi</b> (yıldız ışığını prizmadan geçirip soğurma çizgilerini incelemek) bize yıldızın bileşimini, hızını, sıcaklığını ve uzaklığını söyler.
+  </div>
+
+  <div class="navrow">
+    <a href="30-uzay-neden-yatay.html">← Ders 30</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+const BANDS=[
+  {k:'radio', n:'Radyo', logMin:-1, logMax:3, c:'#5080ff', det:'AGN jetleri, 21cm hidrojen, CMB, pulsar timing', ex:'VLA, ALMA, FAST'},
+  {k:'mw',    n:'Mikrodalga', logMin:-3, logMax:-1, c:'#7fb4ff', det:'CMB (2.725 K), moleküler bulutlar', ex:'Planck, WMAP'},
+  {k:'ir',    n:'Kızılötesi (IR)', logMin:-6, logMax:-3, c:'#ff9f6b', det:'Soğuk yıldız, toz, ötegezegen termal, uzak galaksi', ex:'JWST, Spitzer, Herschel'},
+  {k:'vis',   n:'Görünür', logMin:-6.42, logMax:-6.12, c:'#ffd76a', det:'Yıldızlar (Güneş-benzeri), galaksiler', ex:'Hubble, yerli optik teleskoplar'},
+  {k:'uv',    n:'Morötesi (UV)', logMin:-8, logMax:-6.42, c:'#b18bff', det:'Sıcak genç yıldızlar, akret diski', ex:'Hubble UV, GALEX'},
+  {k:'xray',  n:'X-ışını', logMin:-11, logMax:-8, c:'#ff6b6b', det:'Kara delik akret, nötron yıldızı, sıcak gaz', ex:'Chandra, XMM-Newton'},
+  {k:'gamma', n:'Gamma', logMin:-14, logMax:-11, c:'#a058ff', det:'Pulsar, GRB, süpernova, AGN', ex:'Fermi, INTEGRAL'}
+];
+function bandOf(logL){ for(const b of BANDS){ if(logL>=b.logMin && logL<b.logMax) return b; } return BANDS[BANDS.length-1]; }
+
+Lab.start([
+  {
+    tab:'1 · EM Spektrumu',
+    html:`<h2>Dalga boyunu seç, ne gördüğünü öğren</h2>Logaritmik dalga boyu kaydırıcısı — sol radyo, sağ gamma. Her bant farklı bir astrofizik dünyası açar.
+      <div class="sliders">
+        <div class="row"><label>Dalga boyu (log m)</label><input id="s_l" type="range" min="-14" max="3" step="0.05" value="-6.27"><span id="o_l">~550 nm</span></div>
+        <div class="res" style="line-height:1.7">
+          Bant: <b id="o_b" style="color:#ffd76a">—</b> &nbsp;·&nbsp; Frekans: <b id="o_f">—</b> Hz &nbsp;·&nbsp; Foton enerjisi: <b id="o_e">—</b> eV<br>
+          Ne gözleriz: <b id="o_det" style="color:#46e08a">—</b><br>
+          Gerçek teleskop/uydu: <b id="o_ex" style="color:#7fd6ff">—</b>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const logL=rd('s_l',-6.27);
+      const L=Math.pow(10,logL);             // metre
+      const f=3e8/L;                          // Hz
+      const E=f*4.136e-15;                    // eV (h*f)
+      const b=bandOf(logL);
+      // span güncelle
+      document.getElementById('o_l').textContent = L<1e-9 ? (L*1e12).toFixed(2)+' pm' : L<1e-6 ? (L*1e9).toFixed(1)+' nm' : L<1e-3 ? (L*1e6).toFixed(1)+' μm' : L<1 ? (L*1e3).toFixed(1)+' mm' : L.toFixed(2)+' m';
+      document.getElementById('o_b').textContent = b.n;
+      document.getElementById('o_b').style.color = b.c;
+      document.getElementById('o_f').textContent = f.toExponential(2);
+      document.getElementById('o_e').textContent = E<1?E.toExponential(2):E.toFixed(2);
+      document.getElementById('o_det').textContent = b.det;
+      document.getElementById('o_ex').textContent = b.ex;
+      // ekran: spektrum çubuğu
+      const px=60, py=80, pw=760, ph=44;
+      // bantlar
+      const lMin=-14, lMax=3;
+      const xOf=l=>px+(l-lMin)/(lMax-lMin)*pw;
+      BANDS.forEach(bb=>{ const x1=xOf(bb.logMin), x2=xOf(bb.logMax);
+        g.fillStyle=bb.c;g.fillRect(x1,py,x2-x1,ph);
+        g.fillStyle='#0a1030';g.font='bold 11px Segoe UI';g.textAlign='center';
+        g.fillText(bb.n,(x1+x2)/2,py+ph/2+4);
+      });
+      g.textAlign='left';
+      g.strokeStyle='#33406f';g.lineWidth=1;g.strokeRect(px,py,pw,ph);
+      // tickler
+      for(let l=lMin;l<=lMax;l+=2){ const x=xOf(l);
+        g.strokeStyle='#243a86';g.lineWidth=1;g.beginPath();g.moveTo(x,py+ph);g.lineTo(x,py+ph+5);g.stroke();
+        g.fillStyle='#9fb0ff';g.font='10px Segoe UI';g.textAlign='center';g.fillText('10^'+l+' m',x,py+ph+18);
+      } g.textAlign='left';
+      // mevcut nokta
+      const cx=xOf(logL);
+      g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(cx,py-8);g.lineTo(cx,py+ph+10);g.stroke();
+      g.fillStyle='#fff';g.beginPath();g.moveTo(cx,py-10);g.lineTo(cx-6,py-18);g.lineTo(cx+6,py-18);g.closePath();g.fill();
+      // göz penceresi
+      const visX1=xOf(-6.42), visX2=xOf(-6.12);
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.setLineDash([3,4]);g.strokeRect(visX1-2,py-4,visX2-visX1+4,ph+8);g.setLineDash([]);
+      label(g,'göz gördüğü dar pencere',(visX1+visX2)/2,py-22,'#46e08a',10);
+      // alt panel: o bandın simgesi
+      const sx=F.cx, sy=240;
+      glowCircle(g,sx,sy,90,b.c.replace(')',',.3)').length>1?'rgba(255,255,255,.15)':'rgba(255,255,255,.15)');
+      // foton dalga görseli
+      g.strokeStyle=b.c;g.lineWidth=2.5;g.beginPath();
+      const cyc = Math.max(2, 80/Math.max(1, Math.pow(10, logL+8)));   // görsel frekans
+      for(let x=-90;x<=90;x++){ g.lineTo(sx+x, sy+Math.sin((x+t*60)*0.1*cyc)*22); } g.stroke();
+      label(g,'~ '+b.n+' fotonu',sx,sy+50,b.c,12);
+      banner(g,'Gözümüz dar bir bant; teleskoplar tüm spektrumda evreni görür','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Çoklu dalga boyunda aynı gök',
+    html:`<h2>Aynı galaksi, 6 farklı yüz</h2>Aynı bir gök cismini her bantta <b>tamamen farklı</b> görürüz. Her bant farklı fiziği vurgular: sıcak/soğuk, enerjik/dingin, gaz/toz/yıldız.`,
+    loop:true,
+    draw:(g,t)=>{
+      // 6 panel: Galaktik merkez benzeri obje
+      const cells=[
+        {n:'RADYO', c:'#5080ff', desc:'jet & H gazı', draw:(g,cx,cy)=>{
+          // iki büyük jet
+          g.strokeStyle='#5080ff';g.lineWidth=2;
+          for(let k=0;k<5;k++){ const w=15+k*5; g.globalAlpha=0.4-k*0.06;
+            g.beginPath();g.ellipse(cx,cy,w,8,0,0,7);g.stroke(); } g.globalAlpha=1;
+          // iki radyo lob
+          g.fillStyle='rgba(80,128,255,.4)';g.beginPath();g.ellipse(cx-35,cy,20,12,0.3,0,7);g.fill();
+          g.beginPath();g.ellipse(cx+35,cy,20,12,-0.3,0,7);g.fill();
+        }},
+        {n:'KIZILÖTESİ', c:'#ff9f6b', desc:'toz & soğuk gaz', draw:(g,cx,cy)=>{
+          // toz lekeleri
+          for(let k=0;k<14;k++){ const a=k/14*6.28, rr=20+Math.sin(t*2+k)*8;
+            g.fillStyle='#ff9f6b';g.globalAlpha=.3+0.3*Math.sin(t+k);
+            g.beginPath();g.arc(cx+rr*Math.cos(a),cy+rr*Math.sin(a)*0.7,5,0,7);g.fill(); } g.globalAlpha=1;
+          // sıcak merkez
+          glowCircle(g,cx,cy,25,'rgba(255,159,107,.5)');
+        }},
+        {n:'GÖRÜNÜR', c:'#ffd76a', desc:'yıldızlar', draw:(g,cx,cy)=>{
+          // sarmal kollar
+          for(let a=0;a<3;a++){ const off=a*Math.PI*2/3;
+            for(let s=0;s<25;s++){ const th=s*0.1+t*0.05; const r=4+th*5; if(r>32) continue;
+              const xx=cx+r*Math.cos(th+off), yy=cy+r*Math.sin(th+off)*0.75;
+              g.fillStyle='#ffd870';g.globalAlpha=.7;g.beginPath();g.arc(xx,yy,1.5,0,7);g.fill(); } } g.globalAlpha=1;
+          glowCircle(g,cx,cy,18,'rgba(255,216,112,.4)');
+        }},
+        {n:'MORÖTESİ', c:'#b18bff', desc:'sıcak genç yıldız', draw:(g,cx,cy)=>{
+          // dağınık parlak noktalar (genç yıldız bölgeleri)
+          for(let k=0;k<12;k++){ const a=k*0.7, rr=8+Math.random()*30*Math.sin(k+t*2);
+            const xx=cx+rr*Math.cos(a), yy=cy+rr*Math.sin(a)*0.7;
+            const tw=0.5+0.5*Math.sin(t*4+k);
+            glowCircle(g,xx,yy,5*tw,'rgba(177,139,255,.6)');
+            g.fillStyle='#fff';g.beginPath();g.arc(xx,yy,1.8,0,7);g.fill(); }
+        }},
+        {n:'X-IŞINI', c:'#ff6b6b', desc:'kara delik & sıcak gaz', draw:(g,cx,cy)=>{
+          // parlak çekirdek + sıcak halo
+          glowCircle(g,cx,cy,30,'rgba(255,107,107,.5)');
+          g.fillStyle='#fff';g.beginPath();g.arc(cx,cy,4,0,7);g.fill();
+          // jet
+          g.strokeStyle='#ff6b6b';g.lineWidth=2;g.globalAlpha=.7;
+          g.beginPath();g.moveTo(cx,cy-12);g.lineTo(cx-8,cy-40);g.moveTo(cx,cy+12);g.lineTo(cx+8,cy+40);g.stroke();g.globalAlpha=1;
+        }},
+        {n:'GAMMA', c:'#a058ff', desc:'pulsar & GRB', draw:(g,cx,cy)=>{
+          // birkaç nokta kaynak, ışıltılı
+          for(let k=0;k<5;k++){ const a=k*1.3, rr=15+k*4;
+            const xx=cx+rr*Math.cos(a+t*0.5), yy=cy+rr*Math.sin(a+t*0.5)*0.7;
+            const tw=Math.sin(t*5+k)>0.3?1:0.2;
+            glowCircle(g,xx,yy,6*tw,'rgba(160,88,255,.7)');
+            g.fillStyle='#fff';g.beginPath();g.arc(xx,yy,1.5,0,7);g.fill();
+          }
+        }}
+      ];
+      // 3×2 grid
+      cells.forEach((c,i)=>{ const col=i%3, row=Math.floor(i/3);
+        const cx=120+col*270, cy=130+row*150;
+        // çerçeve
+        g.strokeStyle=c.c;g.lineWidth=1.5;g.globalAlpha=.4;rrect(g,cx-100,cy-60,200,140,8);g.stroke();g.globalAlpha=1;
+        // başlık
+        g.fillStyle=c.c;g.font='bold 12px Segoe UI';g.textAlign='center';g.fillText(c.n,cx,cy-66);
+        g.fillStyle='#9fb0ff';g.font='10px Segoe UI';g.fillText(c.desc,cx,cy+72);
+        g.textAlign='left';
+        // çizim
+        c.draw(g,cx,cy);
+      });
+      banner(g,'Aynı obje; farklı bantta farklı fizik. Toz mu, yıldız mı, kara delik mi?','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Spektroskopi: ışık ne anlatır?',
+    html:`<h2>Yıldız ışığını prizmadan geçir → sırlarını öğren</h2>Yıldız ışığı tek bir rengin karışımı değil. Yıldızın atmosferindeki atomlar belirli dalga boylarını <b style="color:#000">yutar</b> → spektrumda kara çizgiler oluşur.
+          Bu çizgilerin <b style="color:#46e08a">yerinden</b>: bileşim (hangi element). <b style="color:#ff6b6b">kaymasından</b>: hız (Doppler). <b style="color:#7fd6ff">tepe rengi</b>: sıcaklık (Wien yasası).
+      <div class="sliders">
+        <div class="row"><label>Yıldız hızı (km/s)</label><input id="s_v" type="range" min="-30000" max="30000" step="500" value="0"><span id="o_v">0 km/s</span></div>
+        <div class="res" style="font-size:13px;line-height:1.7">
+          Doppler kayması: <b id="o_d" style="color:#ff6b6b">—</b> &nbsp;·&nbsp; Tepe rengi → tahmini sıcaklık: <b style="color:#7fd6ff">~5800 K (Güneş gibi)</b>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const v=rd('s_v',0);
+      // yıldız sol
+      const Sx=140, Sy=F.midY-10, R=28;
+      glowCircle(g,Sx,Sy,R*2.4,'rgba(255,220,140,.5)');
+      const rg=g.createRadialGradient(Sx,Sy,0,Sx,Sy,R);
+      rg.addColorStop(0,'#fff4c2');rg.addColorStop(.7,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(Sx,Sy,R,0,7);g.fill();
+      label(g,'yıldız',Sx,Sy+R+18,'#ffd76a',11);
+      // ışık ışınları
+      g.strokeStyle='#fff';g.lineWidth=1;g.globalAlpha=.7;
+      for(let k=-3;k<=3;k++){ g.beginPath();g.moveTo(Sx+R,Sy+k*3);g.lineTo(Sx+120,Sy+k*1);g.stroke(); } g.globalAlpha=1;
+      // prizma
+      g.fillStyle='#cdd6ff';g.globalAlpha=.5;
+      g.beginPath();g.moveTo(Sx+120,Sy-30);g.lineTo(Sx+140,Sy+30);g.lineTo(Sx+100,Sy+30);g.closePath();g.fill();g.globalAlpha=1;
+      label(g,'prizma',Sx+120,Sy+50,'#cdd6ff',11);
+      // gökkuşağı spektrum sağ
+      const sx=Sx+170, sy=Sy-30, sw=400, sh=60;
+      const gradient=g.createLinearGradient(sx,0,sx+sw,0);
+      gradient.addColorStop(0,'#7f5fff');gradient.addColorStop(0.2,'#7fd6ff');gradient.addColorStop(0.4,'#46e08a');gradient.addColorStop(0.6,'#ffd76a');gradient.addColorStop(0.8,'#ff9550');gradient.addColorStop(1,'#ff6b6b');
+      g.fillStyle=gradient;g.fillRect(sx,sy,sw,sh);
+      g.strokeStyle='#33406f';g.strokeRect(sx,sy,sw,sh);
+      // soğurma çizgileri (Balmer + bazı)
+      // Hα 656 nm (kırmızı), Hβ 486 nm (mavi-yeşil), Hγ 434 nm, NaI 589 (sarı)
+      const c=299792;        // km/s
+      const dopShift = v/c;   // λ_obs / λ_emit ≈ 1+v/c
+      const lines=[{w:434,col:'#7f5fff',n:'Hγ'},{w:486,col:'#7fd6ff',n:'Hβ'},{w:589,col:'#ffd76a',n:'NaI'},{w:656,col:'#ff6b6b',n:'Hα'}];
+      // map 400-700 nm to 0..sw
+      lines.forEach(l=>{ const w=l.w*(1+dopShift); const x=sx+(w-400)/300*sw;
+        if(x<sx||x>sx+sw) return;
+        g.strokeStyle='#000';g.lineWidth=2;g.beginPath();g.moveTo(x,sy+2);g.lineTo(x,sy+sh-2);g.stroke();
+        g.fillStyle='#fff';g.font='10px Segoe UI';g.textAlign='center';g.fillText(l.n,x,sy-4);
+      });
+      g.textAlign='left';
+      label(g,'400 nm',sx,sy+sh+14,'#9fb0ff',10);
+      label(g,'700 nm',sx+sw-30,sy+sh+14,'#9fb0ff',10);
+      label(g,'gözlenen spektrum',sx+sw/2,sy-22,'#cdd6ff',12);
+      // kayma yönü
+      if(v>0) label(g,'→ kırmızıya kayma (uzaklaşıyor)',sx+sw/2,sy+sh+30,'#ff6b6b',12);
+      else if(v<0) label(g,'← maviye kayma (yaklaşıyor)',sx+sw/2,sy+sh+30,'#7fd6ff',12);
+      else label(g,'kayma yok (referans)',sx+sw/2,sy+sh+30,'#46e08a',12);
+      // span'lar
+      document.getElementById('o_v').textContent = (v>0?'+':'')+v.toLocaleString('tr')+' km/s';
+      document.getElementById('o_d').textContent = (dopShift>=0?'+':'')+(dopShift*100).toFixed(3)+'%';
+      // bilgi panel altta
+      label(g,'Spektroskopi ile öğrendiğimiz:',F.cx,290,'#46e08a',13);
+      label(g,'• ÇİZGİLERİN YERİ → bileşim (hidrojen, helyum, ...)',F.cx,310,'#cdd6ff',12);
+      label(g,'• KAYMA YÖNÜ → hız (Doppler)',F.cx,328,'#cdd6ff',12);
+      label(g,'• TEPE RENGİ → sıcaklık (Wien) · • ÇİZGİ ŞİDDETİ → kütle, basınç',F.cx,346,'#cdd6ff',12);
+      banner(g,'Yıldıza dokunmadan kim olduğunu öğreniyoruz — spektrum, evrenin parmak izi','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Görünür ışık'},
+  {c:'#5080ff',t:'Radyo / soğuk'},
+  {c:'#a058ff',t:'Gamma / sıcak'}
+]});
+</script>
+</body>
+</html>
