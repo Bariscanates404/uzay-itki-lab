@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 28 · Yerçekimi Dalgaları</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 28</div>
+  <h1>Ders 28 · Yerçekimi Dalgaları</h1>
+  <div class="sub">Einstein 1916'da öngördü, biz 2015'te duyduk. Uzay-zamanın "titreşimleri" — milyarlarca ışık yılı öteden gelen evrenin en zayıf sinyali.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Kütleli cisimler hızlanırken (örneğin iki kara delik spiral çizip birleşirken) <b class="key">uzay-zamanda dalga</b> yayar — ışık hızında. Bu dalga geçtiğinde mesafeler minicik genişler-büzülür.
+    LIGO (Hanford + Livingston) 4 km kollu lazer interferometre ile bu titreşimi yakalar — proton çapının <b>1/1000'i</b> kadar bir uzama bile ölçülebilir!
+    <b>GW150914</b> (14 Eylül 2015): ilk doğrudan dedeksiyon. 36 + 29 M☉ iki kara delik, 1.3 milyar yıl önce birleşti; <b class="key">3 güneş kütlesi</b> saf yerçekimi dalgası enerjisine dönüştü. Nobel 2017.
+  </div>
+
+  <div class="navrow">
+    <a href="27-exoplanetler.html">← Ders 27</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+Lab.start([
+  {
+    tab:'1 · İki kara delik birleşiyor',
+    html:`<h2>Spiral → birleşme → ringdown</h2>İki kara delik birbiri etrafında dönerken yerçekimi dalgası salar. Enerjiyi kaybedince yörünge küçülür, hız artar (<b>cıvıltı/chirp</b>).
+          Birleşme anında dev bir parlama — sonra "ringdown" titreşimi söner.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx, CY=F.midY-30;
+      // chirp: r decreases, ω increases (post-Newtonian schematic)
+      const tMerge=0.86;
+      const u=Math.min(t/tMerge, 1);
+      const r = 90*(1-Math.pow(u,2.5)) + 8;
+      const omega = 1.5 + Math.pow(u,2)*22;
+      // faz integralini t cinsinden yaklaşık integre etmek için ayrı sayaç
+      window._gw=window._gw||0;
+      if(Lab.playing) window._gw += omega*0.016*Lab.speed;
+      const phi=window._gw;
+      // dalga halkaları (zamana göre artan frekans)
+      for(let k=0;k<8;k++){
+        const ringT=(t+k/8)%1; const rad=ringT*240+30;
+        g.globalAlpha=(1-ringT)*0.6;
+        const ringFreq=8 + ringT*12;     // outer rings older = lower freq
+        g.strokeStyle='#7fb4ff';g.lineWidth=2;
+        // dalgalı halka
+        g.beginPath();
+        for(let a=0;a<=6.4;a+=0.05){ const rr=rad + 2*Math.sin(a*ringFreq+phi*0.5);
+          const X=CX+rr*Math.cos(a), Y=CY+rr*Math.sin(a)*0.85;
+          a===0?g.moveTo(X,Y):g.lineTo(X,Y); }
+        g.closePath();g.stroke();
+      } g.globalAlpha=1;
+      // iki kara delik
+      if(t<tMerge){
+        const b1x=CX+r*Math.cos(phi), b1y=CY+r*Math.sin(phi);
+        const b2x=CX-r*Math.cos(phi), b2y=CY-r*Math.sin(phi);
+        // akret diski vs simple BH
+        glowCircle(g,b1x,b1y,16,'rgba(180,80,255,.5)');
+        g.fillStyle='#000';g.beginPath();g.arc(b1x,b1y,8,0,7);g.fill();
+        glowCircle(g,b2x,b2y,14,'rgba(180,80,255,.5)');
+        g.fillStyle='#000';g.beginPath();g.arc(b2x,b2y,7,0,7);g.fill();
+        label(g,'36 M☉',b1x+12,b1y-12,'#a058ff',10);
+        label(g,'29 M☉',b2x-30,b2y+18,'#a058ff',10);
+      } else {
+        // merger flash + final BH + ringdown
+        const ru=(t-tMerge)/(1-tMerge);
+        glowCircle(g,CX,CY,80+ru*40,'rgba(255,240,180,'+(1-ru)+')');
+        glowCircle(g,CX,CY,30,'rgba(180,80,255,.7)');
+        g.fillStyle='#000';g.beginPath();g.arc(CX,CY,18+Math.sin(t*30)*ru*3,0,7);g.fill();
+        label(g,'62 M☉ tek kara delik',CX,CY-44,'#fff',13);
+        label(g,'3 M☉ → dalga enerjisi 💥',CX,CY+44,'#ffd76a',13);
+      }
+      // chirp dalga formu altta
+      const px=60,py=300,pw=760,ph=70;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'GW dalga formu (cıvıltı: frekans ve genlik artar → merger)',px+pw/2,py-8,'#9fb0ff',11);
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      for(let i=0;i<pw;i++){
+        const tt=i/pw; const uu=Math.min(tt/tMerge,1);
+        const amp = uu<1 ? (10+uu*uu*30) : (40*(1-(tt-tMerge)/(1-tMerge))); // grows then ringdown decay
+        const f = 1 + Math.pow(uu,2)*40;
+        const Y = py+ph/2 + amp*Math.sin(tt*f*Math.PI*8);
+        i===0?g.moveTo(px+i,Y):g.lineTo(px+i,Y);
+      } g.stroke();
+      // gezici işaretçi
+      const cx=px+Math.min(t,1)*pw;
+      g.strokeStyle='#ffd76a';g.beginPath();g.moveTo(cx,py);g.lineTo(cx,py+ph);g.stroke();
+      banner(g,'1.3 milyar yıl önce gerçekleşti; ışık hızında bize ulaştı (2015)','#46e08a');
+    }
+  },
+  {
+    tab:'2 · LIGO nasıl ölçer',
+    html:`<h2>Lazer interferometre: dünyanın en hassas cetveli</h2>İki kol (her biri 4 km) dik açıyla. Lazer ışını ikiye ayrılır, iki kolu kateder, yansır, geri birleşir. Normal:
+          Yıkıcı girişim → karanlık. Yerçekimi dalgası geçtiğinde bir kol uzar, öbürü kısalır → girişim deseni değişir → ışık görülür! Hassasiyet: proton çapının binde biri.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx, CY=F.midY-20;
+      // koldaki dalgalanma (GW geçişini abartılı görselleştirme)
+      const h=0.4*Math.sin(t*6.28*0.7);   // strain ~ 0.4 px (görsel)
+      const L1=170*(1+h*0.1);   // sağ kol uzar
+      const L2=170*(1-h*0.1);   // üst kol kısalır
+      // beam splitter
+      g.strokeStyle='#cdd6ff';g.lineWidth=2;
+      g.beginPath();g.moveTo(CX-12,CY+12);g.lineTo(CX+12,CY-12);g.stroke();
+      label(g,'ışın ayırıcı',CX-50,CY+24,'#cdd6ff',10);
+      // arms
+      g.strokeStyle='#46e08a';g.lineWidth=2;
+      g.beginPath();g.moveTo(CX,CY);g.lineTo(CX+L1,CY);g.stroke();          // sağ kol
+      g.beginPath();g.moveTo(CX,CY);g.lineTo(CX,CY-L2);g.stroke();          // üst kol
+      // aynalar
+      g.fillStyle='#9fb0ff';rrect(g,CX+L1-2,CY-14,4,28,1);g.fill();
+      rrect(g,CX-14,CY-L2-2,28,4,1);g.fill();
+      label(g,'ayna (4 km)',CX+L1-30,CY+28,'#9fb0ff',10);
+      label(g,'ayna',CX-40,CY-L2-10,'#9fb0ff',10);
+      // lazer kaynağı (sol)
+      const lx=CX-90;
+      glowCircle(g,lx,CY,16,'rgba(255,107,107,.6)');
+      g.fillStyle='#ff6b6b';rrect(g,lx-10,CY-6,20,12,3);g.fill();
+      label(g,'lazer',lx,CY+22,'#ff6b6b',11);
+      // lazer ışını (sol → ayırıcı)
+      g.strokeStyle='#ff6b6b';g.lineWidth=1.5;g.globalAlpha=.7;g.beginPath();g.moveTo(lx+10,CY);g.lineTo(CX,CY);g.stroke();g.globalAlpha=1;
+      // dedektör (altta)
+      const dx=CX, dy=CY+90;
+      g.strokeStyle='#7fd6ff';g.lineWidth=1.5;g.globalAlpha=.7;g.beginPath();g.moveTo(CX,CY);g.lineTo(dx,dy);g.stroke();g.globalAlpha=1;
+      g.fillStyle='#7fd6ff';rrect(g,dx-14,dy,28,18,3);g.fill();
+      label(g,'foto-dedektör',dx,dy+34,'#7fd6ff',11);
+      // GW geliyor (sembolik dalga oklar)
+      for(let k=0;k<3;k++){ const yy=80+k*22; g.strokeStyle='#b18bff';g.lineWidth=1.5;g.globalAlpha=.5;
+        g.beginPath();
+        for(let x=0;x<F.W;x+=4){ g.lineTo(x, yy+Math.sin(x*0.1-t*5)*4); } g.stroke();g.globalAlpha=1; }
+      label(g,'⬇ yerçekimi dalgası geçiyor ⬇',F.cx,60,'#b18bff',13);
+      // strain sinyali (sağ alt)
+      const px=60,py=300,pw=760,ph=70;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'dedektör çıkış sinyali (strain h = ΔL/L)',px+pw/2,py-8,'#9fb0ff',11);
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      for(let i=0;i<pw;i++){
+        const tt=i/pw;
+        const Y = py+ph/2 + 18*Math.sin(tt*6.28*4 + t*6.28*0.7);
+        i===0?g.moveTo(px+i,Y):g.lineTo(px+i,Y);
+      } g.stroke();
+      label(g,'h ≈ 10⁻²¹ — gerçek ölçüm bu kadar minik!',px+pw-260,py+ph-8,'#9fb0ff',10);
+      banner(g,'Proton çapının binde biri uzama bile ölçülebilir','#46e08a');
+    }
+  },
+  {
+    tab:'3 · GW150914 & sonrası',
+    html:`<h2>14 Eylül 2015 sabahı tarih yazıldı</h2>İlk doğrudan yerçekimi dalgası dedeksiyonu. 1.3 milyar yıl önce, iki kara deliğin son saniyeleri.
+          Nobel Fizik Ödülü 2017 (Weiss, Barish, Thorne). O günden bugüne 100+ olay.`,
+    loop:true,
+    draw:(g,t)=>{
+      // gerçek chirp benzetimi
+      const px=60,py=70,pw=760,ph=130;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'GW150914 — strain (10⁻²¹)',px+pw/2,py-8,'#46e08a',12);
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      // inspiral + merger + ringdown
+      for(let i=0;i<pw;i++){
+        const tt=i/pw;          // 0..1
+        const tMerge=0.78;
+        let amp, freq;
+        if(tt<tMerge){
+          const u=tt/tMerge;
+          amp = 8 + Math.pow(u,2.5)*46;
+          freq = 1 + Math.pow(u,2)*30;
+        } else {
+          const u=(tt-tMerge)/(1-tMerge);
+          amp = 54*(1-u)*Math.exp(-u*4);
+          freq = 35;
+        }
+        const phase = (tt<tMerge ? Math.pow(tt/tMerge,3)*60 : 60+(tt-tMerge)*45);
+        const Y = py+ph/2 + amp*Math.sin(phase*6.28);
+        i===0?g.moveTo(px+i,Y):g.lineTo(px+i,Y);
+      } g.stroke();
+      // ana sayılar
+      const fx=70, fy=230;
+      label(g,'KAYNAK: iki kara delik · 1.3 milyar ışık yılı uzakta',fx,fy,'#ffd76a',13);
+      label(g,'36 + 29 = 65 M☉  →  birleşince 62 M☉',fx,fy+22,'#cdd6ff',12);
+      label(g,'3 M☉ kayboldu  →  saf yerçekimi dalgası enerjisi (E=mc²)',fx,fy+42,'#46e08a',12);
+      label(g,'O an evrenin geri kalanından daha çok güç saldı',fx,fy+62,'#ff9f6b',11);
+      // dedektör ağı (sağ)
+      const mx=F.W-180, my=220;
+      label(g,'DEDEKTÖR AĞI',mx,my-8,'#7fd6ff',12);
+      [
+        {n:'LIGO Hanford',c:'#7fd6ff'},
+        {n:'LIGO Livingston',c:'#7fd6ff'},
+        {n:'Virgo (İtalya)',c:'#46e08a'},
+        {n:'KAGRA (Japonya)',c:'#ffcf5a'}
+      ].forEach((d,i)=>{ const y=my+i*22; const blink=Math.sin(t*4+i)>0.5;
+        g.fillStyle=blink?d.c:'#2a3566';g.beginPath();g.arc(mx,y,5,0,7);g.fill();
+        g.fillStyle='#fff';g.font='11px Segoe UI';g.fillText(d.n,mx+14,y+4);
+      });
+      label(g,'🏆 Nobel Fizik 2017 — Weiss, Barish, Thorne',F.cx,F.H-44,'#ffd76a',13);
+      label(g,'2017: GW170817 (ikili nötron yıldızı) — kilonova ile birlikte ışık & dalga, çoklu-mesajcı astronomi başladı!',F.cx,F.H-24,'#b18bff',11);
+      banner(g,'Einstein 1916: "var" dedi · 2015 Nobel ödülü buldu','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#a058ff',t:'Kara delikler'},
+  {c:'#46e08a',t:'Dalga / sinyal'},
+  {c:'#7fd6ff',t:'LIGO / interferometre'}
+]});
+</script>
+</body>
+</html>
