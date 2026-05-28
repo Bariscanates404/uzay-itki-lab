@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 33 · Gelgitler</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 33</div>
+  <h1>Ders 33 · Gelgitler: Ay Denizi Nasıl Çekiyor</h1>
+  <div class="sub">Sahilde günde 2 kez gel-git görüyoruz — neden 1 değil de 2? Ay nasıl trilyonlarca ton suyu çekiyor?</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Ay'ın çekim gücü Dünya'nın <b>yakın yüzünde</b> uzak yüzünden daha güçlü. Bu <b class="key">fark</b> (gelgit kuvveti) iki tarafta su tümseği oluşturur: biri Ay'a, biri ters yöne.
+    Dünya 24 saatte bu tümseklerin altından döndüğü için herhangi bir sahilde günde <b>2 yüksek gelgit</b> olur.
+    Güneş de katkı yapar: Sun-Ay-Dünya aynı çizgide (dolunay/yeniay) → <b>büyük gelgit</b>; dik açıda → <b>küçük gelgit</b>.
+    Ay, gelgit kilitlenmesi ile hep aynı yüzünü gösterir; Dünya'nın günü yavaş yavaş <b>uzuyor</b> (yüzyılda 1.7 ms).
+  </div>
+
+  <div class="navrow">
+    <a href="32-hayat-arama-biyo-imzalar.html">← Ders 32</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Neden 2 tümsek?',
+    html:`<h2>Çekim farkı, iki tümsek yaratır</h2>Ay'ın çekim gücü Dünya'nın yakın yüzünde uzak yüzünden daha kuvvetli. Bu fark "gelgit kuvveti":
+          yakın yüzde su Ay'a doğru çekilir, uzak yüzde Dünya Ay'a doğru çekildiği için <b>su geride kalır</b> — ikinci tümsek!
+          Dünya bunların altında döner → herhangi bir sahilde günde <b class="key">2 yüksek gelgit</b>.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-150, CY=F.midY;
+      // Dünya
+      const Re=64;
+      drawPlanet(g,CX,CY,Re,'#3a6ea5');
+      // su tümsekleri (Ay yönü = sağa)
+      g.fillStyle='rgba(127,180,255,.35)';
+      g.beginPath();g.ellipse(CX,CY,Re+18,Re+4,0,0,7);g.fill();
+      g.strokeStyle='#7fb4ff';g.lineWidth=1.5;g.beginPath();g.ellipse(CX,CY,Re+18,Re+4,0,0,7);g.stroke();
+      // çekim vektörleri (Dünya'nın 8 noktasından)
+      for(let k=0;k<12;k++){ const a=k/12*6.28; const x=CX+Re*Math.cos(a), y=CY+Re*Math.sin(a);
+        // mesafe Ay'a → çekim
+        const Mx=CX+260, My=CY;
+        const dx=Mx-x, dy=My-y, d=Math.hypot(dx,dy);
+        const f=14/(d*d/2000);   // fiziksel olmayan ama görselsel
+        const fx=f*dx/d, fy=f*dy/d;
+        arrow(g,x,y,fx,'#ffd76a');
+      }
+      // Dünya'nın dönüşü (gözlem noktası)
+      const rotAng=t*6.28;
+      const ox=CX+Re*Math.cos(rotAng), oy=CY+Re*Math.sin(rotAng);
+      g.fillStyle='#46e08a';g.beginPath();g.arc(ox,oy,5,0,7);g.fill();
+      label(g,'gözlemci',ox+10,oy-6,'#46e08a',11);
+      // hangi gelgitte? (mesafe en yakın tümseğe)
+      const angToBulge = Math.min(Math.abs(rotAng%6.28), Math.abs((rotAng%6.28)-Math.PI), 6.28-Math.abs(rotAng%6.28));
+      const inHigh = angToBulge<0.5;
+      label(g, inHigh?'YÜKSEK GELGİT':'alçak gelgit', ox+12, oy+12, inHigh?'#46e08a':'#9fb0ff', 12);
+      // Ay sağda
+      const Mx=CX+260, My=CY;
+      drawPlanet(g,Mx,My,18,'#cdd6ff');
+      label(g,'AY',Mx,My+30,'#cdd6ff',12);
+      // bilgi paneli
+      const px=F.W-180, py=80;
+      label(g,'GELGİT MEKANİĞİ',px,py,'#46e08a',13);
+      label(g,'• Yakın yüz: güçlü çekim',px,py+22,'#cdd6ff',11);
+      label(g,'• Uzak yüz: zayıf çekim',px,py+38,'#cdd6ff',11);
+      label(g,'• Dünya ortada → tümseğe',px,py+54,'#cdd6ff',11);
+      label(g,'  her iki taraftan uzakta',px,py+66,'#cdd6ff',11);
+      label(g,'⇒ 2 yüksek + 2 alçak / gün',px,py+88,'#46e08a',11);
+      banner(g,'Ay sadece denizi değil — kayayı, atmosferi, hatta seni de çeker (minik)','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Büyük vs küçük gelgit',
+    html:`<h2>Güneş ekler ya da iptal eder</h2>Güneş de gelgit kuvveti uygular (Ay'ın ~%46'sı kadar). Konfigürasyon belirleyici:
+          <b style="color:#ffd76a">Yeni/dolunay</b> = Sun-Dünya-Ay aynı çizgi → kuvvetler eklenir → <b>büyük gelgit</b> (spring tide).
+          <b style="color:#7fd6ff">İlk/son dördün</b> = dik açı → kuvvetler iptal → <b>küçük gelgit</b> (neap tide).
+      <div class="sliders">
+        <div class="row"><label>Ay'ın açısı</label><input id="s_a" type="range" min="0" max="360" step="5" value="0"><span id="o_a">0°</span></div>
+        <div class="res">Tip: <b id="o_t" style="color:#ffd76a">BÜYÜK GELGİT (Yeniay)</b> · Gelgit gücü: <b id="o_p" style="color:#46e08a">%146</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const aDeg=rd('s_a',0), a=aDeg*Math.PI/180;
+      const CX=F.cx-50, CY=F.midY-20, Re=42;
+      // Güneş (sol, sağa doğru çekim ekseni)
+      const Sx=80, Sy=CY;
+      glowCircle(g,Sx,Sy,40,'rgba(255,200,80,.4)');
+      const rg=g.createRadialGradient(Sx,Sy,0,Sx,Sy,22);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(Sx,Sy,22,0,7);g.fill();
+      label(g,'Güneş',Sx,Sy+38,'#ffd76a',11);
+      // Dünya + su tümseği yönü (Güneş + Ay net etkisi)
+      // Sun pulls toward +x (right=toward Earth from sun)
+      // Moon at angle a from Earth
+      const Mx=CX+150*Math.cos(a), My=CY+150*Math.sin(a);
+      // su tümseği yönü ~ (sun axis + moon axis vector toplamı)
+      const sunAxX=1, sunAxY=0;
+      const moonAxX=Math.cos(a), moonAxY=Math.sin(a);
+      // gelgit kuvveti vektörü (gerilme eksenleri), büyüklük ~ Ay 1 + Güneş 0.46
+      const tideX = moonAxX + 0.46*sunAxX, tideY = moonAxY + 0.46*sunAxY;
+      const tideMag = Math.hypot(tideX,tideY);
+      const tideAng = Math.atan2(tideY,tideX);
+      const ellW = Re+10 + tideMag*8;
+      const ellH = Re+4 - tideMag*3;
+      // Dünya
+      drawPlanet(g,CX,CY,Re,'#3a6ea5');
+      // su tümseği eğilmiş
+      g.save();g.translate(CX,CY);g.rotate(tideAng);
+      g.fillStyle='rgba(127,180,255,.45)';g.beginPath();g.ellipse(0,0,ellW,ellH,0,0,7);g.fill();
+      g.strokeStyle='#7fb4ff';g.lineWidth=2;g.beginPath();g.ellipse(0,0,ellW,ellH,0,0,7);g.stroke();
+      g.restore();
+      // Ay
+      drawPlanet(g,Mx,My,14,'#cdd6ff');
+      label(g,'AY',Mx,My-20,'#cdd6ff',11);
+      // Ay yörüngesi
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);g.beginPath();g.arc(CX,CY,150,0,7);g.stroke();g.setLineDash([]);
+      // çizgi: Sun-Dünya-Ay
+      g.strokeStyle='rgba(255,215,100,.4)';g.setLineDash([4,4]);g.beginPath();g.moveTo(Sx,Sy);g.lineTo(Mx,My);g.stroke();g.setLineDash([]);
+      // bilgi
+      const sin=Math.abs(Math.sin(a));
+      let t_type, t_pct, t_col;
+      if(sin<0.2){ t_type=aDeg<10||aDeg>350?'BÜYÜK GELGİT (Yeniay)':aDeg>170&&aDeg<190?'BÜYÜK GELGİT (Dolunay)':'büyük gelgit'; t_pct=146; t_col='#ffd76a'; }
+      else if(sin>0.8){ t_type='KÜÇÜK GELGİT (Dördün)'; t_pct=54; t_col='#7fd6ff'; }
+      else { t_type='ara durum'; t_pct=Math.round(54+(146-54)*(1-sin)); t_col='#9fb0ff'; }
+      document.getElementById('o_a').textContent=aDeg+'°';
+      const ot=document.getElementById('o_t');ot.textContent=t_type;ot.style.color=t_col;
+      document.getElementById('o_p').textContent='%'+t_pct;
+      banner(g,'Sun + Ay aynı çizgi → büyük; dik → küçük gelgit','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Gelgit kilidi & Dünya yavaşlıyor',
+    html:`<h2>Aynı yüz hep, gün hep biraz daha uzun</h2>Ay her zaman aynı yüzünü Dünya'ya gösterir — <b class="key">gelgit kilidi</b>. Geçmişte Ay daha hızlı dönüyordu;
+          gelgit sürtünmesi onu yavaşlattı, dönüş periyodu yörünge periyoduna eşitlendi.
+          Aynı süreç Dünya'yı da etkiliyor: günümüz yüzyılda <b>1.7 milisaniye</b> uzuyor. 400 milyon yıl önce mercan kabuğu fosilleri: yılda <b>~400 gün</b>!`,
+    loop:true,
+    draw:(g,t)=>{
+      // sol: gelgit kilidi animasyonu
+      const CX=200, CY=F.midY-20, Re=40;
+      drawPlanet(g,CX,CY,Re,'#3a6ea5');
+      label(g,'Dünya',CX,CY+Re+18,'#7fb4ff',11);
+      // Ay yörüngede + kendisi dönüyor (aynı yüzü içeride)
+      const orbR=120, ang=t*0.8;
+      const Mx=CX+orbR*Math.cos(ang), My=CY+orbR*Math.sin(ang);
+      drawPlanet(g,Mx,My,16,'#cdd6ff');
+      // ay yüzeyinde işaret (Dünya'ya bakan)
+      g.fillStyle='#888';g.beginPath();g.arc(Mx-12*Math.cos(ang),My-12*Math.sin(ang),3,0,7);g.fill();
+      label(g,'AY',Mx,My-22,'#cdd6ff',11);
+      label(g,'(aynı yüz daima Dünya\'ya bakar)',Mx,My+30,'#9fb0ff',10);
+      // yörünge
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);g.beginPath();g.arc(CX,CY,orbR,0,7);g.stroke();g.setLineDash([]);
+      // sağ: Dünya günü uzuyor
+      const rx=F.cx+150, ry=F.midY-20;
+      label(g,'DÜNYA GÜNÜ UZUYOR',rx,ry-110,'#ffd76a',13);
+      const periods=[
+        {n:'400 milyon yıl önce', d:'~22 saatlik gün, ~400 gün/yıl', c:'#ff9f6b'},
+        {n:'100 milyon yıl önce', d:'~23 saatlik gün', c:'#ffd76a'},
+        {n:'Bugün', d:'24 saat (uzuyor: 1.7 ms / yüzyıl)', c:'#46e08a'},
+        {n:'~10 milyar yıl sonra', d:'Dünya-Ay senkron — birbirine kilitli', c:'#b18bff'}
+      ];
+      periods.forEach((p,i)=>{ const y=ry-80+i*45;
+        g.fillStyle=p.c;g.beginPath();g.arc(rx-100,y,7,0,7);g.fill();
+        g.fillStyle='#fff';g.font='bold 12px Segoe UI';g.fillText(p.n,rx-86,y);
+        g.fillStyle='#9fb0ff';g.font='11px Segoe UI';g.fillText(p.d,rx-86,y+16);
+      });
+      // mercan fosil notu
+      label(g,'🐚 Kanıt: mercanların büyüme halkaları (1963\'te Wells)',F.cx,F.H-40,'#ffd76a',12);
+      banner(g,'Gelgit sürtünmesi enerjiyi yavaş yavaş ısıya çeviriyor → günü uzatıyor','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#7fb4ff',t:'Dünya / su'},
+  {c:'#cdd6ff',t:'Ay'},
+  {c:'#ffd76a',t:'Güneş / büyük gelgit'}
+]});
+</script>
+</body>
+</html>
