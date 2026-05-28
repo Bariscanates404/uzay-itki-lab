@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 36 · Atmosfer & Aurora</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 36</div>
+  <h1>Ders 36 · Atmosfer Katmanları & Aurora</h1>
+  <div class="sub">Yere bastığın yer ile uzay arasında 5 katman var. En tepe katmanlardan biri gökyüzünü kuzey ışıklarıyla aydınlatır.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Atmosferin <b>5 katmanı</b>: <b>troposfer</b> (0-12 km, hava olayları), <b>stratosfer</b> (12-50 km, <b class="key">ozon tabakası</b>, jet uçakları), <b>mezosfer</b> (50-85 km, meteorlar yanar),
+    <b>termosfer</b> (85-600 km, ISS, aurora), <b>ekzosfer</b> (600+ km, uzaya geçiş). Sıcaklık her katmanda farklı eğri çizer.
+    <b>Aurora (kuzey/güney ışıkları)</b>: Sun'dan gelen yüklü parçacıklar Earth'ün <b>manyetik alan</b> çizgilerinden kutuplara akar, atmosferdeki O₂/N₂ atomlarına çarpar, fotonlar yayar.
+    Renk: yeşil = oksijen (100-300 km), kırmızı = yüksek oksijen, mor = azot.
+  </div>
+
+  <div class="navrow">
+    <a href="35-mevsimler-eksen-egikligi.html">← Ders 35</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+const LAYERS=[
+  {alt:0,n:'Troposfer',d:'0-12 km · hava olayları, bulutlar, uçuş',c:'#7fb4ff',ex:'Yer · Everest 8.8 km'},
+  {alt:12,n:'Stratosfer',d:'12-50 km · ozon, jet uçakları, sıcaklık ARTAR',c:'#b18bff',ex:'Jet 11 km · Felix Baumgartner 39 km'},
+  {alt:50,n:'Mezosfer',d:'50-85 km · meteorlar burada yanar, en soğuk (-90°C)',c:'#46e08a',ex:'Meteor şovu'},
+  {alt:85,n:'Termosfer',d:'85-600 km · ISS, aurora, sıcak (2000°C ama ısı taşımaz)',c:'#ffd76a',ex:'ISS 400 km · Aurora 100-300 km'},
+  {alt:600,n:'Ekzosfer',d:'600+ km · molekül seyrek, uzaya geçiş',c:'#ff9f6b',ex:'GPS 20.000 km · GEO 36.000 km'}
+];
+
+Lab.start([
+  {
+    tab:'1 · 5 katman (yüksekliği seç)',
+    html:`<h2>Yerden uzaya yol</h2>Kaydırıcıyla yüksekliği değiştir — hangi katmandasın, ne olur?
+      <div class="sliders">
+        <div class="row"><label>Yükseklik (log km)</label><input id="s_h" type="range" min="-0.5" max="4.5" step="0.05" value="2"><span id="o_h">100 km</span></div>
+        <div class="res" style="line-height:1.7">Katman: <b id="o_l" style="color:#ffd76a">Termosfer</b> · Burada: <b id="o_d" style="color:#46e08a">—</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const logH=rd('s_h',2), h=Math.pow(10,logH);
+      // mevcut katmanı bul
+      let cur=LAYERS[0];
+      for(const L of LAYERS){ if(h>=L.alt) cur=L; }
+      document.getElementById('o_h').textContent = h<1?(h*1000).toFixed(0)+' m':h<100?h.toFixed(1)+' km':Math.round(h)+' km';
+      document.getElementById('o_l').textContent = cur.n;
+      document.getElementById('o_d').textContent = cur.ex;
+      // sol: dikey atmosfer dilimi (log y axis)
+      const px=80, py=40, pw=220, ph=300;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'YÜKSEKLİK (log km)',px+pw/2,py-8,'#9fb0ff',11);
+      // katmanları çiz (log scale 0-1000 km gibi)
+      const logMin=-1, logMax=4;
+      const yOf=km=>py+ph - (Math.log10(km+0.1)-logMin)/(logMax-logMin)*ph;
+      // önce arka plan gradient
+      const grad=g.createLinearGradient(0,py,0,py+ph);
+      grad.addColorStop(0,'#000');grad.addColorStop(0.4,'#1a1a4a');grad.addColorStop(0.7,'#3a5a8a');grad.addColorStop(1,'#7fb4ff');
+      g.fillStyle=grad;g.fillRect(px+1,py+1,pw-2,ph-2);
+      // katman ayraçları
+      LAYERS.forEach(L=>{ if(L.alt===0) return; const y=yOf(L.alt);
+        g.strokeStyle=L.c;g.setLineDash([3,4]);g.beginPath();g.moveTo(px,y);g.lineTo(px+pw,y);g.stroke();g.setLineDash([]);
+        label(g,L.n+' '+L.alt+' km',px+8,y-4,L.c,10);
+      });
+      // mevcut konum
+      const cy=yOf(h);
+      g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(px-6,cy);g.lineTo(px+pw+6,cy);g.stroke();
+      g.fillStyle='#fff';g.beginPath();g.arc(px-10,cy,4,0,7);g.fill();
+      label(g,h<1?(h*1000).toFixed(0)+' m':h<100?h.toFixed(1)+' km':Math.round(h)+' km',px+pw+8,cy+4,'#fff',12);
+      // sağ: katman özeti + örnekler
+      const fx=340, fy=60;
+      label(g,'NE VAR? '+cur.n,fx,fy,cur.c,14);
+      label(g,cur.d,fx,fy+24,'#cdd6ff',12);
+      // örnek görseller
+      let yp=fy+60;
+      if(cur.n==='Troposfer'){
+        // bulut + ev
+        g.fillStyle='#cdd6ff';g.beginPath();g.arc(fx+30,yp,18,0,7);g.arc(fx+50,yp-4,14,0,7);g.arc(fx+70,yp,16,0,7);g.fill();
+        g.fillStyle='#46e08a';g.fillRect(fx+10,yp+30,80,4);
+        g.fillStyle='#caa86a';g.fillRect(fx+30,yp+10,30,24);
+        g.beginPath();g.moveTo(fx+25,yp+10);g.lineTo(fx+45,yp);g.lineTo(fx+65,yp+10);g.closePath();g.fill();
+        label(g,'☁ bulutlar, hava',fx+120,yp+8,'#7fb4ff',11);
+      } else if(cur.n==='Stratosfer'){
+        // uçak + ozon
+        g.fillStyle='#cdd6ff';g.fillRect(fx,yp+10,80,8);
+        g.beginPath();g.moveTo(fx,yp+14);g.lineTo(fx-15,yp+5);g.lineTo(fx-15,yp+23);g.closePath();g.fill();
+        label(g,'✈ jet uçak ~11 km',fx+90,yp+18,'#cdd6ff',11);
+        // ozon
+        g.fillStyle='#b18bff';for(let k=0;k<10;k++){ g.beginPath();g.arc(fx+k*8,yp-20,3,0,7);g.fill(); }
+        label(g,'O₃ ozon tabakası',fx+90,yp-15,'#b18bff',11);
+      } else if(cur.n==='Mezosfer'){
+        // meteor
+        g.strokeStyle='#ffd76a';g.lineWidth=2;g.beginPath();g.moveTo(fx,yp);g.lineTo(fx+60,yp+30);g.stroke();
+        glowCircle(g,fx+60,yp+30,12,'rgba(255,215,100,.7)');
+        label(g,'🌠 meteor yanma bölgesi',fx+90,yp+34,'#ffd76a',11);
+      } else if(cur.n==='Termosfer'){
+        // ISS + aurora
+        g.fillStyle='#cdd6ff';rrect(g,fx,yp,40,15,3);g.fill();
+        g.strokeStyle='#cdd6ff';g.lineWidth=2;g.beginPath();g.moveTo(fx-10,yp+7);g.lineTo(fx,yp+7);g.moveTo(fx+40,yp+7);g.lineTo(fx+50,yp+7);g.stroke();
+        label(g,'🛰 ISS ~400 km',fx+70,yp+10,'#cdd6ff',11);
+        // aurora gradient
+        const ag=g.createLinearGradient(0,yp+30,0,yp+60);
+        ag.addColorStop(0,'#46e08a');ag.addColorStop(.7,'#b18bff');ag.addColorStop(1,'rgba(0,0,0,0)');
+        g.fillStyle=ag;g.fillRect(fx,yp+30,150,30);
+        label(g,'AURORA 100-300 km',fx+90,yp+50,'#46e08a',11);
+      } else {
+        label(g,'🛰 Uydular, gevşek atmosfer',fx,yp+10,'#ff9f6b',11);
+        label(g,'GPS 20.000 km, GEO 36.000 km',fx,yp+30,'#9fb0ff',11);
+      }
+      banner(g,'Termosfer 2000°C ama o ısıyı hissetmezsin — molekül o kadar az ki','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Manyetosfer kalkanı',
+    html:`<h2>Earth Sun rüzgarına karşı</h2>Earth'ün manyetik alanı (manyetosfer) bizi Sun'dan gelen yüklü parçacık akışından korur. Sun yönünde sıkışır (10 Earth yarıçapı), arkada uzun bir kuyruk oluşur.
+          Parçacıkların çoğu saptırılır; bir kısmı kutuplara çekilir → aurora.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-30, CY=F.midY;
+      // Sun rüzgarı (sol)
+      for(let k=0;k<15;k++){ const pp=((t*1+k/15)%1); const x=100-pp*120;
+        g.fillStyle=k%2?'#ff9f6b':'#ffcf5a';g.globalAlpha=1-pp;
+        g.beginPath();g.arc(x,CY-80+k*12,2.5,0,7);g.fill();
+      } g.globalAlpha=1;
+      label(g,'☀ Sun rüzgarı',60,CY-110,'#ffd76a',12);
+      // manyetik kalkan: damla şeklinde
+      g.strokeStyle='rgba(127,180,255,.5)';g.lineWidth=2;
+      g.beginPath();
+      for(let a=0;a<=6.28;a+=0.05){
+        const r = a<Math.PI ? 100*(1-0.5*Math.cos(a)) : 180+60*Math.cos(a*2-2*Math.PI);
+        const rrr = a<Math.PI ? 70+50*Math.sin(a) : 130-30*Math.sin(a-Math.PI);
+        // basit oval damla: sağda uzar, solda sıkışık
+        const rad = 70 + Math.cos(a)*30 + Math.max(0,-Math.cos(a))*40;
+        const x = CX + rad*Math.cos(a);
+        const y = CY + rad*Math.sin(a) - (Math.cos(a)<0?Math.sin(a)*30:0);
+        a===0?g.moveTo(x,y):g.lineTo(x,y);
+      } g.closePath();g.stroke();
+      // alan çizgileri
+      g.strokeStyle='rgba(127,214,255,.4)';g.lineWidth=1;
+      for(let lat=-2;lat<=2;lat++){ if(lat===0)continue;
+        const r=40+Math.abs(lat)*15;
+        g.beginPath();
+        for(let a=Math.PI*0.3;a<=Math.PI*0.7;a+=0.03){
+          const x=CX+r*Math.cos(a)*1.4, y=CY+r*Math.sin(a)*1.2*(lat>0?-1:1);
+          a<Math.PI*0.31?g.moveTo(x,y):g.lineTo(x,y);
+        } g.stroke();
+      }
+      // Earth
+      drawPlanet(g,CX,CY,32,'#3a6ea5');
+      // saptırılan parçacıklar (manyetik alan çizgilerini takip)
+      for(let k=0;k<6;k++){ const pp=((t*0.5+k/6)%1);
+        // sol üst → kutuptan in
+        const ang=Math.PI*0.7 + pp*Math.PI*0.4;
+        const r=80-pp*30;
+        const x=CX+r*Math.cos(ang), y=CY+r*Math.sin(ang)*0.7;
+        g.fillStyle='#46e08a';g.globalAlpha=pp;
+        g.beginPath();g.arc(x,y,2,0,7);g.fill();
+      } g.globalAlpha=1;
+      // aurora ovalleri kutuplarda
+      glowCircle(g,CX,CY-28,15,'rgba(70,224,138,.5)');
+      glowCircle(g,CX,CY+28,15,'rgba(70,224,138,.4)');
+      label(g,'aurora ovalı',CX+40,CY-30,'#46e08a',11);
+      label(g,'(kutup bölgesi)',CX+40,CY-14,'#9fb0ff',10);
+      // arka kuyruk
+      label(g,'arka kuyruk → yüzlerce Re uzar',F.W-60,CY+60,'#7fb4ff',11);
+      banner(g,'Manyetik kalkan olmasa Sun rüzgarı atmosferi sıyırırdı (Mars gibi)','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Aurora oluşumu',
+    html:`<h2>Renkli ışıklar nasıl oluşur</h2>Sun parçacıkları (proton, elektron) manyetik alan çizgilerini takip ederek kutuplara akar, atmosferdeki <b>O₂ ve N₂</b> atomlarına çarpar. Atomlar uyarılıp foton yayar.
+          <b style="color:#46e08a">Yeşil</b> = oksijen (100-300 km, en yaygın). <b style="color:#ff6b6b">Kırmızı</b> = yüksek irtifa oksijen (300+ km, nadir).
+          <b style="color:#b18bff">Mor/mavi</b> = azot. Sun fırtınası = aurora ovalı genişler, alt enlemleri de aydınlatır.
+      <div class="sliders">
+        <div class="row"><label>Sun aktivitesi</label><input id="s_a" type="range" min="0" max="10" step="0.5" value="3"><span id="o_a">3</span></div>
+        <div class="res">Aurora yoğunluğu: <b id="o_y" style="color:#46e08a">Orta</b> · Görünür enlem: <b id="o_e" style="color:#7fd6ff">60°+</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const act=rd('s_a',3);
+      // yatay manzara: dağlar altta, gökyüzünde aurora
+      // gökyüzü gradient (siyah üstte)
+      // aurora perde
+      const px=60, py=80, pw=760, ph=220;
+      // arka plan koyu mavi
+      g.fillStyle='#0a0a2a';g.fillRect(px,py,pw,ph);
+      // yıldızlar
+      for(let k=0;k<30;k++){ const xx=px+((k*73)%pw), yy=py+((k*37+50)%ph);
+        g.fillStyle='#fff';g.globalAlpha=.6;g.beginPath();g.arc(xx,yy,1,0,7);g.fill(); } g.globalAlpha=1;
+      // aurora perde (yeşil ana, kırmızı üst, mor alt)
+      const intensity = act/10;
+      for(let k=0;k<14;k++){
+        const baseX = px+50+k*50;
+        const wave = Math.sin(t*2+k*0.4)*10;
+        const x = baseX + wave;
+        // perde dikey
+        const grd=g.createLinearGradient(0,py+30,0,py+ph-20);
+        grd.addColorStop(0,'rgba(255,107,107,'+(0.3*intensity)+')');
+        grd.addColorStop(0.3,'rgba(70,224,138,'+(0.7*intensity)+')');
+        grd.addColorStop(0.9,'rgba(177,139,255,'+(0.4*intensity)+')');
+        grd.addColorStop(1,'rgba(0,0,0,0)');
+        g.fillStyle=grd;
+        g.beginPath();g.moveTo(x-4,py+30);g.lineTo(x+4,py+30);g.lineTo(x+8,py+ph-10);g.lineTo(x-8,py+ph-10);g.closePath();g.fill();
+      }
+      // dağ silüeti altta
+      g.fillStyle='#1a1a3a';g.beginPath();g.moveTo(px,py+ph);
+      for(let xx=px;xx<px+pw;xx+=20){ g.lineTo(xx, py+ph-Math.abs(Math.sin(xx*0.05)*25+10)); }
+      g.lineTo(px+pw,py+ph);g.closePath();g.fill();
+      // küçük ev/figür
+      g.fillStyle='#caa86a';g.fillRect(F.cx-10,py+ph-20,20,12);
+      g.beginPath();g.moveTo(F.cx-12,py+ph-20);g.lineTo(F.cx,py+ph-30);g.lineTo(F.cx+12,py+ph-20);g.closePath();g.fill();
+      // bilgi
+      let y_label, lat;
+      if(intensity<0.3){y_label='zayıf';lat='65°+ (çok kuzey)';}
+      else if(intensity<0.6){y_label='Orta';lat='60°+ (Norveç)';}
+      else if(intensity<0.85){y_label='Güçlü';lat='50°+ (İskoçya)';}
+      else{y_label='ÇOK GÜÇLÜ (G5)';lat='30°+ (Türkiye!)';}
+      document.getElementById('o_a').textContent=act.toFixed(1);
+      document.getElementById('o_y').textContent=y_label;
+      document.getElementById('o_e').textContent=lat;
+      // renk açıklaması
+      const lx=80, ly=340;
+      g.fillStyle='#46e08a';g.fillRect(lx,ly,12,12);label(g,'O - yeşil (100-300 km, %95)',lx+20,ly+10,'#cdd6ff',11);
+      g.fillStyle='#ff6b6b';g.fillRect(lx+220,ly,12,12);label(g,'O - kırmızı (300+ km, nadir)',lx+240,ly+10,'#cdd6ff',11);
+      g.fillStyle='#b18bff';g.fillRect(lx+460,ly,12,12);label(g,'N - mor/mavi (alt sınır)',lx+480,ly+10,'#cdd6ff',11);
+      banner(g,'Aurora = Sun parçacığı + manyetik alan + atmosfer = doğal neon','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Sun rüzgarı'},
+  {c:'#7fb4ff',t:'Manyetik alan'},
+  {c:'#46e08a',t:'Aurora ışığı'}
+]});
+</script>
+</body>
+</html>
