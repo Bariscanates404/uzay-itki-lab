@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 35 · Mevsimler & Eksen Eğikliği</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 35</div>
+  <h1>Ders 35 · Mevsimler: Eksen Eğikliği</h1>
+  <div class="sub">Yaygın yanlış: "Yazın daha yakın, kışın daha uzakız." Gerçek: Dünya yörüngesi neredeyse dairesel. Mevsim = <b>eksen eğikliği</b>.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Dünya'nın dönme ekseni yörünge düzleminden <b class="key">23.5° eğiktir</b>. Yaz kuzey yarımkürede çünkü <b>kuzey kutbu Sun'a doğru yatık</b>, ışık daha dik geliyor, gün uzun.
+    Kışın tersi. <b>Sandı sağ değil:</b> Dünya aslında Ocak'ta Sun'a en yakın (perihel), Temmuz'da en uzak (afel) — ama bu fark sadece %3.4, mevsimi belirleyen değil.
+    <b>Ekvatorda</b> mevsim yok (her zaman ~dik ışık). <b>Kutuplarda</b> 6 ay gündüz, 6 ay gece. Türkiye'de güneş yaz öğlende ~75°, kış öğlende ~28° açıyla geliyor.
+  </div>
+
+  <div class="navrow">
+    <a href="34-ay-safhalari-eklipsler.html">← Ders 34</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Yörünge ile mevsim',
+    html:`<h2>Dünya yörüngede dönerken eksen aynı yöne bakar</h2>Eksen <b>sabittir</b> (uzaya göre yönü değişmez). Yörüngede dönerken bir zaman kuzey kutbu Sun'a, başka zaman güney kutbu Sun'a yatık olur.
+      <div class="sliders">
+        <div class="row"><label>Yörüngedeki konum</label><input id="s_o" type="range" min="0" max="360" step="5" value="0"><span id="o_o">0°</span></div>
+        <div class="res">Mevsim (Kuzey): <b id="o_n" style="color:#ffd76a">Kış (Aralık)</b> · Mevsim (Güney): <b id="o_g" style="color:#7fd6ff">Yaz</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const orbit=rd('s_o',0);
+      const CX=F.cx, CY=F.midY-10;
+      // Sun
+      glowCircle(g,CX,CY,50,'rgba(255,200,80,.45)');
+      const rg=g.createRadialGradient(CX,CY,0,CX,CY,28);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,28,0,7);g.fill();
+      label(g,'Sun',CX,CY+44,'#ffd76a',12);
+      // yörünge
+      const R=180;
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);g.beginPath();g.ellipse(CX,CY,R,R*0.4,0,0,7);g.stroke();g.setLineDash([]);
+      // 4 mevsim noktası gösterici
+      const labels=['Aralık (KKış)','Mart (eko)','Haziran (KYaz)','Eylül (eko)'];
+      labels.forEach((lb,i)=>{ const a=i*Math.PI/2-Math.PI/2; const x=CX+R*Math.cos(a), y=CY+R*0.4*Math.sin(a);
+        g.fillStyle='#2a3566';g.beginPath();g.arc(x,y,3,0,7);g.fill();
+        label(g,lb,x,y-12,'#9fb0ff',10);
+      });
+      // Dünya konumu
+      const ang=(orbit-90)*Math.PI/180;     // 0 → Aralık → kuzey kutbu Sun'dan UZAĞA
+      const Ex=CX+R*Math.cos(ang), Ey=CY+R*0.4*Math.sin(ang);
+      // Dünya eksen yönü (sabit, +y'ye doğru ama 23.5° yatık)
+      const tilt=23.5*Math.PI/180;
+      const axDx=Math.sin(tilt), axDy=-Math.cos(tilt);   // ekseni hep "sağa yatık"
+      // Dünya çizimi: küre + eksen
+      drawPlanet(g,Ex,Ey,24,'#3a6ea5');
+      // eksen çubuğu
+      g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(Ex-axDx*30, Ey-axDy*30);g.lineTo(Ex+axDx*30, Ey+axDy*30);g.stroke();
+      // kuzey kutbu işareti (üst uç)
+      g.fillStyle='#46e08a';g.beginPath();g.arc(Ex-axDx*30, Ey-axDy*30, 4, 0, 7);g.fill();
+      label(g,'KKutup',Ex-axDx*36, Ey-axDy*36-4,'#46e08a',10);
+      // güneş ışığı yönü → Dünya
+      g.strokeStyle='rgba(255,215,100,.4)';g.setLineDash([3,4]);g.beginPath();g.moveTo(CX,CY);g.lineTo(Ex,Ey);g.stroke();g.setLineDash([]);
+      // hangi yarıkürede yaz?
+      // ang'da Earth pozisyon → Sun'a yön (Sun - Earth) = -Ex direction
+      // kuzey ekseni "axDx, axDy" (yukarıdan aşağı, yani axDy negatif)
+      // Kuzey kutbu Sun'a doğru mu? Eksenin Sun'dan Earth'e olan vektörle hizalı tarafını bul.
+      const sunDirX=(CX-Ex)/Math.hypot(CX-Ex,CY-Ey);
+      const sunDirY=(CY-Ey)/Math.hypot(CX-Ex,CY-Ey);
+      const dot = (-axDx)*sunDirX + (-axDy)*sunDirY;  // kuzey kutbu Sun'a doğru ise +
+      // dot > 0 → kuzey kutbu Sun'a yatık → kuzey yaz
+      let n,gh;
+      if(dot>0.3){n='Yaz (Haziran)';gh='Kış';}
+      else if(dot<-0.3){n='Kış (Aralık)';gh='Yaz';}
+      else if(orbit%360<180){n='İlkbahar';gh='Sonbahar';}
+      else {n='Sonbahar';gh='İlkbahar';}
+      document.getElementById('o_o').textContent=orbit+'°';
+      document.getElementById('o_n').textContent=n;
+      document.getElementById('o_g').textContent=gh;
+      banner(g,'Eksen uzaya sabit; yörüngede dönerken hangi kutbun Sun\'a yatık olduğu değişir','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Doğrudan vs eğik ışık',
+    html:`<h2>Aynı ışık demeti, farklı alan</h2>Sun ışığı yere ne kadar dik gelirse, aynı enerji <b class="key">daha küçük alana</b> sığar → daha sıcak ve yoğun.
+          Eğik gelirse aynı enerji geniş alana yayılır → daha az sıcak. Bu yüzden yaz öğleni ısıtır, kış öğleni ısıtmaz.`,
+    loop:true,
+    draw:(g,t)=>{
+      // Sun ışığı yukarıdan
+      // 2 yer alanı: birinci dik (üstte), ikinci eğik (altta)
+      // İki paralel ışın
+      const lx1=F.cx-180, ly1=80;
+      const lx2=F.cx+150, ly2=80;
+      // ışınlar aşağıya
+      for(let k=0;k<3;k++){
+        // dik (yaz - solda)
+        g.strokeStyle='#ffd76a';g.lineWidth=2;g.beginPath();g.moveTo(lx1+k*12-12, ly1);g.lineTo(lx1+k*12-12, ly1+170);g.stroke();
+        // eğik (kış - sağda) — 50° eğik
+        g.beginPath();g.moveTo(lx2+k*12-12, ly2);g.lineTo(lx2+k*12-12+170, ly2+170);g.stroke();
+      }
+      // yer alanı (dik): küçük
+      g.fillStyle='#46e08a';g.fillRect(lx1-22, ly1+170, 60, 8);
+      label(g,'YAZ — küçük alan, çok enerji',lx1+8, ly1+195,'#46e08a',12);
+      label(g,'(öğle ışığı ~75° dik)',lx1+8, ly1+212,'#9fb0ff',10);
+      // yer alanı (eğik): geniş
+      g.fillStyle='#ff9f6b';g.fillRect(lx2+8, ly2+170, 180, 8);
+      label(g,'KIŞ — geniş alan, az enerji',lx2+90, ly2+195,'#ff9f6b',12);
+      label(g,'(öğle ışığı ~28° eğik)',lx2+90, ly2+212,'#9fb0ff',10);
+      // ölçü oku
+      g.strokeStyle='#46e08a';g.beginPath();g.moveTo(lx1-22, ly1+185);g.lineTo(lx1+38, ly1+185);g.stroke();
+      g.beginPath();g.moveTo(lx1-22, ly1+182);g.lineTo(lx1-22, ly1+188);g.moveTo(lx1+38, ly1+182);g.lineTo(lx1+38, ly1+188);g.stroke();
+      g.strokeStyle='#ff9f6b';g.beginPath();g.moveTo(lx2+8, ly2+185);g.lineTo(lx2+188, ly2+185);g.stroke();
+      // hesap
+      label(g,'Aynı ışık demeti:',F.cx,300,'#fff',13);
+      label(g,'Dik gelirse 1 m² alanı ısıtır · 50° eğik gelirse aynı enerji 1.6 m² alana yayılır (%30 azalma)',F.cx,322,'#cdd6ff',12);
+      label(g,'+ uzun yaz günleri = daha fazla ısı birikimi (gündüz>gece)',F.cx,346,'#46e08a',12);
+      banner(g,'Eğiklik = enerji yoğunluğu farkı. Mevsimin gerçek nedeni.','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Kutuplarda 6 ay gündüz',
+    html:`<h2>Aşırı durumlar</h2>Eksen eğikliği yüzünden kutuplarda <b class="key">6 ay gündüz, 6 ay gece</b>. Yaz gündönümünde (21 Haziran) Kuzey Kutbu 24 saat ışıkta; Güney Kutbu zifiri karanlıkta.
+          Ekvatorda mevsim yok. Türkiye gibi orta enlemde (39° N) mevsim farkı dengeli.`,
+    loop:true,
+    draw:(g,t)=>{
+      // 3 dünya yan yana: gündönümü Haziran, ekinoks, gündönümü Aralık
+      const states=[
+        {n:'21 HAZİRAN', sub:'KKutup 24h gündüz', desc:'Kuzey yaz, Güney kış', tilt:23.5},
+        {n:'EKİNOKS', sub:'eşit gece/gündüz', desc:'tüm dünyada eşit', tilt:0},
+        {n:'21 ARALIK', sub:'GKutup 24h gündüz', desc:'Güney yaz, Kuzey kış', tilt:-23.5}
+      ];
+      states.forEach((s,i)=>{
+        const cx=140+i*240, cy=F.midY-20, R=58;
+        // Sun yönü: soldan geliyor (canvas sol = Sun'a doğru)
+        // Dünya küre
+        drawPlanet(g,cx,cy,R,'#3a6ea5');
+        // eksen
+        const tilt=s.tilt*Math.PI/180;
+        const axDx=Math.sin(tilt), axDy=-Math.cos(tilt);
+        g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(cx-axDx*(R+10),cy-axDy*(R+10));g.lineTo(cx+axDx*(R+10),cy+axDy*(R+10));g.stroke();
+        g.fillStyle='#46e08a';g.beginPath();g.arc(cx-axDx*(R+10),cy-axDy*(R+10),4,0,7);g.fill();
+        label(g,'K',cx-axDx*(R+18),cy-axDy*(R+18)-4,'#46e08a',12);
+        // Sun ışığı gölgesi: soldan ışık, sağ tarafı karanlık
+        g.save();
+        g.beginPath();g.arc(cx,cy,R,0,7);g.clip();
+        g.fillStyle='rgba(0,0,30,.55)';g.fillRect(cx,cy-R,R+5,R*2);
+        g.restore();
+        // terminatör çizgisi
+        g.strokeStyle='#9fb0ff';g.lineWidth=1;g.beginPath();g.moveTo(cx,cy-R);g.lineTo(cx,cy+R);g.stroke();
+        // kutup vurgu
+        if(s.tilt>15){
+          // kuzey kutbu yukarda + sağda, ama ışıkta tutmak için solda → eğikliğe göre tüm gün ışık
+          glowCircle(g,cx-axDx*(R+10),cy-axDy*(R+10),20,'rgba(255,215,100,.7)');
+          label(g,'24h ☀',cx-axDx*(R+24),cy-axDy*(R+24)+14,'#ffd76a',11);
+        } else if(s.tilt<-15){
+          glowCircle(g,cx+axDx*(R+10),cy+axDy*(R+10),20,'rgba(255,215,100,.7)');
+          label(g,'24h ☀',cx+axDx*(R+24),cy+axDy*(R+24)+18,'#ffd76a',11);
+          label(g,'KKutup ☾',cx-axDx*(R+24),cy-axDy*(R+24)-4,'#9fb0ff',11);
+        }
+        // başlık ve alt
+        label(g,s.n,cx,cy-R-30,'#fff',13);
+        label(g,s.sub,cx,cy+R+22,'#46e08a',11);
+        label(g,s.desc,cx,cy+R+40,'#9fb0ff',11);
+      });
+      banner(g,'Eksen eğikliği = ekvator hep ılıman, kutuplar aşırı, ortalar dengeli','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Sun ışığı / yaz'},
+  {c:'#46e08a',t:'Kuzey kutbu / eksen'},
+  {c:'#3a6ea5',t:'Dünya'}
+]});
+</script>
+</body>
+</html>
