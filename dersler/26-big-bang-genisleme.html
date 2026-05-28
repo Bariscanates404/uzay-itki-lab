@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 26 · Big Bang & Genişleyen Evren</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 26</div>
+  <h1>Ders 26 · Big Bang & Genişleyen Evren</h1>
+  <div class="sub">Evren 13.8 milyar yıl önce küçük, sıcak bir noktadan başladı. Hâlâ büyüyor — ve hızlanarak.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Galaksiler uzayın <i>içinde</i> birbirinden uzaklaşmıyor; <b class="key">uzay'ın kendisi genişliyor</b>. Bir kuru üzümlü ekmek pişerken üzümler birbirinden uzaklaşır — merkez yoktur, her üzümden bakınca aynı.
+    <b>Hubble Yasası</b>: v = H₀ × d, daha uzak = daha hızlı uzaklaşıyor (H₀ ≈ 70 km/s/Mpc). Uzak galaksilerin ışığı <b style="color:#ff6b6b">kırmızıya kayıyor</b>.
+    13.8 milyar yıl önce <b>Big Bang</b>; 380.000 yıl sonra atomlar oluştu (CMB ışıması), ~100 milyon yıl sonra ilk yıldızlar. Bugün: %5 normal madde, %27 karanlık madde, <b>%68 karanlık enerji</b> (genişlemeyi hızlandırıyor).
+  </div>
+
+  <div class="navrow">
+    <a href="25-galaksiler-karanlik-madde.html">← Ders 25</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Kuru üzümlü ekmek',
+    html:`<h2>Uzay genişler, galaksiler uzaklaşır</h2>Galaksiler uzayın içinde hareket etmiyor — <b class="key">uzayın kendisi</b> büyüyor. Pişen kuru üzümlü ekmek gibi: üzümler durur, ama hamur şişer, üzümler birbirinden uzaklaşır.
+          Her üzümden bakınca diğerleri ondan uzaklaşıyor görünür — merkez yoktur. Aşağıda bizim galaksimiz sarı; diğer galaksiler bize doğru "uzaklaşıyor" görünüyor (gerçekte uzay genişliyor).`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx, CY=F.midY;
+      const scale = 1 + t*1.5;             // a(t) ölçek faktörü 1→2.5
+      const N=5;                            // 5×5 grid
+      const D=42;                            // grid mesafesi (a=1'de)
+      // referans: orta galaksi (biz)
+      const usI=2, usJ=2;
+      // gridi çiz (esnek)
+      g.strokeStyle='rgba(127,180,255,.2)';g.lineWidth=1;g.setLineDash([3,5]);
+      for(let i=0;i<N;i++){
+        for(let j=0;j<N;j++){
+          if(i<N-1){
+            const x1=CX+(i-usI)*D*scale, y1=CY+(j-usJ)*D*scale;
+            const x2=CX+(i+1-usI)*D*scale, y2=y1;
+            g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+          }
+          if(j<N-1){
+            const x1=CX+(i-usI)*D*scale, y1=CY+(j-usJ)*D*scale;
+            const x2=x1, y2=CY+(j+1-usJ)*D*scale;
+            g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+          }
+        }
+      } g.setLineDash([]);
+      // galaksiler
+      for(let i=0;i<N;i++){
+        for(let j=0;j<N;j++){
+          const x=CX+(i-usI)*D*scale, y=CY+(j-usJ)*D*scale;
+          if(x<-30||x>F.W+30||y<-30||y>F.H+30) continue;
+          const us=(i===usI && j===usJ);
+          // mini sarmal galaksi
+          glowCircle(g,x,y,8,us?'rgba(255,215,100,.55)':'rgba(127,180,255,.3)');
+          g.fillStyle=us?'#ffd76a':'#a0c8ff';g.beginPath();g.arc(x,y,4,0,7);g.fill();
+          if(us) label(g,'biz',x,y-12,'#ffd76a',11);
+          // uzaklaşma oku (bize göre)
+          if(!us){
+            const dx=x-CX, dy=y-CY, d=Math.hypot(dx,dy);
+            if(d>10){
+              const v=d*0.04*scale;  // Hubble-vari
+              const ux=dx/d*v, uy=dy/d*v;
+              g.strokeStyle='#ff6b6b';g.lineWidth=1.5;
+              g.beginPath();g.moveTo(x,y);g.lineTo(x+ux,y+uy);g.stroke();
+            }
+          }
+        }
+      }
+      label(g,'ölçek faktörü a(t) = '+scale.toFixed(2),F.cx,60,'#46e08a',13);
+      label(g,'(Big Bang zamanı a=0 → bugün ≈ büyük değer)',F.cx,80,'#9fb0ff',11);
+      label(g,'kırmızı oklar: bize göre uzaklaşma hızı (uzak → hızlı, Hubble Yasası)',F.cx,F.H-40,'#ff6b6b',12);
+      banner(g,'Galaksi sabit; uzay genişliyor; her noktadan bakış aynı','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Hubble & kırmızıya kayma',
+    html:`<h2>Daha uzak = daha hızlı = daha kırmızı</h2>Edwin Hubble (1929): galaksiler ne kadar uzaktaysa o kadar hızlı uzaklaşıyor. <b>v = H₀ × d</b> (H₀ ≈ 70 km/s/Mpc).
+          Hızla uzaklaşan galaksinin ışığı <b style="color:#ff6b6b">kırmızıya kayar</b> (dalga uzar) — bu evrenin yaşını ölçmemizi sağladı.
+      <div class="sliders">
+        <div class="row"><label>Mesafe (milyon ışık yılı)</label><input id="s_d" type="range" min="1" max="5000" step="10" value="100"><span id="o_d">100 Mly</span></div>
+        <div class="res" style="line-height:1.7">
+          Uzaklaşma hızı: <b id="o_v" style="color:#ff6b6b">2.150 km/s</b><br>
+          Kırmızıya kayma z: <b id="o_z" style="color:#ff9f6b">0.007</b> (yakın galaksi)
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const d_mly=rd('s_d',100);
+      const d_mpc=d_mly/3.262;
+      const H0=70; // km/s/Mpc
+      const v=H0*d_mpc;     // km/s
+      const c=299792;
+      const z=v/c;
+      document.getElementById('o_d').textContent = d_mly>=1000?(d_mly/1000).toFixed(2)+' Gly':Math.round(d_mly)+' Mly';
+      document.getElementById('o_v').textContent = v>=1000?(v/1000).toFixed(1)+'.000 km/s':Math.round(v)+' km/s';
+      document.getElementById('o_z').textContent = z.toFixed(z<0.01?4:3);
+      // sol: yakın galaksi spektrumu (referans)
+      const sx=70, sy=80, sw=320, sh=40;
+      g.strokeStyle='#33406f';g.strokeRect(sx,sy,sw,sh);
+      // spektrum: mor→kırmızı bant
+      const grd=g.createLinearGradient(sx,0,sx+sw,0);
+      grd.addColorStop(0,'#7f5fff');grd.addColorStop(0.25,'#7fd6ff');grd.addColorStop(0.5,'#46e08a');grd.addColorStop(0.75,'#ffd76a');grd.addColorStop(1,'#ff6b6b');
+      g.fillStyle=grd;g.fillRect(sx+1,sy+1,sw-2,sh-2);
+      // referans çizgileri (yakın)
+      [0.2,0.45,0.7].forEach(p=>{ const x=sx+p*sw; g.strokeStyle='#000';g.lineWidth=2;g.beginPath();g.moveTo(x,sy+2);g.lineTo(x,sy+sh-2);g.stroke(); });
+      label(g,'yakın galaksi (referans)',sx+sw/2,sy-8,'#cdd6ff',12);
+      // sağ: uzak galaksi spektrumu (kayan)
+      const tx=470, ty=80, tw=320, th=40;
+      g.strokeStyle='#33406f';g.strokeRect(tx,ty,tw,th);
+      g.fillStyle=grd;g.fillRect(tx+1,ty+1,tw-2,th-2);    // aynı arka plan
+      // kayan çizgiler (kırmızıya doğru)
+      const shift=Math.min(z*15,0.3); // visual shift
+      [0.2,0.45,0.7].forEach(p=>{ const x=tx+(p+shift)*tw; if(x<tx+tw-2){
+        g.strokeStyle='#000';g.lineWidth=2;g.beginPath();g.moveTo(x,ty+2);g.lineTo(x,ty+th-2);g.stroke(); } });
+      label(g,'uzak galaksi (z='+z.toFixed(3)+')',tx+tw/2,ty-8,'#ff9f6b',12);
+      // ok: kayma yönü
+      arrow(g,sx+sw+10, sy+sh/2, 50,'#ff6b6b'); label(g,'kırmızıya kayma',sx+sw+30, sy+sh+22,'#ff6b6b',11);
+      // alt: v vs d plotu
+      const px=70,py=200,pw=720,ph=120;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'Hubble Yasası: v = H₀ × d (H₀ = 70 km/s/Mpc)',px+pw/2,py-8,'#9fb0ff',12);
+      // çizgi
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();g.moveTo(px,py+ph);g.lineTo(px+pw,py+ph-110);g.stroke();
+      label(g,'d →',px+pw-12,py+ph+14,'#9fb0ff',11);
+      g.save();g.translate(px-14,py+ph/2);g.rotate(-Math.PI/2);label(g,'v',0,0,'#9fb0ff',11);g.restore();
+      // şu anki nokta
+      const ratio=Math.min(d_mly/5000,1);
+      const X=px+ratio*pw, Y=py+ph-ratio*110;
+      g.fillStyle='#ffd76a';g.beginPath();g.arc(X,Y,6,0,7);g.fill();
+      banner(g,'Daha uzak → daha hızlı → daha kırmızı. Big Bang\'in kanıtı.','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Kozmik tarih şeridi',
+    html:`<h2>13.8 milyar yılda neler oldu?</h2>Big Bang'ten bugüne büyük olaylar — bilim insanlarının yeniden kurabildiği zaman çizelgesi.
+          <p style="font-size:13px;color:#9fb0ff;line-height:1.6">Üst şerit: bütünsel zaman. Alt panel: evrenin bugünkü bileşimi (gözlemsel).</p>`,
+    loop:true,
+    draw:(g,t)=>{
+      // zaman çizgisi
+      const px=60, py=80, pw=760;
+      g.strokeStyle='#33406f';g.lineWidth=3;g.beginPath();g.moveTo(px,py);g.lineTo(px+pw,py);g.stroke();
+      // büyük olaylar (logaritmik zaman: 10^-32 saniye → 13.8 Gyr)
+      const events=[
+        {x:0.00, label:'Big Bang',     desc:'t=0',                  c:'#ff6b6b'},
+        {x:0.06, label:'Enflasyon',    desc:'~10⁻³² s',             c:'#ffcf5a'},
+        {x:0.18, label:'Kuark çorbası',desc:'~10⁻⁶ s',              c:'#ff9f6b'},
+        {x:0.32, label:'Nükleosentez', desc:'3 dk · H, He oluştu',  c:'#ffd76a'},
+        {x:0.45, label:'Yeniden birleşme', desc:'380.000 yıl · CMB ışıması', c:'#46e08a'},
+        {x:0.58, label:'Karanlık çağ', desc:'~10 milyon yıl, yıldız yok',  c:'#6c76a8'},
+        {x:0.68, label:'İlk yıldızlar',desc:'~100 milyon yıl',      c:'#fff4a0'},
+        {x:0.78, label:'İlk galaksiler',desc:'~1 milyar yıl',       c:'#7fd6ff'},
+        {x:0.92, label:'Güneş Sistemi',desc:'9.2 milyar yıl',       c:'#ffd24d'},
+        {x:1.00, label:'BUGÜN',         desc:'13.8 milyar yıl',      c:'#fff'}
+      ];
+      events.forEach((e,i)=>{ const x=px+e.x*pw;
+        g.strokeStyle=e.c;g.lineWidth=2;g.beginPath();g.moveTo(x,py-12);g.lineTo(x,py+12);g.stroke();
+        g.fillStyle=e.c;g.beginPath();g.arc(x,py,5,0,7);g.fill();
+        const above=i%2===0;
+        label(g,e.label,x,above?py-20:py+24,e.c,11);
+        label(g,e.desc,x,above?py-36:py+40,'#9fb0ff',10);
+      });
+      // gezici işaretçi (canlı animasyon: zaman içinde ilerle)
+      const tp = (t)%1;
+      const cx=px+tp*pw;
+      g.strokeStyle='#46e08a';g.lineWidth=1;g.setLineDash([3,4]);g.beginPath();g.moveTo(cx,py-50);g.lineTo(cx,py+50);g.stroke();g.setLineDash([]);
+      // bileşim pasta grafiği
+      const ccx=180, ccy=270, R=55;
+      const slices=[
+        {label:'%68 Karanlık Enerji',v:0.68,c:'#b18bff'},
+        {label:'%27 Karanlık Madde',v:0.27,c:'#7fb4ff'},
+        {label:'%5 Normal madde',v:0.05,c:'#ffd76a'}
+      ];
+      let ang=-Math.PI/2;
+      slices.forEach(s=>{ const da=s.v*Math.PI*2;
+        g.fillStyle=s.c;g.beginPath();g.moveTo(ccx,ccy);g.arc(ccx,ccy,R,ang,ang+da);g.closePath();g.fill();
+        ang+=da;
+      });
+      label(g,'Evrenin bileşimi (bugün)',ccx,ccy-R-12,'#cdd6ff',12);
+      // legend
+      const lx=290, ly=240;
+      slices.forEach((s,i)=>{ const y=ly+i*22;
+        g.fillStyle=s.c;rrect(g,lx,y,16,16,3);g.fill();
+        g.fillStyle='#fff';g.font='12px Segoe UI';g.fillText(s.label,lx+22,y+12);
+      });
+      // sağ: not
+      label(g,'%5 maddenin sadece bir kısmı yıldız!',F.W-220,250,'#ffd76a',12);
+      label(g,'Geriye kalan gaz, gezegenler, biz...',F.W-220,268,'#9fb0ff',11);
+      label(g,'Karanlık enerji: genişlemeyi hızlandırıyor',F.W-220,294,'#b18bff',12);
+      label(g,'(1998 Perlmutter/Schmidt/Riess, Nobel 2011)',F.W-220,310,'#9fb0ff',10);
+      banner(g,'Evrenin çoğu (95%) hâlâ tam anlamıyla bilinmiyor','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Galaksimiz / yıldızlar'},
+  {c:'#ff6b6b',t:'Uzaklaşma / kırmızıya kayma'},
+  {c:'#b18bff',t:'Karanlık enerji'}
+]});
+</script>
+</body>
+</html>
