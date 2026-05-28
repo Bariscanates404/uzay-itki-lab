@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilim Arşivi · arXiv astro-ph</title>
+<link rel="stylesheet" href="../ortak/style.css">
+<style>
+  .arstats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--muted)}
+  .arstats span b{color:var(--accent)}
+  .arsearch{width:100%;background:var(--panel);color:var(--ink);border:1px solid #1d2750;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;margin-bottom:14px}
+  .arsearch:focus{outline:none;border-color:var(--accent)}
+  .pcard{background:var(--panel);border:1px solid #1d2750;border-radius:12px;padding:14px 16px;transition:.15s;display:block;color:inherit;text-decoration:none}
+  .pcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .pcard .pmeta{font-size:11px;color:var(--accent);font-weight:700;letter-spacing:.5px;display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .pcard h4{font-size:15px;color:#fff;line-height:1.4;margin-bottom:6px}
+  .pcard .pauth{font-size:12px;color:#9fb0ff;font-style:italic;margin-bottom:6px}
+  .pcard .psum{font-size:13px;color:var(--muted);line-height:1.55}
+  .pgrid{display:grid;gap:10px}
+  .loadmore{display:block;margin:18px auto 0;padding:10px 26px;background:var(--panel);color:var(--ink);border:1px solid #1d2750;border-radius:10px;cursor:pointer;font-size:14px}
+  .loadmore:hover{border-color:var(--accent)}
+  .badge.cat{background:#1a2348;color:#7fd6ff;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Bilim Arşivi</div>
+  <h1>📚 Bilim Arşivi (arXiv astro-ph)</h1>
+  <div class="sub">Dünyadaki gökbilim araştırma makalelerinin günlük güncellenen indeksi. arXiv'in 6 astro-ph kategorisinden çekilir, başlık/yazar/özet/link saklanır.</div>
+
+  <div class="arstats" id="stats">Yükleniyor…</div>
+
+  <div class="chips" id="chips"></div>
+  <input class="arsearch" id="q" type="text" placeholder="🔍 başlık veya özet içinde ara… (örn: black hole, exoplanet, dark matter)">
+
+  <div class="pgrid" id="grid"></div>
+  <button class="loadmore" id="more" style="display:none">↓ Daha fazla göster</button>
+</div>
+
+<script>
+const CATS=[
+  {k:'all',  n:'Tümü', c:'#9fb0ff'},
+  {k:'astro-ph.GA', n:'Galaksiler', c:'#7fb4ff'},
+  {k:'astro-ph.CO', n:'Kozmoloji', c:'#b18bff'},
+  {k:'astro-ph.SR', n:'Yıldız & Güneş', c:'#ffd76a'},
+  {k:'astro-ph.EP', n:'Gezegen', c:'#46e08a'},
+  {k:'astro-ph.HE', n:'Yüksek Enerji', c:'#ff6b6b'},
+  {k:'astro-ph.IM', n:'Enstrüman', c:'#7fd6ff'}
+];
+let DATA=null, activeCat='all', activeQ='', shown=0, PAGE=30;
+
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function catLabel(c){ const x=CATS.find(x=>x.k===c); return x?x.n:c; }
+function catColor(c){ const x=CATS.find(x=>x.k===c); return x?x.c:'#9fb0ff'; }
+
+function filtered(){
+  if(!DATA) return [];
+  return DATA.papers.filter(p=>{
+    if(activeCat!=='all' && p.c!==activeCat) return false;
+    if(activeQ){ const q=activeQ.toLowerCase(); if(!p.t.toLowerCase().includes(q) && !p.s.toLowerCase().includes(q)) return false; }
+    return true;
+  });
+}
+
+function render(){
+  const list=filtered();
+  const grid=document.getElementById('grid');
+  const slice=list.slice(0, shown||PAGE);
+  grid.innerHTML = slice.length===0
+    ? '<div class="status">Bu filtreyle eşleşen makale bulunamadı.</div>'
+    : slice.map(p=>`
+      <a class="pcard" href="${esc(p.id)}" target="_blank" rel="noopener">
+        <div class="pmeta">
+          <span><span class="badge cat" style="color:${catColor(p.c)}">${esc(catLabel(p.c))}</span> · ${esc(p.p)}</span>
+          <span style="color:#9fb0ff;font-weight:400">arXiv ↗</span>
+        </div>
+        <h4>${esc(p.t)}</h4>
+        <div class="pauth">${esc(p.a.join(', '))}${p.a.length>2?' …':''}</div>
+        <div class="psum">${esc(p.s)}…</div>
+      </a>`).join('');
+  document.getElementById('more').style.display = (slice.length<list.length)?'block':'none';
+}
+
+async function load(){
+  try{
+    const r=await fetch('../data/papers.json',{cache:'no-store'});
+    DATA=await r.json();
+    document.getElementById('stats').innerHTML =
+      `<span>📄 <b>${DATA.count}</b> makale</span>` +
+      `<span>🕒 Son güncelleme: <b>${DATA.generated}</b></span>` +
+      Object.entries(DATA.categories).map(([k,v])=>
+        `<span style="color:${catColor(k)}">${catLabel(k)}: <b>${v}</b></span>`).join('');
+    shown=PAGE; render();
+  }catch(e){
+    document.getElementById('stats').innerHTML = '<span style="color:#ff6b6b">Arşiv yüklenemedi (data/papers.json bulunamadı). GitHub Actions cron çalışınca dolacak.</span>';
+  }
+}
+// kontroller
+const chips=document.getElementById('chips');
+CATS.forEach((c,i)=>{ const d=document.createElement('div'); d.className='chip'+(i===0?' on':''); d.textContent=c.n;
+  d.onclick=()=>{ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); d.classList.add('on'); activeCat=c.k; shown=PAGE; render(); };
+  chips.appendChild(d); });
+document.getElementById('q').oninput=e=>{ activeQ=e.target.value; shown=PAGE; render(); };
+document.getElementById('more').onclick=()=>{ shown+=PAGE; render(); };
+load();
+</script>
+</body>
+</html>
