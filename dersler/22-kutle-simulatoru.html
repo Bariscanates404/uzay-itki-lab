@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 22 · Kütle Simülatörü</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 22</div>
+  <h1>Ders 22 · Kütle Simülatörü (Sistemi Boz!)</h1>
+  <div class="sub">Gerçek n-cisim sim: bir gezegen seç, kütlesini büyüt veya küçült — Güneş Sistemi nasıl bozuluyor gör.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Gerçek Güneş Sistemi <b class="key">narin bir denge</b>: gezegenlerin kütlesi olduğu gibi olduğunda yörüngeler ~milyon yıllar kararlı.
+    Birinin kütlesini birkaç kat artırırsan komşu yörüngeler bozulur (Mars→Jüpiter), <b class="keybad">çok artırırsan</b> kaos başlar — gezegenler birbirini fırlatabilir, Güneş'e düşürebilir.
+    Görsellik için iç-gezegen kütleleri ~200× büyütüldü; aksi halde gerçek kütle farkları (Jüpiter Sun'ın binde biri) gözle görülmez. Kepler 3 + n-cisim kaos (Ders 18) bir arada.
+  </div>
+
+  <div class="navrow">
+    <a href="21-gunes-sistemi-haritasi.html">← Ders 21</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const G=4*Math.PI*Math.PI;
+const BOOST=200, ME=3e-6;
+const BASE=[
+  {k:'mercury',n:'Merkür',au:0.387,c:'#a8a59c',sz:3.0,mE:0.055},
+  {k:'venus',  n:'Venüs', au:0.723,c:'#e8c878',sz:5.0,mE:0.815},
+  {k:'earth',  n:'Dünya', au:1.000,c:'#3a6ea5',sz:5.5,mE:1.000},
+  {k:'mars',   n:'Mars',  au:1.524,c:'#c0502a',sz:4.0,mE:0.107},
+  {k:'jupiter',n:'Jüpiter',au:5.203,c:'#d8a05a',sz:14,mE:317.8},
+  {k:'saturn', n:'Satürn',au:9.537,c:'#e8d08a',sz:12,mE:95.2}
+];
+function mOrig(p){ return p.mE*ME*BOOST; }
+let bodies=null;
+function reinit(){
+  bodies=BASE.map(b=>({...b, m:mOrig(b), x:b.au, y:0, vx:0, vy:2*Math.PI/Math.sqrt(b.au), ax:0, ay:0, trail:[]}));
+  bodies.forEach(b=>accel(b));
+}
+function accel(b){
+  const r2=b.x*b.x+b.y*b.y+0.001, r3=Math.pow(r2,1.5);
+  let ax=-G*b.x/r3, ay=-G*b.y/r3;
+  for(const o of bodies) if(o!==b){
+    const dx=o.x-b.x,dy=o.y-b.y,d2=dx*dx+dy*dy+0.002;
+    const f=G*o.m/Math.pow(d2,1.5);
+    ax+=f*dx; ay+=f*dy;
+  }
+  b.ax=ax; b.ay=ay;
+}
+function step(dt,sub){ for(let s=0;s<sub;s++){
+  bodies.forEach(b=>{b.vx+=b.ax*dt/2;b.vy+=b.ay*dt/2;b.x+=b.vx*dt;b.y+=b.vy*dt;});
+  bodies.forEach(accel);
+  bodies.forEach(b=>{b.vx+=b.ax*dt/2;b.vy+=b.ay*dt/2;}); } }
+
+function sunDraw(g,x,y,r){ glowCircle(g,x,y,r*2.8,'rgba(255,200,80,.45)');
+  const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'#fff4c2');rg.addColorStop(.6,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+  g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill(); }
+function drawB(g,b,px,py,scale){
+  if(b.k==='saturn'){ g.save();g.translate(px,py);g.rotate(-0.4);
+    g.strokeStyle='rgba(232,208,138,.7)';g.lineWidth=2;g.beginPath();g.ellipse(0,0,b.sz*scale*2.2,b.sz*scale*0.7,0,0,7);g.stroke();g.restore(); }
+  drawPlanet(g,px,py,b.sz*scale,b.c);
+  if(b._selected){ g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();g.arc(px,py,b.sz*scale+5,0,7);g.stroke(); }
+}
+function statusOf(b){
+  const r=Math.hypot(b.x,b.y);
+  if(r>30) return {t:'KAÇTI ↗',c:'#ff6b6b'};
+  if(r<0.06) return {t:'GÜNEŞ\'E DÜŞTÜ',c:'#ff6b6b'};
+  const d=Math.abs(r-b.au)/b.au;
+  if(d>0.5) return {t:'YÖRÜNGE BOZULDU',c:'#ff6b6b'};
+  if(d>0.15) return {t:'sallantılı',c:'#ffcf5a'};
+  return {t:'kararlı ✓',c:'#46e08a'};
+}
+
+Lab.start([
+  {
+    tab:'1 · Kütleyi değiştir, sistemi boz',
+    html:`<h2>Kontroller</h2>Seçili gezegenin kütlesini logaritmik kaydırıcıyla 0.1× — 1000× arasında değiştir. Sistem gerçek yerçekimi ile çözülür; ne olduğunu izle.
+      <div class="sliders">
+        <div class="row"><label>Gezegen</label>
+          <select id="s_sel">${BASE.map(b=>`<option value="${b.k}"${b.k==='jupiter'?' selected':''}>${b.n}</option>`).join('')}</select><span></span></div>
+        <div class="row"><label>Kütle çarpanı</label><input id="s_m" type="range" min="-1" max="3" step="0.05" value="0"><span id="o_m">1.0×</span></div>
+        <div class="res">Sıfırla: <button class="ctl" id="s_reset" style="padding:5px 12px;font-size:12px">↺</button> &nbsp; Şu an: <b id="o_st" style="color:#46e08a">çalışıyor</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const reset=document.getElementById('s_reset');
+      if(reset && !reset._w){ reset._w=true; reset.onclick=()=>reinit(); }
+      if(!bodies) reinit();
+      // slider uygula
+      const sel=(document.getElementById('s_sel')||{}).value||'jupiter';
+      const v=+((document.getElementById('s_m')||{}).value||0), mult=Math.pow(10,v);
+      bodies.forEach(b=>{ b._selected=(b.k===sel); b.m = (b._selected? mOrig(b)*mult : mOrig(b)); });
+      const om=document.getElementById('o_m'); if(om)om.textContent=(mult>=10?mult.toFixed(0):mult.toFixed(2))+'×';
+      // sim
+      if(Lab.playing) step(0.002, Math.max(1,Math.round(8*Lab.speed)));
+      // iz
+      bodies.forEach(b=>{ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>140)b.trail.shift(); });
+      // çiz
+      const SX=F.cx, SY=F.midY, S=44;
+      sunDraw(g,SX,SY,16);
+      bodies.forEach(b=>{ g.strokeStyle=b.c;g.globalAlpha=.4;g.lineWidth=1.2;g.beginPath();
+        b.trail.forEach((p,i)=>{ const X=SX+p.x*S,Y=SY+p.y*S; i?g.lineTo(X,Y):g.moveTo(X,Y); });g.stroke();g.globalAlpha=1; });
+      bodies.forEach(b=>{ const px=SX+b.x*S, py=SY+b.y*S;
+        if(px<-20||px>F.W+20||py<-20||py>F.H+20) return;       // ekran dışı
+        const scl=Math.pow(b._selected?mult:1,0.18);
+        drawB(g,b,px,py,scl);
+      });
+      // durum paneli
+      const tx=20, ty=70;
+      g.fillStyle='#cdd6ff';g.font='12px Segoe UI';g.textAlign='left';
+      g.fillText('Durum',tx,ty-6);
+      bodies.forEach((b,i)=>{ const y=ty+16+i*22; const s=statusOf(b);
+        g.fillStyle=b.c;g.beginPath();g.arc(tx+6,y,5,0,7);g.fill();
+        g.fillStyle='#fff';g.fillText(b.n,tx+18,y+4);
+        g.fillStyle=s.c;g.fillText(s.t,tx+90,y+4); });
+      const anyBad=bodies.some(b=>statusOf(b).t!=='kararlı ✓');
+      const os=document.getElementById('o_st'); if(os){ os.textContent=anyBad?'kaos başladı':'kararlı'; os.style.color=anyBad?'#ff6b6b':'#46e08a'; }
+      banner(g,'Gerçek n-cisim · sürtünme yok · Sun sabit · sadece yerçekimi','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Şunları dene',
+    html:`<h2>Önerilen deneyler</h2>
+      <ol style="line-height:1.8;padding-left:20px;font-size:15px">
+        <li><b>Jüpiter ×10:</b> İç gezegenler sallanmaya başlar; Mars yörüngeden çıkabilir.</li>
+        <li><b>Jüpiter ×100:</b> Tam kaos — Earth/Mars fırlatılır ya da Sun'a düşer.</li>
+        <li><b>Dünya ×500:</b> Mars'ı kendine çeker, Venüs sallanır.</li>
+        <li><b>Mars ×1000:</b> Bir mini-Jüpiter olur; iç sistem alt-üst.</li>
+        <li><b>Jüpiter ×0.1 (azalt):</b> Daha sakin sistem; Satürn de etkilenir.</li>
+        <li><b>Merkür ×1000:</b> Güneş'e çok yakın yeni "ağır" → komşu yok, çok bozulmaz (mesafe önemli).</li>
+      </ol>
+      <p style="color:#9fb0ff;font-size:13px;margin-top:14px"><b>İpucu:</b> Sıfırla'ya basıp baştan başlayabilirsin. Kütle çarpanı log ölçekli — 1× ortada, sağa giderken katlanarak büyür.</p>`,
+    loop:true,
+    draw:(g,t)=>{
+      g.fillStyle='#cdd6ff';g.font='15px Segoe UI';g.textAlign='center';
+      g.fillText('🪐  ⚙️  💥', F.cx, 100);
+      g.font='13px Segoe UI';
+      g.fillText('Sekme 1\'e dön ve dene — her ayar farklı bir kader.', F.cx, 140);
+      g.fillStyle='#46e08a';g.font='bold 14px Segoe UI';
+      g.fillText('Gerçek Güneş Sistemimiz milyonlarca yılda hafif kaotiktir;', F.cx, 200);
+      g.fillText('Earth\'ün yörüngesi de Gyr ölçeğinde tahmin edilemez.', F.cx, 224);
+      g.textAlign='left';
+      banner(g,'Sekme 1\'e dön: kontroller orada','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#d8a05a',t:'Jüpiter (en güçlü perturbatör)'},
+  {c:'#46e08a',t:'Seçili gezegen / kararlı'},
+  {c:'#ff6b6b',t:'Bozulma / kaçış'}
+]});
+</script>
+</body>
+</html>

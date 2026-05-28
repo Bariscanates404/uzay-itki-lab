@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 21 · Güneş Sistemi Haritası</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 21</div>
+  <h1>Ders 21 · Güneş Sistemi Haritası</h1>
+  <div class="sub">8 gezegen, gerçek yarıçaplar ve periyotlarla — iç sistem, dış sistem ve tam logaritmik harita.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Güneş Sistemi <b>devasa</b>: Merkür Güneş'e 58 milyon km, Neptün 4.5 milyar km — yaklaşık <b class="key">78 kat</b> uzakta.
+    İç gezegenler küçük & taşlı & hızlı (Merkür 88 gün). Dış gezegenler dev & gaz/buz & yavaş (Neptün 165 yıl). Asteroid kuşağı Mars ile Jüpiter arasındadır. Kepler 3 (Ders 20) her birinde tıkır tıkır işler.
+  </div>
+
+  <div class="navrow">
+    <a href="20-kepler-yorunge-turleri.html">← Ders 20</a>
+    <a href="22-kutle-simulatoru.html">Ders 22: Kütle Simülatörü →</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+const P=[
+ {k:'mercury',n:'Merkür',au:0.387,T:0.241,c:'#a8a59c',sz:3,info:'4.879 km · 0.055 Dünya · ay yok'},
+ {k:'venus',  n:'Venüs', au:0.723,T:0.615,c:'#e8c878',sz:5,info:'12.104 km · 462°C cehennem · ters döner'},
+ {k:'earth',  n:'Dünya', au:1.000,T:1.000,c:'#3a6ea5',sz:5.5,info:'12.742 km · tek yaşam · 1 ay'},
+ {k:'mars',   n:'Mars',  au:1.524,T:1.881,c:'#c0502a',sz:4,info:'6.779 km · kızıl · 2 küçük ay'},
+ {k:'jupiter',n:'Jüpiter',au:5.203,T:11.86,c:'#d8a05a',sz:16,info:'139.820 km · 318 Dünya · 95 ay · Büyük Kırmızı Leke'},
+ {k:'saturn', n:'Satürn',au:9.537,T:29.46,c:'#e8d08a',sz:14,info:'116.460 km · halkalar · 146 ay'},
+ {k:'uranus', n:'Uranüs',au:19.19,T:84.01,c:'#9fd6e0',sz:9,info:'50.724 km · 98° yatık · buz devi'},
+ {k:'neptune',n:'Neptün',au:30.07,T:164.8,c:'#6b8ad6',sz:9,info:'49.244 km · süpersonik rüzgar · en uzak gezegen'}
+];
+function sun(g,x,y,r){ glowCircle(g,x,y,r*2.6,'rgba(255,200,80,.45)');
+  const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'#fff4c2');rg.addColorStop(.6,'#ffd24d');rg.addColorStop(1,'#ff9b2d');
+  g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill(); }
+function drawP(g,x,y,r,p){
+  if(p.k==='saturn'){ g.save();g.translate(x,y);g.rotate(-0.4);
+    g.strokeStyle='rgba(232,208,138,.7)';g.lineWidth=2;g.beginPath();g.ellipse(0,0,r*2.2,r*0.7,0,0,7);g.stroke();g.restore(); }
+  drawPlanet(g,x,y,r,p.c);
+  if(p.k==='earth'){ g.fillStyle='#dfe8ff';g.globalAlpha=.6;g.beginPath();g.arc(x-r*0.3,y,r*0.4,0,7);g.fill();g.globalAlpha=1; }
+}
+function drawSet(g,SX,SY,planets,mapR,yrSec,labelOpt){
+  // Güneş
+  sun(g,SX,SY,18);
+  // yörünge çemberleri
+  planets.forEach(p=>{ const r=mapR(p.au); g.strokeStyle='rgba(127,180,255,.28)';g.setLineDash([3,5]);g.lineWidth=1;
+    g.beginPath();g.arc(SX,SY,r,0,7);g.stroke();g.setLineDash([]); });
+  // gezegenler (Lab.clock ile sürekli zaman)
+  const t=(Lab.clock||0);
+  planets.forEach((p,i)=>{
+    const r=mapR(p.au);
+    const omega=(2*Math.PI)/(p.T*yrSec)*(Lab.playing?1:0)*Lab.speed;
+    p._phase = p._phase==null? i*0.7 : p._phase + omega*0.016;     // ~60fps
+    const a=p._phase, px=SX+r*Math.cos(a), py=SY+r*Math.sin(a);
+    drawP(g,px,py,p.sz,p);
+    if(labelOpt!=='none') label(g,p.n,px,py-(p.sz+8),p.c,11);
+  });
+}
+
+Lab.start([
+  {
+    tab:'1 · İç Gezegenler',
+    html:`<h2>Taşlı dörtlü</h2>Merkür, Venüs, Dünya, Mars. Doğru oranlarla (mesafe & periyot). Hızlı dönerler (Merkür sadece 88 gün!).
+          Mars'tan sonra <b style="color:#caa86a">asteroid kuşağı</b> başlar.`,
+    loop:true,
+    draw:(g,t)=>{
+      const inner=P.slice(0,4);
+      drawSet(g, F.cx-220, F.midY, inner, au=>au*220, 4);
+      // asteroid kuşağı (2.2-3.2 AU)
+      const SX=F.cx-220, SY=F.midY;
+      for(let k=0;k<60;k++){ const a=(k/60)*6.283+Math.sin(k*1.7), r=(2.4+Math.sin(k*0.9)*0.4)*220;
+        g.fillStyle='#caa86a';g.globalAlpha=.6;g.beginPath();g.arc(SX+r*Math.cos(a),SY+r*Math.sin(a),1.2,0,7);g.fill(); } g.globalAlpha=1;
+      // sağ panel: bilgi
+      const px=540,py=70;
+      label(g,'İÇ SİSTEM',px,py,'#5ad1ff',14);
+      inner.forEach((p,i)=>{ const y=py+24+i*42;
+        g.fillStyle=p.c;g.beginPath();g.arc(px+8,y,7,0,7);g.fill();
+        g.fillStyle='#fff';g.font='bold 13px Segoe UI';g.fillText(p.n,px+24,y+4);
+        g.fillStyle='#9fb0ff';g.font='11px Segoe UI';
+        g.fillText(p.au.toFixed(2)+' AU · '+(p.T<1?(p.T*365|0)+' gün':p.T.toFixed(1)+' yıl'),px+24,y+20); });
+      label(g,'asteroid kuşağı: 2.2-3.2 AU',F.cx-220,F.H-50,'#caa86a',11);
+      banner(g,'4 taşlı gezegen, hızlı dönüş — Kepler 3 işliyor','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Dış Gezegenler',
+    html:`<h2>Devler & buz devleri</h2>Jüpiter, Satürn, Uranüs, Neptün. Çok daha büyük, çok daha yavaş, çok daha uzak.
+          Jüpiter'in kendi mini güneş sistemi var (95 ay). Neptün bir tur atması <b class="key">165 yıl</b> sürer.`,
+    loop:true,
+    draw:(g,t)=>{
+      const outer=P.slice(4);
+      drawSet(g, 80, F.midY, outer, au=>(au-3)*22, 8);
+      // sağ panel
+      const px=600,py=70;
+      label(g,'DIŞ SİSTEM',px,py,'#ff9f6b',14);
+      outer.forEach((p,i)=>{ const y=py+24+i*42;
+        g.fillStyle=p.c;g.beginPath();g.arc(px+8,y,7,0,7);g.fill();
+        g.fillStyle='#fff';g.font='bold 13px Segoe UI';g.fillText(p.n,px+24,y+4);
+        g.fillStyle='#9fb0ff';g.font='11px Segoe UI';
+        g.fillText(p.au.toFixed(1)+' AU · '+p.T.toFixed(0)+' yıl',px+24,y+20); });
+      banner(g,'Devler yavaş döner; Neptün 165 yılda bir tur','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Tam Harita (log)',
+    html:`<h2>Hepsi tek çerçevede</h2>Doğrusal ölçek tutmaz — Neptün, Merkür'den 78 kat uzakta. Logaritmik harita ile hepsini birden gör.
+          Asıl mesafe katmanlı patlar: dış sistem, iç sistemin <b class="key">çok ötesinde</b>.`,
+    loop:true,
+    draw:(g,t)=>{
+      const SX=60, SY=F.midY;
+      // log eksen
+      g.strokeStyle='#33406f';g.lineWidth=1;g.beginPath();g.moveTo(SX,SY);g.lineTo(F.W-30,SY);g.stroke();
+      const mapAU=au=>SX+30+ (Math.log10(au)-Math.log10(0.3))/(Math.log10(40)-Math.log10(0.3))*(F.W-110);
+      [0.4,1,3,10,30].forEach(au=>{ const x=mapAU(au); g.strokeStyle='#243a86';g.beginPath();g.moveTo(x,SY-6);g.lineTo(x,SY+6);g.stroke();
+        label(g,au+' AU',x,SY+22,'#6c76a8',10); });
+      sun(g,SX,SY,16);
+      // bütün gezegenler eksene yerleşik, küçük döner ofset (görselsel)
+      const t_clock=Lab.clock||0;
+      P.forEach((p,i)=>{ const x=mapAU(p.au); const ang=t_clock*0.3/(1+i*0.2);
+        const y=SY+Math.sin(ang)*10;
+        drawP(g,x,y,p.sz*0.8,p);
+        label(g,p.n,x,SY-p.sz-12,p.c,10);
+      });
+      label(g,'mesafe (log AU) →',F.cx,SY+44,'#9fb0ff',12);
+      // ölçek bilgisi
+      label(g,'Merkür → Neptün: ~78 kat uzaklık farkı',F.cx,80,'#46e08a',13);
+      banner(g,'Log harita: aralarındaki devasa boşluk net görünür','#46e08a');
+    }
+  }
+], { legend:[
+  {c:'#3a6ea5',t:'İç gezegenler'},
+  {c:'#d8a05a',t:'Dış devler'},
+  {c:'#caa86a',t:'Asteroid kuşağı'}
+]});
+</script>
+</body>
+</html>
