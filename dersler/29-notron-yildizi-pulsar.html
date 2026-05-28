@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 29 · Nötron Yıldızları & Pulsarlar</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 29</div>
+  <h1>Ders 29 · Nötron Yıldızları & Pulsarlar</h1>
+  <div class="sub">Bir şehir büyüklüğünde, Güneş'ten ağır, döner gibi dönen yıldız kalıntıları. Bilinen en yoğun "normal" madde.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Nötron yıldızı: 8-25 M☉ yıldızın süpernovasından kalan çekirdek. <b>Çapı 20 km, kütlesi 1.4-2 M☉</b>. 1 çay kaşığı dolusu = <b class="key">10 milyar ton</b>!
+    Yoğunluk atom çekirdeği seviyesinde. Çok hızlı döner: 1-716 Hz. Manyetik alan = Dünya'nın <b>milyar katı</b>.
+    <b>Pulsar</b>: manyetik kutuplarından ışınlama yapan, dönen nötron yıldızı. Işın bize her dönüşte değer → fenerli ada gibi periyodik darbeler. İlk: 1967, Jocelyn Bell Burnell.
+    <b>Manyetar</b>: en güçlü manyetik alan (10¹⁴-10¹⁵ Gauss); yıldızdepremi → dev gamma flaşı.
+  </div>
+
+  <div class="navrow">
+    <a href="28-yercekimi-dalgalari.html">← Ders 28</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+Lab.start([
+  {
+    tab:'1 · Çay kaşığı = 10 milyar ton',
+    html:`<h2>Yoğunluk akıl almaz</h2>Atomik madde sıkışmış halde. Bir çay kaşığı dolusu nötron yıldızı maddesi <b class="key">10 milyar ton</b> — Everest'i kaldırır.
+          Karşılaştırma: su 1 g/cm³, Dünya 5.5 g/cm³, atom çekirdeği ve nötron yıldızı ~4×10¹⁴ g/cm³.`,
+    loop:true,
+    draw:(g,t)=>{
+      const Y=160;
+      // Soldan sağa boyut karşılaştırması (hepsi aynı ölçek, 1 km = 6 px)
+      label(g,'BOYUT KARŞILAŞTIRMASI (~aynı ölçek)',F.cx,60,'#46e08a',13);
+      // Mt. Everest (8.8 km yükseklik) — üçgen
+      const ex=130;
+      g.fillStyle='#6c76a8';g.beginPath();g.moveTo(ex-30,Y+30);g.lineTo(ex,Y-20);g.lineTo(ex+30,Y+30);g.closePath();g.fill();
+      // kar tepesi
+      g.fillStyle='#fff';g.beginPath();g.moveTo(ex-8,Y-5);g.lineTo(ex,Y-20);g.lineTo(ex+8,Y-5);g.closePath();g.fill();
+      label(g,'Everest (8.8 km)',ex,Y+50,'#9fb0ff',11);
+      // Manhattan adası (21 km uzunluk, görselsel)
+      const mx=320;
+      g.fillStyle='#3a4690';g.beginPath();g.moveTo(mx-60,Y+10);g.lineTo(mx-50,Y-20);g.lineTo(mx+60,Y-10);g.lineTo(mx+50,Y+20);g.closePath();g.fill();
+      // mini binalar
+      for(let k=0;k<8;k++){ g.fillStyle='#5070b0';g.fillRect(mx-50+k*13,Y-30+(k%2)*10,8,18); }
+      label(g,'Manhattan (21 km)',mx,Y+50,'#9fb0ff',11);
+      // Nötron yıldızı (20 km çap = 120 px)
+      const nx=580;
+      glowCircle(g,nx,Y,80,'rgba(180,80,255,.4)');
+      const rg=g.createRadialGradient(nx-20,Y-20,5,nx,Y,60);
+      rg.addColorStop(0,'#fff');rg.addColorStop(0.5,'#a0c8ff');rg.addColorStop(1,'#5050a0');
+      g.fillStyle=rg;g.beginPath();g.arc(nx,Y,60,0,7);g.fill();
+      // manyetik alan ipuçları
+      g.strokeStyle='rgba(180,140,255,.5)';g.lineWidth=1;
+      for(let k=0;k<6;k++){ const a=k/6*6.28; g.beginPath();g.arc(nx,Y,70+k*4,a,a+0.6);g.stroke(); }
+      label(g,'Nötron yıldızı (20 km)',nx,Y+80,'#b18bff',12);
+      label(g,'Kütlesi: 1.4-2 Güneş!',nx,Y+98,'#ff9f6b',11);
+      // Yoğunluk çubukları (alt)
+      const bx=80,by=290,bw=720,bh=18;
+      label(g,'YOĞUNLUK (log cm³)',F.cx,260,'#9fb0ff',12);
+      const dens=[
+        {n:'Hava (deniz)',v:1.2e-3, c:'#9fb0ff'},
+        {n:'Su',v:1,                 c:'#7fd6ff'},
+        {n:'Demir',v:7.87,           c:'#cdd6ff'},
+        {n:'Dünya (ort.)',v:5.51,    c:'#3a6ea5'},
+        {n:'Güneş çekirdeği',v:150,  c:'#ffd24d'},
+        {n:'Beyaz cüce',v:1e6,       c:'#dfe8ff'},
+        {n:'Nötron yıldızı',v:4e14,  c:'#b18bff'},
+        {n:'Kara delik (~)',v:1e20,  c:'#a058ff'}
+      ];
+      const logMin=-4, logMax=22;
+      dens.forEach((d,i)=>{ const x=bx+(Math.log10(d.v)-logMin)/(logMax-logMin)*bw;
+        g.fillStyle=d.c;g.beginPath();g.arc(x,by+bh/2,5,0,7);g.fill();
+        g.fillStyle='#cdd6ff';g.font='10px Segoe UI';g.textAlign='center';
+        g.fillText(d.n,x,by-6); g.fillText(d.v.toExponential(0)+' g/cm³',x,by+bh+12);
+      });
+      g.textAlign='left';
+      g.strokeStyle='#33406f';g.beginPath();g.moveTo(bx,by+bh/2);g.lineTo(bx+bw,by+bh/2);g.stroke();
+      banner(g,'1 cm³ nötron yıldızı maddesi ~1 milyar ton — atom çekirdeği yoğunluğu','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Pulsar = uzay feneri',
+    html:`<h2>Dönen mıknatıs ışın saçar</h2>Nötron yıldızı çok hızlı döner ve manyetik ekseni dönme ekseninden farklıdır. Kutuplarından <b>ışın huzmesi</b> çıkar — yıldız döndükçe huzme tarama yapar (deniz feneri gibi).
+          Huzme bize doğru baktığında <b class="key">darbe</b> alırız → "pulse-ar".
+      <div class="sliders">
+        <div class="row"><label>Dönüş hızı</label><input id="s_f" type="range" min="0.4" max="4" step="0.1" value="1.5"><span id="o_f">1.5×</span></div>
+        <div class="res">Gerçek pulsarlar: <b style="color:#ffd76a">1-716 Hz</b> · İlk: <b style="color:#46e08a">PSR B1919+21 (1967, J. Bell Burnell)</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const f=rd('s_f',1.5);
+      const CX=F.cx-80, CY=F.midY-30;
+      const spin=t*6.28*f;
+      // dönme ekseni (dikey)
+      g.strokeStyle='rgba(127,180,255,.3)';g.setLineDash([4,5]);g.beginPath();g.moveTo(CX,CY-90);g.lineTo(CX,CY+90);g.stroke();g.setLineDash([]);
+      label(g,'dönme ekseni',CX-50,CY-100,'#7fb4ff',10);
+      // manyetik eksen (30° eğik)
+      const tilt=0.55;          // rad
+      const mx1=CX+Math.sin(tilt)*90*Math.cos(spin), my1=CY-Math.cos(tilt)*90;
+      const mx2=CX-Math.sin(tilt)*90*Math.cos(spin), my2=CY+Math.cos(tilt)*90;
+      // manyetik kutup çizgisi
+      g.strokeStyle='#b18bff';g.lineWidth=2;g.beginPath();g.moveTo(mx1,my1);g.lineTo(mx2,my2);g.stroke();
+      // iki huzme (kutuplardan çıkan koniler)
+      const beamLen=180;
+      const dirX = Math.sin(tilt)*Math.cos(spin), dirY = -Math.cos(tilt);
+      // beam 1
+      g.fillStyle='rgba(255,255,180,.25)';
+      g.beginPath();g.moveTo(CX,CY);
+      g.lineTo(CX+dirX*beamLen+10,CY+dirY*beamLen);
+      g.lineTo(CX+dirX*beamLen-10,CY+dirY*beamLen);
+      g.closePath();g.fill();
+      // beam 2 (ters)
+      g.beginPath();g.moveTo(CX,CY);
+      g.lineTo(CX-dirX*beamLen+10,CY-dirY*beamLen);
+      g.lineTo(CX-dirX*beamLen-10,CY-dirY*beamLen);
+      g.closePath();g.fill();
+      // nötron yıldızı
+      glowCircle(g,CX,CY,40,'rgba(180,80,255,.5)');
+      const rg=g.createRadialGradient(CX-8,CY-8,2,CX,CY,22);
+      rg.addColorStop(0,'#fff');rg.addColorStop(0.5,'#a0c8ff');rg.addColorStop(1,'#5050a0');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,22,0,7);g.fill();
+      // küçük dönüş işareti
+      g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(CX,CY-2,16,spin,spin+1.2);g.stroke();
+      // Dünya (sağda)
+      const ex=F.W-80, ey=CY;
+      drawPlanet(g,ex,ey,11,'#3a6ea5'); label(g,'Dünya',ex,ey+22,'#7fb4ff',11);
+      // huzme Dünyaya bakıyor mu? (yatay yönde mi)
+      const hitting = Math.abs(dirY)<0.5 && Math.cos(spin)>0.7;
+      if(hitting){
+        g.strokeStyle='#ffd76a';g.lineWidth=2;g.beginPath();g.moveTo(CX+dirX*beamLen,CY+dirY*beamLen);g.lineTo(ex,ey);g.stroke();
+        glowCircle(g,ex,ey,22,'rgba(255,215,100,.6)');
+        label(g,'DARBE ALDIK!',ex,ey-22,'#ffd76a',12);
+      }
+      // alt: darbe treni
+      const px=60,py=300,pw=760,ph=70;
+      g.strokeStyle='#33406f';g.strokeRect(px,py,pw,ph);
+      label(g,'pulse treni (zaman içinde aldığımız sinyal)',px+pw/2,py-8,'#9fb0ff',11);
+      g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();
+      for(let i=0;i<pw;i++){
+        const tt=i/pw;
+        // periyodik spike pattern
+        const phase=(tt*f*4)%1;
+        const spike = phase<0.05 ? Math.sin(phase*Math.PI*20)*30 : 0;
+        const Y=py+ph-10-spike;
+        i===0?g.moveTo(px+i,Y):g.lineTo(px+i,Y);
+      } g.stroke();
+      document.getElementById('o_f').textContent=f.toFixed(1)+'× hız';
+      banner(g,'Manyetik kutuplar Dünya yönüne baktığında pulse alıyoruz','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Manyetar (ekstrem)',
+    html:`<h2>Evrenin en güçlü mıknatısları</h2>Bazı nötron yıldızlarının manyetik alanı bilinen herhangi şeyden <b class="key">trilyon kat daha güçlü</b> (10¹⁴-10¹⁵ Gauss). Onlara <b>manyetar</b> denir.
+          <b>Yıldızdepremi</b> ile aniden enerji boşaltırlar: 0.2 saniyede, Güneş'in 100.000 yılda saldığı kadar enerji. SGR 1806-20 (2004) bizden 50.000 ışık yılı uzakta patladı, atmosferi etkiledi.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-100, CY=F.midY-10;
+      // manyetik alan çizgileri (dipol)
+      g.strokeStyle='rgba(180,140,255,.6)';g.lineWidth=1.5;
+      for(let k=0;k<10;k++){
+        const off=(k-5)*0.25;
+        g.beginPath();
+        for(let s=0;s<=1;s+=0.02){
+          // basit dipol çizgisi
+          const a=(s-0.5)*Math.PI*1.4;
+          const r=80*Math.sin(a)*Math.sin(a)+30;
+          const X=CX+r*Math.sin(a)+off*60*Math.cos(a);
+          const Y=CY+r*Math.cos(a)-Math.abs(off)*30;
+          s===0?g.moveTo(X,Y):g.lineTo(X,Y);
+        } g.stroke();
+        g.beginPath();
+        for(let s=0;s<=1;s+=0.02){
+          const a=(s-0.5)*Math.PI*1.4;
+          const r=80*Math.sin(a)*Math.sin(a)+30;
+          const X=CX-r*Math.sin(a)-off*60*Math.cos(a);
+          const Y=CY+r*Math.cos(a)-Math.abs(off)*30;
+          s===0?g.moveTo(X,Y):g.lineTo(X,Y);
+        } g.stroke();
+      }
+      // nötron yıldızı (core)
+      glowCircle(g,CX,CY,50,'rgba(180,80,255,.5)');
+      const rg=g.createRadialGradient(CX-5,CY-5,2,CX,CY,24);
+      rg.addColorStop(0,'#fff');rg.addColorStop(0.5,'#b18bff');rg.addColorStop(1,'#5020a0');
+      g.fillStyle=rg;g.beginPath();g.arc(CX,CY,24,0,7);g.fill();
+      // yıldızdepremi flaşı (periyodik)
+      const burstPhase = (t*1.2)%1;
+      if(burstPhase<0.12){
+        const u=burstPhase/0.12;
+        // gamma flash
+        glowCircle(g,CX,CY,80+u*200,'rgba(255,240,180,'+(1-u)+')');
+        for(let k=0;k<20;k++){ const ang=k/20*6.28; const rr=u*220;
+          g.strokeStyle='#fff';g.lineWidth=2;g.globalAlpha=1-u;
+          g.beginPath();g.moveTo(CX,CY);g.lineTo(CX+rr*Math.cos(ang),CY+rr*Math.sin(ang));g.stroke();
+        } g.globalAlpha=1;
+        label(g,'⚡ YILDIZDEPREMİ — GAMMA FLAŞI',F.cx,80,'#ffd76a',14);
+      } else { label(g,'Manyetar (yüzeyi sessiz görünür ama içeride gerilim birikir)',F.cx,80,'#b18bff',12); }
+      label(g,'MANYETAR',CX,CY+50,'#a058ff',12);
+      // bilgi paneli sağ
+      const fx=F.W-200, fy=140;
+      label(g,'MANYETİK ALAN ŞAMPİYONU',fx,fy,'#fff',12);
+      label(g,'Dünya: 0.5 G',fx,fy+20,'#7fd6ff',11);
+      label(g,'Buzdolabı mıknatısı: 100 G',fx,fy+38,'#7fd6ff',11);
+      label(g,'MRI: 30.000 G',fx,fy+56,'#7fd6ff',11);
+      label(g,'Pulsar: 10¹² G',fx,fy+74,'#cdd6ff',11);
+      label(g,'MANYETAR: 10¹⁴ – 10¹⁵ G',fx,fy+92,'#b18bff',12);
+      label(g,'(1 milyar kat MRI!)',fx,fy+110,'#ff9f6b',11);
+      // alt: gerçek olay
+      label(g,'27 Aralık 2004: SGR 1806-20 manyetarı patladı',F.cx,F.H-66,'#ffd76a',12);
+      label(g,'50.000 ışık yılı uzaktan bile Dünya iyonosferini etkiledi (en parlak galaktik gama olayı)',F.cx,F.H-46,'#9fb0ff',11);
+      label(g,'Olası ek rol: Hızlı Radyo Patlaması (FRB) kaynakları',F.cx,F.H-26,'#46e08a',11);
+      banner(g,'Evrenin en zorlu manyetik alan ortamı','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#b18bff',t:'Nötron yıldızı / manyetar'},
+  {c:'#ffd76a',t:'Darbe / patlama'},
+  {c:'#7fd6ff',t:'Karşılaştırma referansı'}
+]});
+</script>
+</body>
+</html>
