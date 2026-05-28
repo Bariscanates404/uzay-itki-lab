@@ -46,17 +46,22 @@ const BASE=[
 ];
 
 let bodies=null, tYr=0, E0=0, L0=0, A0={};
-function reinit(massOverrides){
+function applyMassOverride(){
+  const sel=(document.getElementById('s_sel')||{}).value||'jupiter';
+  const v=+((document.getElementById('s_m')||{}).value||0), mult=Math.pow(10,v);
+  bodies.forEach(b=>{ b._sel=(b.k===sel); if(b.isStar) return;
+    const base=b.mE*M_E; b.m=b._sel?base*mult:base; });
+  return {sel,mult};
+}
+function reinit(){
   bodies=BASE.map(b=>{
-    const o={...b, trail:[], ax:0, ay:0};
-    o.m = b.mE*M_E;
-    if(massOverrides && massOverrides[b.k]) o.m *= massOverrides[b.k];
+    const o={...b, trail:[], ax:0, ay:0, m:b.mE*M_E};
     if(b.isStar){ o.x=o.y=o.vx=o.vy=0; }
     else { o.x=b.a*(1-b.e); o.y=0; o.vx=0;
-      o.vy=Math.sqrt(G*1.0*(1+b.e)/(b.a*(1-b.e))); }   // vis-viva at periapsis
+      o.vy=Math.sqrt(G*1.0*(1+b.e)/(b.a*(1-b.e))); }
     return o;
   });
-  // barycenter sıfırla (drift olmasın)
+  applyMassOverride();           // önce kütleyi uygula (barycenter ona göre)
   let MT=0,X=0,Y=0,VX=0,VY=0;
   bodies.forEach(b=>{ MT+=b.m; X+=b.m*b.x; Y+=b.m*b.y; VX+=b.m*b.vx; VY+=b.m*b.vy; });
   X/=MT; Y/=MT; VX/=MT; VY/=MT;
@@ -128,23 +133,23 @@ Lab.start([
       // ilk kurulum + olaylar
       if(!bodies) reinit();
       const cv=g.canvas;
+      // canvas tıklama: bir kez bağla
       if(!cv._wired){ cv._wired=true;
         cv.onclick=(ev)=>{ const r=cv.getBoundingClientRect(), sx=(ev.clientX-r.left)*(cv.width/r.width), sy=(ev.clientY-r.top)*(cv.height/r.height);
           const PX=(+document.getElementById('s_z').value)*180/30; let best=null,d0=99;
           bodies.forEach(b=>{ if(b.isStar)return; const px=F.cx+b.x*PX, py=F.midY+b.y*PX, d=Math.hypot(sx-px,sy-py);
             if(d<d0){d0=d;best=b;}}); if(best&&d0<26) document.getElementById('s_sel').value=best.k; };
-        document.querySelectorAll('button[data-pre]').forEach(btn=>{ btn.onclick=()=>{
-          const p=PRESETS[btn.dataset.pre]; reinit(p.m);
-          document.getElementById('s_m').value=0; document.getElementById('s_z').value='5';
-          // sliderdan da göster
-          const sel=Object.keys(p.m)[0]; if(sel) document.getElementById('s_sel').value=sel; }; });
       }
-      // slider kütle uygula
-      const sel=document.getElementById('s_sel').value;
-      const v=+document.getElementById('s_m').value, mult=Math.pow(10,v);
+      // preset butonları: her butonu kendi bayrağıyla bağla (sahne yeniden render'a karşı dayanıklı)
+      document.querySelectorAll('button[data-pre]').forEach(btn=>{ if(btn._w) return; btn._w=true;
+        btn.onclick=()=>{ const p=PRESETS[btn.dataset.pre]; const ent=Object.entries(p.m);
+          if(ent.length===0){ document.getElementById('s_m').value='0'; }
+          else { const [planet,mult]=ent[0]; document.getElementById('s_sel').value=planet;
+            document.getElementById('s_m').value=Math.log10(mult).toFixed(2); }
+          document.getElementById('s_z').value='5'; reinit(); }; });
+      // slider kütle uygula (her kare)
+      const {mult}=applyMassOverride();
       const z=+document.getElementById('s_z').value;
-      bodies.forEach(b=>{ b._sel=(b.k===sel); if(b.isStar)return; const base=b.mE*M_E; b.m=b._sel?base*mult:base; });
-      // göster: yıl, enerji koruma
       document.getElementById('o_m').textContent=(mult>=10?mult.toFixed(0):mult.toFixed(2))+'×';
       document.getElementById('o_z').textContent=z.toFixed(1)+'×';
       // adım
