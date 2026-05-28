@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 20 · Kepler 3 & Yörünge Türleri</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 20</div>
+  <h1>Ders 20 · Kepler 3. Yasası & Yörünge Türleri</h1>
+  <div class="sub">Yörünge mekaniği bölümünün kapanışı: Periyot² ∝ Yarıçap³, ve uydularımızın gerçek yörünge "katları".</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Kepler'in 3. yasası: <b class="key">T² ∝ a³</b> — yörünge ne kadar geniş olursa, periyot orantısız büyür (Merkür 88 gün, Neptün 165 yıl).
+    Pratikte uydularımız belirli "katlarda" oturur: <b>LEO</b> (ISS/Starlink, 90 dk), <b>MEO</b> (GPS, 12 saat), <b>GEO</b> (TV uyduları, 24 saat — yerle aynı dönüş),
+    <b>Molniya</b> (yüksek enlem haberleşme), <b>güneş-eş zamanlı</b> (yer gözlem). Düşük yörüngeler atmosfer sürtünmesiyle zamanla düşer (ISS aylık <b>reboost</b> ister).
+  </div>
+
+  <div class="navrow">
+    <a href="19-atmosfer-girisi.html">← Ders 19</a>
+    <a href="../index.html">⌂ Müfredat (Bölüm 6 tamam)</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+function sun(g,x,y,r){ glowCircle(g,x,y,r*2.4,'rgba(255,200,80,.4)');
+  const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+  g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill(); }
+
+const PLANETS=[
+  {n:'Merkür',au:0.39,c:'#a8a8a8'},{n:'Venüs',au:0.72,c:'#e8c878'},{n:'Dünya',au:1.0,c:'#3a6ea5'},
+  {n:'Mars',au:1.52,c:'#c0502a'},{n:'Jüpiter',au:5.2,c:'#d8a05a'},{n:'Satürn',au:9.54,c:'#e8d08a'}
+];
+
+Lab.start([
+  {
+    tab:'1 · Kepler 3: T² ∝ a³',
+    html:`<h2>Yarıçap büyür, periyot katlanır</h2>Yörünge yarıçapını ayarla. Periyot, yarıçapın 3/2 kuvvetiyle artar:
+          <b style="color:#ffcf5a">T = √(a³)</b> (Güneş Sistemi'nde, a=AU, T=Dünya-yılı). Merkür ile Neptün arasında 700 katlık fark!
+      <div class="sliders">
+        <div class="row"><label>Yörünge yarıçapı (AU)</label><input id="s_au" type="range" min="0.3" max="10" step="0.05" value="1.0"><span id="o_au">1.0 AU</span></div>
+        <div class="res">Periyot = <b style="color:#ffcf5a" id="o_T">1.0</b> Dünya-yılı &nbsp;·&nbsp; En yakın gezegen: <b id="o_pl" style="color:#46e08a">Dünya</b></div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const au=rd('s_au',1.0), T=Math.sqrt(au*au*au);
+      const oa=document.getElementById('o_au'),oT=document.getElementById('o_T'),op=document.getElementById('o_pl');
+      if(oa)oa.textContent=au.toFixed(2)+' AU';
+      if(oT){ if(T<1) oT.textContent=(T*365).toFixed(0)+' gün'; else oT.textContent=T.toFixed(2)+' yıl'; }
+      if(op){ let best=PLANETS[0]; PLANETS.forEach(p=>{ if(Math.abs(Math.log(p.au)-Math.log(au))<Math.abs(Math.log(best.au)-Math.log(au))) best=p; }); op.textContent=best.n; op.style.color=best.c; }
+      // sol: Güneş + yörünge
+      const SX=230,SY=F.midY, R=40+(au/10)*180;
+      sun(g,SX,SY,20); label(g,'Güneş',SX,SY+38,'#ffd24d',11);
+      g.strokeStyle='rgba(127,180,255,.4)';g.setLineDash([4,6]);g.lineWidth=1.5;g.beginPath();g.arc(SX,SY,R,0,7);g.stroke();g.setLineDash([]);
+      // açı: 1 AU'da ~6 saniyede 1 tur (Lab.speed katsayılı)
+      window._k20=(window._k20||0); if(Lab.playing){ window._k20 += (1/T)*0.016*Lab.speed*6; if(window._k20>6.283)window._k20-=6.283; }
+      const px=SX+R*Math.cos(window._k20), py=SY+R*Math.sin(window._k20);
+      drawPlanet(g,px,py,10,'#5ad1ff'); label(g,au.toFixed(2)+' AU',px,py+22,'#7fb4ff',10);
+      // sağ: T vs a eğrisi
+      const x0=510,y0=66,pw=300,ph=240;
+      g.strokeStyle='#33406f';g.strokeRect(x0,y0,pw,ph);
+      label(g,'T vs a (Kepler 3)',x0+pw/2,y0-8,'#9fb0ff',12);
+      g.strokeStyle='#ffcf5a';g.lineWidth=2.5;g.beginPath();
+      const aMax=10, TMax=Math.sqrt(aMax**3);
+      for(let a=0.3;a<=aMax;a+=0.1){ const T2=Math.sqrt(a**3); const X=x0+(a/aMax)*pw, Y=y0+ph-(T2/TMax)*ph; if(a===0.3)g.moveTo(X,Y);else g.lineTo(X,Y); } g.stroke();
+      // gezegenler işaretle
+      PLANETS.forEach(p=>{ if(p.au>aMax)return; const X=x0+(p.au/aMax)*pw, Y=y0+ph-(Math.sqrt(p.au**3)/TMax)*ph;
+        g.fillStyle=p.c;g.beginPath();g.arc(X,Y,4,0,7);g.fill();
+        g.fillStyle='#cdd6ff';g.font='10px Segoe UI';g.textAlign='center';g.fillText(p.n,X,Y-8);g.textAlign='left'; });
+      // şu anki nokta
+      const X=x0+(au/aMax)*pw, Y=y0+ph-(T/TMax)*ph;
+      g.strokeStyle='#46e08a';g.setLineDash([3,4]);g.beginPath();g.moveTo(X,y0+ph);g.lineTo(X,Y);g.stroke();g.setLineDash([]);
+      g.fillStyle='#46e08a';g.beginPath();g.arc(X,Y,6,0,7);g.fill();
+      label(g,'a (AU) →',x0+pw/2,y0+ph+18,'#9fb0ff',11);
+      banner(g,'Yarıçap 2 katına → periyot 2.83 katına. Üstel artar.','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Yörünge türleri',
+    html:`<h2>Gerçek uydularımız hangi katta?</h2><b style="color:#7fd6ff">LEO</b> (alçak): ISS, Starlink, Hubble — 90 dk. <b style="color:#46e08a">MEO</b> (orta): GPS — 12 saat.
+          <b style="color:#ffcf5a">GEO</b>: yerle aynı dönüş (24 saat) → TV uydusu hep gökyüzünde sabit görünür. <b style="color:#b18bff">Molniya</b>: yüksek enlemler için elips. <b style="color:#ff9f6b">Güneş-eş zamanlı</b>: kutuptan kutba, her yerden aynı saatte geçer.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx,CY=F.midY,rE=24;
+      drawPlanet(g,CX,CY,rE,'#3a6ea5'); label(g,'Dünya',CX,CY+rE+14,'#9fb0ff',11);
+      const orbs=[
+        {r:rE+12,c:'#7fd6ff',n:'LEO',d:'ISS · Starlink · ~90 dk · ~400 km',sp:4.0},
+        {r:rE+80,c:'#46e08a',n:'MEO',d:'GPS · ~12 saat · ~20.000 km',sp:0.8},
+        {r:rE+150,c:'#ffcf5a',n:'GEO',d:'TV uyduları · 24 saat (yerle senkron) · ~36.000 km',sp:0.4}
+      ];
+      orbs.forEach((o,i)=>{ g.strokeStyle=o.c;g.setLineDash([4,5]);g.lineWidth=1.5;g.beginPath();g.arc(CX,CY,o.r,0,7);g.stroke();g.setLineDash([]);
+        const a=t*6.283*o.sp+i; const sx=CX+o.r*Math.cos(a), sy=CY+o.r*Math.sin(a);
+        g.fillStyle=o.c;g.beginPath();g.arc(sx,sy,5,0,7);g.fill(); });
+      // Molniya elipsi (kuzeyde çok uzun)
+      g.strokeStyle='#b18bff';g.setLineDash([4,5]);g.lineWidth=1.5;
+      g.beginPath();g.ellipse(CX,CY-60,80,150,0,0,7);g.stroke();g.setLineDash([]);
+      const mTh=t*6.283*0.6; const mr=80*(1-0.7*0.7)/(1+0.7*Math.cos(mTh)); // sahte e=0.7 ile elips poz
+      const mx=CX+mr*Math.cos(mTh), my=CY-60-mr*Math.sin(mTh)*1.875;
+      g.fillStyle='#b18bff';g.beginPath();g.arc(mx,my,5,0,7);g.fill();
+      label(g,'Molniya',CX+90,CY-130,'#b18bff',11);
+      // güneş-eş zamanlı (polar)
+      g.strokeStyle='#ff9f6b';g.setLineDash([4,5]);g.lineWidth=1.5;g.beginPath();g.ellipse(CX,CY,8,rE+22,0,0,7);g.stroke();g.setLineDash([]);
+      const pp=(t*0.8)%1; const psy=CY-rE-22+pp*2*(rE+22);
+      g.fillStyle='#ff9f6b';g.beginPath();g.arc(CX,psy,4,0,7);g.fill();
+      label(g,'Güneş-eş z.',CX-30,CY+rE+34,'#ff9f6b',10);
+      // sağ panel: açıklamalar
+      const px=580,py=64;
+      orbs.forEach((o,i)=>{ g.fillStyle=o.c;g.beginPath();g.arc(px,py+i*40,7,0,7);g.fill();
+        g.fillStyle='#fff';g.font='bold 13px Segoe UI';g.fillText(o.n,px+16,py+i*40+4);
+        g.fillStyle='#9fb0ff';g.font='11px Segoe UI';g.fillText(o.d,px+16,py+i*40+20); });
+      g.fillStyle='#b18bff';g.beginPath();g.arc(px,py+120,7,0,7);g.fill();
+      g.fillStyle='#fff';g.font='bold 13px Segoe UI';g.fillText('Molniya',px+16,py+124);
+      g.fillStyle='#9fb0ff';g.font='11px Segoe UI';g.fillText('Yüksek enlem haberleşme (Rusya)',px+16,py+140);
+      g.fillStyle='#ff9f6b';g.beginPath();g.arc(px,py+160,7,0,7);g.fill();
+      g.fillStyle='#fff';g.font='bold 13px Segoe UI';g.fillText('Güneş-eş zamanlı',px+16,py+164);
+      g.fillStyle='#9fb0ff';g.font='11px Segoe UI';g.fillText('Yer gözlem · her yerden aynı yerel saatte',px+16,py+180);
+      banner(g,'Her görev için bir yörünge: yükseklik = periyot = işlev','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Yörünge bozulması',
+    html:`<h2>Düşük yörüngenin yavaş ölümü</h2>Atmosferin en üst katmanı (~400 km altında) hâlâ ince bir hava taşır. Bu zayıf sürtünme, yıllar içinde yörüngeyi
+          <b class="keybad">spiral şeklinde alçaltır</b>. ISS bunu durdurmak için ayda bir <b class="key">reboost</b> motoru çalıştırır. Starlink ~550 km'de, motorsuz kalsalar ~5 yılda düşer.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx,CY=F.midY,rE=42;
+      drawPlanet(g,CX,CY,rE,'#3a6ea5');
+      // atmosfer parlak halkası
+      g.strokeStyle='rgba(127,180,255,.45)';g.lineWidth=2;g.beginPath();g.arc(CX,CY,rE+18,0,7);g.stroke();
+      g.fillStyle='rgba(127,180,255,.07)';g.beginPath();g.arc(CX,CY,rE+18,0,7);g.fill();
+      label(g,'atmosfer',CX,CY+rE+34,'#7fb4ff',11);
+      // spiral: yarıçap zamanla azalır
+      window._d20=window._d20||{r:rE+150,th:0};
+      if(Lab.playing){ window._d20.th += 0.05*Lab.speed; window._d20.r -= 0.15*Lab.speed;
+        if(window._d20.r<rE+10){ window._d20={r:rE+150,th:0}; } }
+      const r=window._d20.r, th=window._d20.th;
+      // iz
+      g.strokeStyle='rgba(255,160,80,.5)';g.lineWidth=1.5;g.beginPath();
+      for(let u=0;u<60;u+=1){ const rr=r+u*0.15, tt=th-u*0.05; g.lineTo(CX+rr*Math.cos(tt),CY+rr*Math.sin(tt)); } g.stroke();
+      const sx=CX+r*Math.cos(th), sy=CY+r*Math.sin(th);
+      g.fillStyle='#ffcf5a';g.beginPath();g.arc(sx,sy,6,0,7);g.fill();
+      const altKm = Math.round((r-rE)*5);    // sahte ölçek
+      label(g,'yükseklik ~ '+altKm+' km',sx,sy-14,'#ffcf5a',11);
+      if(r<rE+22) label(g,'⚠ atmosferde — yanmak üzere!',CX,F.H-50,'#ff6b6b',13);
+      // notlar
+      label(g,'ISS · ~400 km · aylık reboost',F.W-160,80,'#46e08a',12);
+      label(g,'Starlink · ~550 km · motorsuz ~5 yıl',F.W-160,104,'#7fd6ff',12);
+      label(g,'<200 km · günler içinde düşer',F.W-160,128,'#ff6b6b',12);
+      banner(g,'Düşük yörünge bedava değil: ya motor harcarsın, ya düşersin','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#7fd6ff',t:'LEO / ISS'},
+  {c:'#ffcf5a',t:'GEO / yörünge'},
+  {c:'#46e08a',t:'MEO / reboost'}
+]});
+</script>
+</body>
+</html>
