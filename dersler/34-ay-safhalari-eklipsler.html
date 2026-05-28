@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 34 · Ay Safhaları & Eklipsler</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 34</div>
+  <h1>Ders 34 · Ay Safhaları & Eklipsler</h1>
+  <div class="sub">Her ay 29.5 günde 8 safha. Eklipsler neden her ay olmuyor? Cevap: Ay yörüngesinin 5° eğikliği.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Ay safhaları, Sun-Earth-Moon geometrisinin sonucudur. Ay'ın <b>yarısı her zaman aydınlık</b> (Sun'a bakan yüz), ama bizim Dünya'dan gördüğümüz oran konumuna bağlıdır.
+    <b>Yeniay</b>: Ay Sun ile Dünya arasında, karanlık yüz bize. <b>Dolunay</b>: Ay Sun'ın tersinde, aydınlık yüz tam görünür.
+    <b>Eklips</b> sadece Ay <b>düğüm noktasında</b> (ekliptikle yörünge kesişimi) hizalanırsa olur — Ay yörüngesi 5.14° eğik olduğu için çoğu yeniay/dolunay eklipssiz geçer. Yılda ~4-7 eklips.
+  </div>
+
+  <div class="navrow">
+    <a href="33-gelgitler.html">← Ders 33</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+
+function drawMoonPhase(g, cx, cy, r, phase){   // phase 0..1: 0=new, 0.5=full, 1=new
+  g.save();
+  g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.clip();
+  g.fillStyle='#1a2348';g.fillRect(cx-r,cy-r,r*2,r*2);
+  const a=phase*2*Math.PI, c=Math.cos(a);
+  g.fillStyle='#dfe8ff';
+  if(phase<0.5){
+    g.beginPath();
+    g.arc(cx,cy,r,-Math.PI/2,Math.PI/2,false);
+    g.ellipse(cx,cy,Math.abs(c)*r,r,0,Math.PI/2,-Math.PI/2,c>0);
+    g.closePath();g.fill();
+  } else if(phase>0.5){
+    g.beginPath();
+    g.arc(cx,cy,r,Math.PI/2,-Math.PI/2,false);
+    g.ellipse(cx,cy,Math.abs(c)*r,r,0,-Math.PI/2,Math.PI/2,c>0);
+    g.closePath();g.fill();
+  } else { g.fillRect(cx-r,cy-r,r*2,r*2); }
+  g.restore();
+  g.strokeStyle='#9fb0ff';g.lineWidth=1;g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.stroke();
+}
+function phaseName(phase){
+  const p=phase%1;
+  if(p<0.03||p>0.97) return 'Yeniay';
+  if(p<0.23) return 'İlk hilal';
+  if(p<0.28) return 'İlk dördün';
+  if(p<0.47) return 'İlk şişkin';
+  if(p<0.53) return 'Dolunay';
+  if(p<0.72) return 'Son şişkin';
+  if(p<0.78) return 'Son dördün';
+  return 'Son hilal';
+}
+
+Lab.start([
+  {
+    tab:'1 · Safhalar (Ay\'ı çevir)',
+    html:`<h2>Sun-Dünya-Ay geometrisi</h2>Sun solda. Ay Dünya etrafında 29.5 günde döner. Her konumda, Sun'a bakan yarısı aydınlık; biz farklı oranlarda görürüz.
+      <div class="sliders">
+        <div class="row"><label>Ay'ın orbital açısı (0=Yeniay)</label><input id="s_th" type="range" min="0" max="360" step="2" value="90"><span id="o_th">90°</span></div>
+        <div class="res">Safha: <b id="o_n" style="color:#ffd76a">İlk dördün</b> &nbsp;·&nbsp; ~Gün <b id="o_d">7</b> / 29.5 (sinodik ay)</div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const theta=rd('s_th',90);
+      // Sun sol
+      const Sx=80, Sy=F.midY;
+      glowCircle(g,Sx,Sy,40,'rgba(255,200,80,.4)');
+      const rg=g.createRadialGradient(Sx,Sy,0,Sx,Sy,22);rg.addColorStop(0,'#fff4c2');rg.addColorStop(1,'#ff9b2d');
+      g.fillStyle=rg;g.beginPath();g.arc(Sx,Sy,22,0,7);g.fill();
+      label(g,'Sun',Sx,Sy+38,'#ffd76a',11);
+      // Dünya
+      const Ex=F.cx, Ey=F.midY;
+      drawPlanet(g,Ex,Ey,28,'#3a6ea5');
+      label(g,'Dünya',Ex,Ey+44,'#7fb4ff',11);
+      // Ay yörüngesi
+      const R=140;
+      g.strokeStyle='rgba(127,180,255,.2)';g.setLineDash([3,5]);g.beginPath();g.arc(Ex,Ey,R,0,7);g.stroke();g.setLineDash([]);
+      // Ay konumu: theta=0 yeniay (Sun ile Dünya arasında = Dünya'nın solunda)
+      const ang = Math.PI - theta*Math.PI/180;     // mapping
+      const Mx = Ex + R*Math.cos(ang);
+      const My = Ey + R*Math.sin(ang);
+      // Ay: lit side toward Sun
+      // yarım küre çizimi: tüm Ay'ı küçük gri çiz, sonra Sun'a bakan tarafa aydınlık ekle
+      g.fillStyle='#3a4060';g.beginPath();g.arc(Mx,My,16,0,7);g.fill();
+      // aydınlık yarısı: Sun yönüne bakan tarafa yarım daire
+      const angToSun = Math.atan2(Sy-My, Sx-Mx);
+      g.save();g.translate(Mx,My);g.rotate(angToSun);
+      g.fillStyle='#dfe8ff';g.beginPath();g.arc(0,0,16,-Math.PI/2,Math.PI/2,false);g.closePath();g.fill();
+      g.restore();
+      g.strokeStyle='#9fb0ff';g.lineWidth=1;g.beginPath();g.arc(Mx,My,16,0,7);g.stroke();
+      // Sun çekim çizgisi
+      g.strokeStyle='rgba(255,215,100,.3)';g.setLineDash([4,5]);g.beginPath();g.moveTo(Sx+22,Sy);g.lineTo(Ex-28,Ey);g.stroke();g.setLineDash([]);
+      // Dünya'dan gözlemcinin gördüğü safha (büyük)
+      const Dx=F.W-130, Dy=110;
+      label(g,'Dünya\'dan görünüm:',Dx,Dy-50,'#cdd6ff',12);
+      drawMoonPhase(g, Dx, Dy, 40, theta/360);
+      label(g,phaseName(theta/360),Dx,Dy+58,'#ffd76a',13);
+      // spans
+      document.getElementById('o_th').textContent=theta+'°';
+      document.getElementById('o_n').textContent=phaseName(theta/360);
+      document.getElementById('o_d').textContent=(theta/360*29.5).toFixed(1);
+      // sahne notu
+      label(g,'Ay yörüngesinde dönerken aydınlık yarısı Sun\'a bakar — biz farklı oranlarda görürüz',F.cx,F.H-44,'#9fb0ff',11);
+      banner(g,'Sinodik ay (yeniaydan yeniaya): 29.5 gün','#46e08a');
+    }
+  },
+  {
+    tab:'2 · Eklipsler: 2 tip',
+    html:`<h2>Güneş eklipsi vs Ay eklipsi</h2><b style="color:#ffd76a">Güneş eklipsi</b>: Ay Sun ile Dünya arasında (yeniay) → Ay'ın gölgesi Dünya'ya düşer.
+          <b style="color:#ff6b6b">Ay eklipsi</b>: Dünya Sun ile Ay arasında (dolunay) → Dünya'nın gölgesi Ay'a düşer.`,
+    loop:true,
+    draw:(g,t)=>{
+      // ÜST: Güneş eklipsi
+      const yT=120;
+      label(g,'GÜNEŞ EKLİPSİ — Ay\'ın gölgesi Dünya\'ya',F.cx,yT-50,'#ffd76a',13);
+      // Sun
+      const sx=80;
+      glowCircle(g,sx,yT,30,'rgba(255,200,80,.4)');
+      g.fillStyle='#ffd24d';g.beginPath();g.arc(sx,yT,18,0,7);g.fill();
+      label(g,'Sun',sx,yT+30,'#ffd76a',10);
+      // Ay (ortada, Sun ile Dünya arası)
+      const moveX = (t*60)%30 - 15;       // küçük ileri-geri
+      const mx=F.cx-100+moveX, my=yT;
+      g.fillStyle='#3a4060';g.beginPath();g.arc(mx,my,10,0,7);g.fill();
+      label(g,'Ay',mx,my-16,'#cdd6ff',10);
+      // Dünya
+      const ex=F.W-150, ey=yT;
+      drawPlanet(g,ex,ey,32,'#3a6ea5');
+      label(g,'Dünya',ex,ey+44,'#7fb4ff',10);
+      // gölge konisi (Sun'dan Ay'a, devamı Dünya'ya)
+      g.fillStyle='rgba(0,0,0,.5)';g.beginPath();
+      g.moveTo(mx,my-10);g.lineTo(mx,my+10);
+      g.lineTo(ex+22,ey+2);g.lineTo(ex+22,ey-2);g.closePath();g.fill();
+      // umbra üzerinde küçük "totality" noktası
+      g.fillStyle='#000';g.beginPath();g.arc(ex+22,ey,2,0,7);g.fill();
+      label(g,'umbra (tam)',ex+22,ey+18,'#ff6b6b',9);
+      // ALT: Ay eklipsi
+      const yB=290;
+      label(g,'AY EKLİPSİ — Dünya\'nın gölgesi Ay\'a',F.cx,yB-50,'#ff6b6b',13);
+      // Sun
+      glowCircle(g,sx,yB,30,'rgba(255,200,80,.4)');
+      g.fillStyle='#ffd24d';g.beginPath();g.arc(sx,yB,18,0,7);g.fill();
+      label(g,'Sun',sx,yB+30,'#ffd76a',10);
+      // Dünya
+      const ex2=F.cx-30, ey2=yB;
+      drawPlanet(g,ex2,ey2,32,'#3a6ea5');
+      label(g,'Dünya',ex2,ey2+44,'#7fb4ff',10);
+      // Ay (arkada, gölgede)
+      const mx2=F.W-150, my2=yB;
+      g.fillStyle='#3a4060';g.beginPath();g.arc(mx2,my2,12,0,7);g.fill();
+      // kanlı ay efekti (Dünya atmosferinden geçen kırmızı ışık)
+      g.fillStyle='rgba(180,40,40,.5)';g.beginPath();g.arc(mx2,my2,12,0,7);g.fill();
+      g.strokeStyle='#9fb0ff';g.lineWidth=1;g.beginPath();g.arc(mx2,my2,12,0,7);g.stroke();
+      label(g,'Ay (kanlı ay)',mx2,my2-22,'#ff6b6b',10);
+      // gölge konisi (Sun'dan Dünya'ya, devamı Ay'a)
+      g.fillStyle='rgba(0,0,0,.4)';g.beginPath();
+      g.moveTo(ex2,ey2-32);g.lineTo(ex2,ey2+32);
+      g.lineTo(mx2+12,my2+5);g.lineTo(mx2+12,my2-5);g.closePath();g.fill();
+      // yan açıklamalar
+      label(g,'Toplam · Halkalı · Kısmi (geometriye göre)',F.cx,F.H-44,'#9fb0ff',11);
+      banner(g,'Güneş eklipsi sadece yeniayda · Ay eklipsi sadece dolunayda olabilir','#46e08a');
+    }
+  },
+  {
+    tab:'3 · Neden her ay yok?',
+    html:`<h2>5° eğiklik bilmecesi</h2>Ay yörüngesi Dünya'nın yörünge düzleminden (ekliptik) <b class="key">5.14° eğiktir</b>. Çoğu yeniay/dolunayda Ay, Sun çizgisinin üstünden veya altından geçer → eklips olmaz.
+          Eklips sadece Ay yörüngenin <b>düğüm noktası</b>nda (ekliptik kesişimi) hizalanırsa olur. Bu "eklips mevsimi" ~6 ayda bir kez yaşanır.`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-100, CY=F.midY;
+      // ekliptik (Dünya-Sun düzlemi) - yatay çizgi
+      g.strokeStyle='#33406f';g.lineWidth=2;g.beginPath();g.moveTo(80,CY);g.lineTo(F.W-200,CY);g.stroke();
+      label(g,'EKLİPTİK (Sun-Dünya düzlemi)',CX,CY+22,'#9fb0ff',11);
+      // Sun sol
+      g.fillStyle='#ffd24d';g.beginPath();g.arc(100,CY,14,0,7);g.fill();
+      label(g,'Sun',100,CY-22,'#ffd76a',10);
+      // Dünya
+      drawPlanet(g,CX,CY,22,'#3a6ea5');
+      // Ay yörüngesi (eğik 5°) — daha abartılı görsel için 20°
+      const tilt=20*Math.PI/180;
+      g.strokeStyle='#b18bff';g.lineWidth=2;g.setLineDash([3,5]);
+      g.beginPath();g.ellipse(CX,CY,130, 130*Math.sin(tilt)+10, 0, 0, 7);g.stroke();g.setLineDash([]);
+      // Ay konumu (zamanla orbit)
+      const ang=t*0.8;
+      const Mx=CX+130*Math.cos(ang);
+      const My=CY+130*Math.sin(ang)*Math.sin(tilt);
+      // Ay
+      g.fillStyle='#3a4060';g.beginPath();g.arc(Mx,My,10,0,7);g.fill();
+      g.fillStyle='#dfe8ff';g.beginPath();g.arc(Mx-3,My,10,Math.PI*0.5,Math.PI*1.5);g.fill();
+      g.strokeStyle='#9fb0ff';g.beginPath();g.arc(Mx,My,10,0,7);g.stroke();
+      // ekliptik düzleminden uzaklık
+      const dy = My-CY;
+      g.strokeStyle='#ff6b6b';g.lineWidth=1;g.setLineDash([2,3]);g.beginPath();g.moveTo(Mx,My);g.lineTo(Mx,CY);g.stroke();g.setLineDash([]);
+      label(g,'Ay '+(dy>0?'aşağıda':'yukarıda')+' '+Math.abs(dy).toFixed(0)+'px',Mx,My-18,'#ff6b6b',10);
+      // düğüm noktaları (yörünge ekliptiği keser)
+      [0, Math.PI].forEach(a=>{ const x=CX+130*Math.cos(a), y=CY;
+        g.fillStyle='#46e08a';g.beginPath();g.arc(x,y,7,0,7);g.fill();
+      });
+      label(g,'düğüm noktaları',CX+130,CY+34,'#46e08a',11);
+      // eğer Ay düğümdeyse VE Sun ile hizalı = eklips
+      const atNode = Math.abs(My-CY)<6;
+      const aligned = Math.abs(Mx-100)<10 || Math.abs(Mx-(CX+130))<10;
+      if(atNode){
+        g.strokeStyle='#46e08a';g.lineWidth=2;g.beginPath();g.arc(Mx,My,18,0,7);g.stroke();
+        label(g,'düğümde!',Mx,My-32,'#46e08a',11);
+      }
+      // sağ panel
+      const fx=F.W-180, fy=80;
+      label(g,'GERÇEK SAYILAR',fx,fy,'#fff',12);
+      label(g,'Yörünge eğikliği: 5.14°',fx,fy+22,'#cdd6ff',11);
+      label(g,'Yılda eklips: 4-7 tane',fx,fy+40,'#46e08a',11);
+      label(g,'Tam Güneş eklipsi:',fx,fy+58,'#ffd76a',11);
+      label(g,'  ~18 ay arayla, dar bant',fx,fy+74,'#9fb0ff',11);
+      label(g,'Saroş döngüsü: 18 yıl 11 gün',fx,fy+92,'#cdd6ff',11);
+      label(g,'(eklipsler tekrarlar)',fx,fy+108,'#9fb0ff',11);
+      banner(g,'Çoğu yeniay/dolunay Ay yörüngesinin eğikliği nedeniyle eklipssiz geçer','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#ffd76a',t:'Sun / Güneş eklipsi'},
+  {c:'#ff6b6b',t:'Ay eklipsi / gölge'},
+  {c:'#46e08a',t:'Düğüm / hizalama'}
+]});
+</script>
+</body>
+</html>
