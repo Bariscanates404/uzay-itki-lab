@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ders 24 · Kara Delikler</title>
+<link rel="stylesheet" href="../ortak/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../index.html">← Müfredat</a> / Ders 24</div>
+  <h1>Ders 24 · Kara Delikler</h1>
+  <div class="sub">Evrendeki en yoğun nesneler. Olay ufku, kütleçekim merceği, spagettileşme — hepsi gerçek formüllerle.</div>
+
+  <div id="lab"></div>
+
+  <div class="takeaway">
+    <b>Çıkarım:</b> Kara delik = kütle çekimi o kadar güçlü ki <b class="keybad">ışık bile kaçamaz</b>. <b>Olay ufku</b>: kaçışın imkansız hale geldiği sınır, yarıçap r_s = 2GM/c² (Schwarzschild).
+    Güneş kütlesi için sadece <b>3 km</b>; M87* için <b>20× Güneş Sistemi</b> büyüklüğünde. Yaklaşan cisimler <b>spagettileşir</b> (gelgit kuvveti); yakında saat <b>yavaşlar</b> (kütleçekim zaman genleşmesi).
+    Işık etrafında <b class="key">bükülür</b> — Einstein halkası. Event Horizon Telescope 2019'da M87*'ı, 2022'de Sgr A*'ı fotoğrafladı.
+  </div>
+
+  <div class="navrow">
+    <a href="23-yildiz-yasam-dongusu.html">← Ders 23</a>
+    <a href="../index.html">⌂ Müfredat</a>
+  </div>
+</div>
+
+<script src="../ortak/fizik.js"></script>
+<script>
+function rd(id,def){ const e=document.getElementById(id); return e? +e.value:def; }
+// r_s formula: 2.95 km × (M / M_sun)
+function rsKm(M){ return 2.95 * M; }
+function fmtDist(km){
+  if(km<1) return (km*1000).toFixed(0)+' m';
+  if(km<1e4) return km.toFixed(km<10?2:0)+' km';
+  if(km<1.496e7) return (km/1.496e8).toFixed(4)+' AU ('+(km/1e4).toFixed(0)+'×10⁴ km)';
+  if(km<9.46e12) return (km/1.496e8).toFixed(2)+' AU';
+  return (km/9.46e12).toFixed(2)+' ışık yılı';
+}
+function categoryOf(M){
+  if(M<3) return 'Yıldız kalıntısı (küçük)';
+  if(M<100) return 'Yıldız kütleli kara delik';
+  if(M<1e5) return 'Orta kütleli (ara tip)';
+  return 'Süperkütleli (galaksi merkezi)';
+}
+
+Lab.start([
+  {
+    tab:'1 · Olay ufku boyutu',
+    html:`<h2>r_s = 2GM/c² · kütle artar → ufuk büyür</h2>Bir kara deliğin <b>olay ufku</b> (geri dönüşsüz sınır) yarıçapı Schwarzschild formülüyle hesaplanır:
+          <code>r_s = 2.95 km × (M / M_güneş)</code>. Güneş kütlesi için 3 km, devasa galaktik merkezler için milyarlarca km!
+      <div class="sliders">
+        <div class="row"><label>Kütle (log, M_güneş)</label><input id="s_lM" type="range" min="-1" max="10" step="0.05" value="0"><span id="o_M">1 M☉</span></div>
+        <div class="res" style="line-height:1.7">
+          Olay ufku: <b id="o_rs" style="color:#ff6bd6">3 km</b><br>
+          Kategori: <b id="o_cat" style="color:#b18bff">—</b><br>
+          Gerçek örnek: <b id="o_ex" style="color:#7fd6ff">—</b>
+        </div>
+      </div>`,
+    loop:true,
+    draw:(g,t)=>{
+      const logM=rd('s_lM',0), M=Math.pow(10,logM);
+      const rs=rsKm(M); // km
+      // spans
+      document.getElementById('o_M').textContent = M>=1?(M>=1e4?M.toExponential(1):M.toFixed(M>10?0:1))+' M☉':M.toFixed(2)+' M☉';
+      document.getElementById('o_rs').textContent = fmtDist(rs);
+      document.getElementById('o_cat').textContent = categoryOf(M);
+      // gerçek örnekler
+      let ex='—';
+      if(logM<-0.3) ex='Hipotetik mini kara delik';
+      else if(logM<1) ex='Yıldız çöküşü kalıntısı (~Cygnus X-1 ~21 M☉)';
+      else if(logM<2) ex='Ağır yıldız kara deliği (~LIGO GW150914: 36+29 M☉)';
+      else if(logM<5) ex='Orta kütleli (ender, IMBH adayları)';
+      else if(logM<6.7) ex='Sgr A* (Samanyolu merkezi): 4.3 milyon M☉';
+      else if(logM<10) ex='M87*: 6.5 milyar M☉ — EHT 2019 fotoğraflı';
+      document.getElementById('o_ex').textContent=ex;
+      // log skala üzerinde boyut karşılaştırması
+      const px=80,py=160,pw=720;
+      g.strokeStyle='#33406f';g.lineWidth=2;g.beginPath();g.moveTo(px,py);g.lineTo(px+pw,py);g.stroke();
+      // referans noktalar (metre cinsinden)
+      const refs=[
+        {m:1, n:'1 m'}, {m:1e3, n:'1 km'}, {m:1.27e7, n:'Dünya çapı'}, {m:1.39e9, n:'Güneş çapı'},
+        {m:1.5e11, n:'1 AU'}, {m:4.5e12, n:'Neptün yörüngesi'}, {m:9.46e15, n:'1 ışık yılı'}
+      ];
+      const logMin=0, logMax=16; // 1 m → 10^16 m
+      const xOf=v=>px + (Math.log10(v)-logMin)/(logMax-logMin)*pw;
+      refs.forEach(r=>{ const x=xOf(r.m);
+        g.strokeStyle='#243a86';g.beginPath();g.moveTo(x,py-7);g.lineTo(x,py+7);g.stroke();
+        g.fillStyle='#9fb0ff';g.font='10px Segoe UI';g.textAlign='center';g.fillText(r.n,x,py+22);
+      });
+      g.textAlign='left';
+      // BH işaretle
+      const bhM = rs*1000; // meter
+      const X = Math.max(px, Math.min(px+pw, xOf(bhM)));
+      glowCircle(g,X,py,18,'rgba(180,80,255,.6)');
+      g.fillStyle='#000';g.beginPath();g.arc(X,py,8,0,7);g.fill();
+      g.strokeStyle='#b18bff';g.lineWidth=2;g.beginPath();g.arc(X,py,10,0,7);g.stroke();
+      label(g,'olay ufku',X,py-22,'#b18bff',12);
+      // büyük BH temsili görsel
+      const cx=F.cx, cy=F.midY+90, vR=20+Math.log10(M+1)*12;
+      // akret diski
+      g.strokeStyle='rgba(255,160,80,.7)';g.lineWidth=3;g.beginPath();g.ellipse(cx,cy,vR*1.8,vR*0.6,0,0,7);g.stroke();
+      // olay ufku (siyah)
+      glowCircle(g,cx,cy,vR*1.4,'rgba(180,80,255,.45)');
+      g.fillStyle='#000';g.beginPath();g.arc(cx,cy,vR,0,7);g.fill();
+      g.strokeStyle='#a058ff';g.lineWidth=1.5;g.beginPath();g.arc(cx,cy,vR+2,0,7);g.stroke();
+      banner(g,'r_s = 2GM/c² · Güneş için 3 km, M87* için 38 milyar km','#8b93c7');
+    }
+  },
+  {
+    tab:'2 · Kütleçekim merceği',
+    html:`<h2>Işık kara deliğin etrafında bükülür</h2>Einstein\'in genel görelilik öngörüsü: kütleli cisimler ışığı saptırır. Kara deliğin yakınında bu o kadar güçlüdür ki, <b class="key">arkasındaki yıldızın ışığı kara deliğin etrafından dolanır.</b>
+          Kaynak tam arkadaysa, ışık her yönden dolanır → <b>Einstein halkası</b>. Tam değilse → eğri arklar. (EHT 2019: M87* fotoğrafı bu fizik sayesinde.)`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx-30, CY=F.midY, rs=40;
+      // arka plan yıldızları (sabit)
+      for(let k=0;k<24;k++){ const x=(k*73)%F.W, y=(k*37+90)%F.H;
+        g.fillStyle='#fff';g.globalAlpha=0.4+0.3*Math.sin(t*3+k);g.beginPath();g.arc(x,y,1.5,0,7);g.fill(); } g.globalAlpha=1;
+      // kaynak yıldız (BH'nin arkasında, görünmüyor doğrudan)
+      const srcX=CX+200, srcY=CY-20;
+      g.fillStyle='#ffd76a';g.globalAlpha=0.25;g.beginPath();g.arc(srcX,srcY,8,0,7);g.fill();g.globalAlpha=1;
+      label(g,'arka yıldız (saklanıyor)',srcX,srcY-18,'#ffd76a',11);
+      // fotonlar geliyor, BH yakınında sapıyor
+      const N=10;
+      for(let i=0;i<N;i++){
+        const b = (i-N/2)*18 + 4; // impact parameter
+        const absB = Math.abs(b);
+        // foton yolu: sağdan geliyor, BH'ye yaklaşıyor, sapıp izleyiciye yöneliyor
+        const tt = ((t*1.5 + i/N) % 1);
+        // pre-bend (sağda) → bend at BH center
+        const x0 = srcX, y0 = srcY + b;
+        const xC = CX, yC = CY;
+        const deflectAng = absB<rs ? 0 : 4*40/absB; // toy formula proportional to 4GM/(bc²)
+        if(absB < rs){ // fotonu yutar (içeri düşer)
+          const px = x0 - tt*(x0-xC);
+          const py = y0 - tt*(y0-yC);
+          g.fillStyle='#ff6b6b';g.globalAlpha=1-tt;g.beginPath();g.arc(px,py,3,0,7);g.fill();g.globalAlpha=1;
+        } else {
+          // basit eğri yörünge: BH'ye yaklaşırken eğri çiz
+          const segments=20;
+          let px=x0, py=y0;
+          for(let s=0;s<=segments;s++){
+            const f=s/segments;
+            if(f>tt) break;
+            // direction from current to "destination" (CX-200, CY)
+            const lerp=f;
+            // straight from source past BH, but with deflection near closest approach
+            const baseX = x0 - lerp*(x0 - (CX-180));
+            const baseY = y0 - lerp*b; // doğru hattan saparken b azalır
+            // saptırma: BH'ye en yakın olduğunda y'yi merkeze çek
+            const closeness = Math.exp(-Math.pow((baseX-CX)/(rs*3),2));
+            const py2 = baseY - Math.sign(b)*closeness*deflectAng*1.5;
+            if(s>0){ g.strokeStyle='#ffd76a';g.lineWidth=1;g.globalAlpha=.5;
+              g.beginPath();g.moveTo(px,py);g.lineTo(baseX,py2);g.stroke();g.globalAlpha=1; }
+            px=baseX; py=py2;
+          }
+          // güncel foton noktası
+          const lerp=tt;
+          const baseX = x0 - lerp*(x0 - (CX-180));
+          const baseY = y0 - lerp*b;
+          const closeness = Math.exp(-Math.pow((baseX-CX)/(rs*3),2));
+          const py2 = baseY - Math.sign(b)*closeness*deflectAng*1.5;
+          g.fillStyle='#ffd76a';g.beginPath();g.arc(baseX,py2,3,0,7);g.fill();
+        }
+      }
+      // BH
+      glowCircle(g,CX,CY,rs*1.6,'rgba(180,80,255,.4)');
+      // akret diski
+      g.strokeStyle='rgba(255,160,80,.8)';g.lineWidth=4;g.beginPath();g.ellipse(CX,CY,rs*1.6,rs*0.55,0,0,7);g.stroke();
+      g.fillStyle='#000';g.beginPath();g.arc(CX,CY,rs,0,7);g.fill();
+      g.strokeStyle='#a058ff';g.lineWidth=2;g.beginPath();g.arc(CX,CY,rs+3,0,7);g.stroke();
+      label(g,'olay ufku',CX,CY+rs+18,'#a058ff',11);
+      label(g,'KARA DELİK',CX,CY-rs-12,'#fff',13);
+      // izleyici (sol)
+      g.fillStyle='#7fd6ff';g.beginPath();g.arc(CX-220,CY,5,0,7);g.fill();
+      label(g,'izleyici (Dünya)',CX-220,CY+18,'#7fd6ff',10);
+      banner(g,'Sapan ışıklar Einstein halkası ya da çift görüntü oluşturur','#8b93c7');
+    }
+  },
+  {
+    tab:'3 · Spagettileşme & zaman',
+    html:`<h2>Yakına ineninle olanlar</h2>İki etkileyici fenomen: <b style="color:#ff9f6b">Spagettileşme</b> (gelgit kuvveti seni inceltir) ve <b style="color:#7fd6ff">kütleçekim zaman genleşmesi</b> (saatler yavaşlar).
+          Plus: <b style="color:#ffe28a">Hawking ışıması</b> — kara delikler çok yavaş buharlaşır (Güneş kütleli 10⁶⁷ yıl yaşar, evrenden çok uzun!).`,
+    loop:true,
+    draw:(g,t)=>{
+      const CX=F.cx+80, CY=F.midY, rs=44;
+      // BH
+      g.strokeStyle='rgba(255,160,80,.7)';g.lineWidth=3;g.beginPath();g.ellipse(CX,CY,rs*1.8,rs*0.6,0,0,7);g.stroke();
+      glowCircle(g,CX,CY,rs*1.5,'rgba(180,80,255,.4)');
+      g.fillStyle='#000';g.beginPath();g.arc(CX,CY,rs,0,7);g.fill();
+      g.strokeStyle='#a058ff';g.lineWidth=2;g.beginPath();g.arc(CX,CY,rs+3,0,7);g.stroke();
+      label(g,'KARA DELİK',CX,CY+rs+18,'#a058ff',11);
+      // astronot yaklaşıyor — t ile yaklaşma
+      const ax = CX - 280 + t*230;
+      const ay = CY;
+      const dist = Math.hypot(ax-CX, ay-CY);
+      const stretchFactor = Math.max(1, 80/(dist-rs+10)); // yakınlaştıkça artıyor
+      // figürü çiz
+      g.save();g.translate(ax,ay);g.scale(1, stretchFactor);
+      g.fillStyle='#cdd6ff';g.beginPath();g.arc(0,-10,7,0,7);g.fill(); // baş
+      g.fillStyle='#7fb4ff';rrect(g,-7,-3,14,18,3);g.fill(); // gövde
+      g.restore();
+      label(g,'spagettileşiyor!',ax,ay-50,stretchFactor>2?'#ff6b6b':'#7fd6ff',11);
+      // saatler: uzak (sol üst) ve yakın (astronot yanında)
+      const farT = t*6.28*3;            // uzak saat hızlı
+      const slowFactor = 1/(1 + 0.5*(stretchFactor-1));  // yaklaştıkça yavaşlar
+      const nearT = t*6.28*3*slowFactor;
+      // uzak saat
+      const fx=100, fy=120;
+      g.strokeStyle='#7fd6ff';g.lineWidth=2;g.beginPath();g.arc(fx,fy,28,0,7);g.stroke();
+      g.fillStyle='#0a1030';g.beginPath();g.arc(fx,fy,26,0,7);g.fill();
+      g.strokeStyle='#7fd6ff';g.lineWidth=2;g.beginPath();g.moveTo(fx,fy);g.lineTo(fx+Math.cos(farT-1.57)*20,fy+Math.sin(farT-1.57)*20);g.stroke();
+      label(g,'UZAK saat (normal)',fx,fy+50,'#7fd6ff',11);
+      // yakın saat (astronotun yanında)
+      const sx=ax+30, sy=ay+30;
+      g.strokeStyle='#ffcf5a';g.lineWidth=2;g.beginPath();g.arc(sx,sy,20,0,7);g.stroke();
+      g.fillStyle='#0a1030';g.beginPath();g.arc(sx,sy,18,0,7);g.fill();
+      g.strokeStyle='#ffcf5a';g.lineWidth=2;g.beginPath();g.moveTo(sx,sy);g.lineTo(sx+Math.cos(nearT-1.57)*14,sy+Math.sin(nearT-1.57)*14);g.stroke();
+      label(g,'YAKIN saat — yavaşladı!',sx-30,sy+38,'#ffcf5a',11);
+      // gelgit kuvveti vektörleri (astronotun başı ve ayakları arası fark)
+      if(stretchFactor>1.4){
+        arrow(g,ax,ay-30,12,'#ff6b6b'); arrow(g,ax,ay+30,-12,'#ff6b6b');
+        label(g,'gelgit kuvveti',ax+30,ay,'#ff6b6b',10);
+      }
+      // Hawking ışıması (yavaş parçacık emisyonu)
+      for(let k=0;k<3;k++){ const pp=(t*0.7+k/3)%1; const ang=(k*2.1)%6.28;
+        g.globalAlpha=1-pp;g.fillStyle='#ffe28a';
+        const px=CX+(rs+pp*60)*Math.cos(ang), py=CY+(rs+pp*60)*Math.sin(ang);
+        g.beginPath();g.arc(px,py,2.5,0,7);g.fill(); } g.globalAlpha=1;
+      label(g,'Hawking ışıması (10⁶⁷ yılda buharlaşır)',F.cx,F.H-40,'#ffe28a',12);
+      banner(g,'Yakın: cisim incelir, saat durur · Uzak: Hawking ile çok yavaş buharlaşır','#8b93c7');
+    }
+  }
+], { legend:[
+  {c:'#a058ff',t:'Olay ufku'},
+  {c:'#ffd76a',t:'Bükülen ışık'},
+  {c:'#ff6b6b',t:'Gelgit / yıkım'}
+]});
+</script>
+</body>
+</html>
