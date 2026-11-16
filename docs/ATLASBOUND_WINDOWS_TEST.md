@@ -35,8 +35,7 @@ atlasbound setup
   ```
 - **BULGU B2:** Otomatik seçim bu repo için yanlış hedef: asıl kaynak `dersler/*.html` (36 ders) ve `index.html`,
   ama "automatic" bunları görmüyor (HTML-ağırlıklı repolarda kaynak tespiti zayıf).
-- **BULGU B3:** README "4 slash komut" diyor (`/resume-handoff` dahil), `.claude/commands/` altında 3 dosya var
-  (`/resume-handoff` yok ya da başka yerde). Yeni oturumda kontrol edilecek.
+- B3 (düzeltildi): `/resume-handoff` dahil 4 komut da `.claude/commands/` altında var.
 
 ### 3. Doctor
 ```
@@ -79,7 +78,7 @@ Her görevde not edilecek: sorduğu sorular · senin cevabın · plan seviyesi �
 ## Bulgu listesi (özet)
 - B1 `--version` = unknown
 - B2 automatic protect HTML derslerini kaçırıyor
-- B3 `/resume-handoff` komut dosyası yok (doğrulanacak)
+- B3 iptal: 4 komut da var
 - B4 doctor Windows'ta ENOENT yanlış alarmı (hook'lar aslında çalışıyor)
 - B5 MANIFEST.json var ama "checkout" diyor
 - B6 666 izin uyarısı Windows'ta gürültü
