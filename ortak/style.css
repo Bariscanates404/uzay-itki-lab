@@ -38,6 +38,7 @@ h1{font-size:27px;font-weight:700;letter-spacing:.3px;margin-bottom:4px}
 .card .badge{position:absolute;top:14px;right:14px;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600}
 .badge.ready{background:#103a24;color:var(--good)}
 .badge.soon{background:#2a2140;color:#b89bff}
+.card .badge.new{right:68px;background:#12304a;color:#6ad0ff}
 .sect{font-size:14px;color:var(--muted);margin:26px 0 12px;text-transform:uppercase;letter-spacing:1.5px}
 
 /* ---- ders sahnesi ---- */
