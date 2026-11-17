@@ -158,7 +158,6 @@ Lab.start([
     const c=calc(r1,r2);
     $('h_res').innerHTML='Transfer süresi = <b class="p">'+tr(c.days,1)+' gün</b> (≈ '+tr(c.days/30.44,1)+' ay ≈ '+trInt(c.days*24)+' saat)'
       +' &nbsp;·&nbsp; Toplam Δv = <b class="vs">'+tr(c.dv,1)+' km/s</b>'
-      +'<br>Faz açısı = <b>'+tr(Math.abs(c.ph),1)+'°</b> — fırlatırken hedef gezegen '+(c.ph>=0?'seni bu kadar <b>önde</b>':'seni bu kadar <b>geride</b>')+' olmalı.'
       +(r2<r1?'<br><small>İç yörüngeye iniş: ateşlemeler retrograde (ters yönde).</small>':'');
   }
   const pre=$('h_pre');

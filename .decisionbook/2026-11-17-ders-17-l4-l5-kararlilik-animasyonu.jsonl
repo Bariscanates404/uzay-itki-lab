@@ -16,3 +16,4 @@
 {"t":"decision","key":"metin","value":"Metinler önerdiğin gibi ama L1 etiketi olmayacak.","why":"Animasyon yalnız L4/L5'i gösteriyor.","by":"the person","said":"5. Metinler önerdiğin gibi ama L1 etiketi olmayacak.","answers":"Q5","effect":["check:AC-1"],"head":"8e41eebbcd8958f5e7aca5cced166d21a94bf7fc","at":"2026-11-17T15:04:41.026Z"}
 {"t":"decision","key":"cikarim-legend","value":"Aynen kalsın.","why":"Mevcut çıkarım kutusu ve legend yeterli.","by":"the person","said":"6. Aynen kalsın.","answers":"Q6","effect":["check:AC-1"],"head":"8e41eebbcd8958f5e7aca5cced166d21a94bf7fc","at":"2026-11-17T15:04:41.083Z"}
 {"t":"link","rel":"built-on","to":"plan:2026-11-17-ders-16-hohmann-hesaplayici-jupiter-on-ayari-ve","why":"decision yerlesim ← decision yerlesim","source":"read: card","at":"2026-11-17T15:04:41.127Z"}
+{"t":"aside","by":"the person","said":"Evet.","at":"2026-11-17T15:26:41.170Z"}
