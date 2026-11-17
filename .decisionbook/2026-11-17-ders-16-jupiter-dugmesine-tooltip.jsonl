@@ -8,3 +8,4 @@
 {"t":"decision","key":"metin","value":"Önerin olsun.","why":"Önerilen metin: Jüpiter: Güneş'e 5,2 AU uzaklıkta; Dünya'dan yaklaşık 5 kat uzak.","by":"the person","said":"Önerin olsun.","answers":"Q1","effect":["check:AC-1"],"head":"b78824675d7b7341b9717e781393c5b4334fb375","at":"2026-11-17T15:25:11.061Z"}
 {"t":"confirm","by":"the person","said":"Onaylıyorum.","amended":[],"at":"2026-11-17T15:25:42.000Z"}
 {"t":"ready","head":"b78824675d7b7341b9717e781393c5b4334fb375","scope":["dersler/16-hohmann-transfer.html"],"level":"micro","at":"2026-11-17T15:25:42.114Z"}
+{"t":"closed","head":"92dfd8047c54d4d38185e4d9b69a16e780664dd3","own":[{"sha":"92dfd8047c54d4d38185e4d9b69a16e780664dd3","subject":"Ders 16: Jüpiter düğmesine tooltip (Windows, team-test-mac üstünde)"}],"files":["dersler/16-hohmann-transfer.html"],"tests":[],"unplanned":1,"other":0,"at":"2026-11-17T15:26:05.098Z"}
