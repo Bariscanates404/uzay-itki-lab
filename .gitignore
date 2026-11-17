@@ -5,7 +5,6 @@ node_modules/
 # >>> atlasbound (generated block: lines outside survive) >>>
 .atlasbound/*
 .claude/settings.local.json
-.mcp.json
 .claude/commands/handoff.md
 .claude/commands/decisionbook.md
 .claude/commands/decide.md
