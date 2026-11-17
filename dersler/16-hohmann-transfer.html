@@ -14,6 +14,14 @@
 
   <div id="lab"></div>
 
+  <div class="sliders" id="hcalc">
+    <div><b>Hohmann hesaplayıcı</b> — başlangıç ve hedef yörüngeyi seç (Güneş etrafında, dairesel, aynı düzlem).</div>
+    <div class="row"><label>Başlangıç</label><input id="h_r1" type="range" min="0.4" max="5" step="0.001" value="1"><span id="h_o1"></span></div>
+    <div class="row"><label>Hedef</label><input id="h_r2" type="range" min="0.4" max="5" step="0.001" value="1.524"><span id="h_o2"></span></div>
+    <div class="row"><label>Ön ayar</label><span style="text-align:left;color:inherit;font-weight:400" id="h_pre"></span></div>
+    <div class="res" id="h_res"></div>
+  </div>
+
   <div class="takeaway">
     <b>Çıkarım:</b> Hohmann transferi = <b class="key">iki prograde ateşleme</b> arasında yarım elips boyunca <b>motor kapalı kayış</b>. 1. ateşleme apoapsis'i dış yörüngeye yükseltir; apoapsis'e varınca 2. ateşleme daireselleştirir.
     İki coplanar dairesel yörünge arası <b>en yakıt-verimli</b> rota (ama en yavaşı). Gezegenler arası versiyonu <b>fırlatma penceresi</b> gerektirir: Mars, sen varınca orada olacağı yerde olmalı (Dünya–Mars için ~26 ayda bir).
@@ -129,6 +137,39 @@ Lab.start([
   {c:'#ffcf5a',t:'2. ateşleme / transfer'},
   {c:'#7fb4ff',t:'Yörüngeler'}
 ]});
+</script>
+<script>
+(function(){
+  const V0=29.78, DAY=365.25, PRE=[['Dünya',1],['Venüs',0.723],['Mars',1.524]];
+  const $=id=>document.getElementById(id);
+  const tr=(x,n)=>x.toFixed(n).replace('.',',');
+  function calc(r1,r2){
+    const a=(r1+r2)/2, T=0.5*Math.pow(a,1.5);               // yıl
+    const v1=V0/Math.sqrt(r1), v2=V0/Math.sqrt(r2);
+    const dv1=v1*(Math.sqrt(2*r2/(r1+r2))-1), dv2=v2*(1-Math.sqrt(2*r1/(r1+r2)));
+    let ph=180-360*T/Math.pow(r2,1.5); ph=((ph+180)%360+360)%360-180;
+    return {T,days:T*DAY,dv:Math.abs(dv1)+Math.abs(dv2),ph};
+  }
+  function update(){
+    const r1=+$('h_r1').value, r2=+$('h_r2').value;
+    $('h_o1').textContent=tr(r1,3)+' AU'; $('h_o2').textContent=tr(r2,3)+' AU';
+    if(Math.abs(r1-r2)<0.005){ $('h_res').innerHTML='<b class="p">Transfer gerekmez</b> — iki yörünge aynı.'; return; }
+    const c=calc(r1,r2);
+    $('h_res').innerHTML='Transfer süresi = <b class="p">'+tr(c.days,1)+' gün</b> (≈ '+tr(c.days/30.44,1)+' ay)'
+      +' &nbsp;·&nbsp; Toplam Δv = <b class="vs">'+tr(c.dv,1)+' km/s</b>'
+      +'<br>Faz açısı = <b>'+tr(Math.abs(c.ph),1)+'°</b> — fırlatırken hedef gezegen '+(c.ph>=0?'seni bu kadar <b>önde</b>':'seni bu kadar <b>geride</b>')+' olmalı.'
+      +(r2<r1?'<br><small>İç yörüngeye iniş: ateşlemeler retrograde (ters yönde).</small>':'');
+  }
+  const pre=$('h_pre');
+  [['h_r1','Başlangıç'],['h_r2','Hedef']].forEach(([id,name])=>{
+    const s=document.createElement('span'); s.style.marginRight='14px'; s.append(name+': ');
+    PRE.forEach(([n,r])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n;
+      b.style.cssText='margin:0 3px;padding:3px 9px;border-radius:6px;border:1px solid #2c3a7a;background:#101840;color:#e8ecff;cursor:pointer';
+      b.onclick=()=>{ $(id).value=r; update(); }; s.append(b); });
+    pre.append(s);
+  });
+  $('h_r1').oninput=$('h_r2').oninput=update; update();
+})();
 </script>
 </body>
 </html>
