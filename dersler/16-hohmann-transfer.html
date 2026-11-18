@@ -140,7 +140,7 @@ Lab.start([
 </script>
 <script>
 (function(){
-  const V0=29.78, DAY=365.25, PRE=[['Dünya',1],['Venüs',0.723],['Mars',1.524],['Jüpiter',5.203]];
+  const V0=29.78, DAY=365.25, PRE=[['Dünya',1],['Venüs',0.723],['Mars',1.524]];
   const $=id=>document.getElementById(id);
   const tr=(x,n)=>x.toFixed(n).replace('.',',');
   const nt=x=>Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
@@ -166,7 +166,6 @@ Lab.start([
     const s=document.createElement('span'); s.style.marginRight='14px'; s.append(name+': ');
     PRE.forEach(([n,r])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n; b.title=n+': Güneş\'ten '+tr(r,3)+' AU';
       b.style.cssText='margin:0 3px;padding:3px 9px;border-radius:6px;border:1px solid #2c3a7a;background:#101840;color:#e8ecff;cursor:pointer';
-      if(n==='Jüpiter'){ b.style.background='#e8710a'; b.style.borderColor='#ff9f40'; b.style.color='#fff'; }
       b.onclick=()=>{ $(id).value=r; update(); }; s.append(b); });
     pre.append(s);
   });
