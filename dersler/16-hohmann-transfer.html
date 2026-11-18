@@ -164,7 +164,7 @@ Lab.start([
   const pre=$('h_pre');
   [['h_r1','Başlangıç'],['h_r2','Hedef']].forEach(([id,name])=>{
     const s=document.createElement('span'); s.style.marginRight='14px'; s.append(name+': ');
-    PRE.forEach(([n,r])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n;
+    PRE.forEach(([n,r])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n; b.title=n+': Güneş\'ten '+tr(r,3)+' AU';
       b.style.cssText='margin:0 3px;padding:3px 9px;border-radius:6px;border:1px solid #2c3a7a;background:#101840;color:#e8ecff;cursor:pointer';
       b.onclick=()=>{ $(id).value=r; update(); }; s.append(b); });
     pre.append(s);
