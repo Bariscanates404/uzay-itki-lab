@@ -3,3 +3,4 @@
 {"t":"check","id":"AC-1","text":"Jüpiter için turuncu arka plan kodda var","command":"grep -n \"Jüpiter'){\" dersler/16-hohmann-transfer.html","at":"2026-11-18T13:19:19.798Z"}
 {"t":"confirm","by":"the person","said":"Önerin olsun.","amended":[],"at":"2026-11-18T13:20:08.266Z"}
 {"t":"ready","head":"e2d346ada50869fc8e75e221cb2dd7062d048cdb","scope":["dersler/16-hohmann-transfer.html"],"level":"micro","at":"2026-11-18T13:20:08.406Z"}
+{"t":"closed","head":"380f1eb8a3a3b3b777c1f7ee4182c57fcc289bcf","own":[{"sha":"380f1eb8a3a3b3b777c1f7ee4182c57fcc289bcf","subject":"Ders 16: Jüpiter düğmesi turuncu (TEAM-08, Windows B)"}],"files":["dersler/16-hohmann-transfer.html"],"tests":[],"unplanned":1,"other":0,"at":"2026-11-18T13:20:30.911Z"}
