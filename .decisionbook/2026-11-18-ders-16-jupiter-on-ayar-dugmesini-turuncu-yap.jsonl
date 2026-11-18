@@ -3,3 +3,4 @@
 {"t":"check","id":"AC-1","text":"Jüpiter düğmesi turuncu arka plana sahip","command":"grep -n \"#e8751a\" dersler/16-hohmann-transfer.html","at":"2026-11-18T18:50:45.963Z"}
 {"t":"confirm","by":"the person","said":"Önerilerini kabul ediyorum.","amended":[],"at":"2026-11-18T18:51:39.035Z"}
 {"t":"ready","head":"fc5473c6bc06c5cd8e349c988191515510bbed41","scope":["dersler/16-hohmann-transfer.html"],"level":"micro","at":"2026-11-18T18:51:39.715Z"}
+{"t":"closed","head":"300284ba23f2f48dfa90011407428f1664364e92","own":[{"sha":"300284ba23f2f48dfa90011407428f1664364e92","subject":"Ders 16: Jüpiter düğmesi turuncu"}],"files":["dersler/16-hohmann-transfer.html"],"tests":[],"unplanned":1,"other":0,"at":"2026-11-18T18:53:03.725Z"}
