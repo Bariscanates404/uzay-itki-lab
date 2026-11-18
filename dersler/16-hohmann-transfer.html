@@ -16,8 +16,8 @@
 
   <div class="sliders" id="hcalc">
     <div><b>Hohmann hesaplayıcı</b> — başlangıç ve hedef yörüngeyi seç (Güneş etrafında, dairesel, aynı düzlem).</div>
-    <div class="row"><label>Başlangıç</label><input id="h_r1" type="range" min="0.4" max="5" step="0.001" value="1"><span id="h_o1"></span></div>
-    <div class="row"><label>Hedef</label><input id="h_r2" type="range" min="0.4" max="5" step="0.001" value="1.524"><span id="h_o2"></span></div>
+    <div class="row"><label>Başlangıç</label><input id="h_r1" type="range" min="0.4" max="6" step="0.001" value="1"><span id="h_o1"></span></div>
+    <div class="row"><label>Hedef</label><input id="h_r2" type="range" min="0.4" max="6" step="0.001" value="1.524"><span id="h_o2"></span></div>
     <div class="row"><label>Ön ayar</label><span style="text-align:left;color:inherit;font-weight:400" id="h_pre"></span></div>
     <div class="res" id="h_res"></div>
   </div>
@@ -140,9 +140,10 @@ Lab.start([
 </script>
 <script>
 (function(){
-  const V0=29.78, DAY=365.25, PRE=[['Dünya',1],['Venüs',0.723],['Mars',1.524]];
+  const V0=29.78, DAY=365.25, PRE=[['Dünya',1],['Venüs',0.723],['Mars',1.524],['Jüpiter',5.203]];
   const $=id=>document.getElementById(id);
   const tr=(x,n)=>x.toFixed(n).replace('.',',');
+  const trInt=x=>Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   function calc(r1,r2){
     const a=(r1+r2)/2, T=0.5*Math.pow(a,1.5);               // yıl
     const v1=V0/Math.sqrt(r1), v2=V0/Math.sqrt(r2);
@@ -155,7 +156,7 @@ Lab.start([
     $('h_o1').textContent=tr(r1,3)+' AU'; $('h_o2').textContent=tr(r2,3)+' AU';
     if(Math.abs(r1-r2)<0.005){ $('h_res').innerHTML='<b class="p">Transfer gerekmez</b> — iki yörünge aynı.'; return; }
     const c=calc(r1,r2);
-    $('h_res').innerHTML='Transfer süresi = <b class="p">'+tr(c.days,1)+' gün</b> (≈ '+tr(c.days/30.44,1)+' ay)'
+    $('h_res').innerHTML='Transfer süresi = <b class="p">'+tr(c.days,1)+' gün</b> (≈ '+tr(c.days/30.44,1)+' ay ≈ '+trInt(c.days*24)+' saat)'
       +' &nbsp;·&nbsp; Toplam Δv = <b class="vs">'+tr(c.dv,1)+' km/s</b>'
       +'<br>Faz açısı = <b>'+tr(Math.abs(c.ph),1)+'°</b> — fırlatırken hedef gezegen '+(c.ph>=0?'seni bu kadar <b>önde</b>':'seni bu kadar <b>geride</b>')+' olmalı.'
       +(r2<r1?'<br><small>İç yörüngeye iniş: ateşlemeler retrograde (ters yönde).</small>':'');
