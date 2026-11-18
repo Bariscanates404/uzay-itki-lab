@@ -1,0 +1,5 @@
+{"title":"Ders 16: Jüpiter ön ayar düğmesini turuncu yap","why":"Kullanıcı Hohmann hesaplayıcısındaki Jüpiter düğmesinin turuncu görünmesini istedi.","success":"Ders 16'daki Jüpiter düğmeleri (Başlangıç ve Hedef) turuncu; diğer gezegen düğmeleri aynı kalır.","kind":"chore","level":"micro","schema":"decisionbook-record/1","t":"plan","id":"2026-11-18-ders-16-jupiter-on-ayar-dugmesini-turuncu-yap","branch":"tt-0.25.2-zey","head":"fc5473c6bc06c5cd8e349c988191515510bbed41","at":"2026-11-18T18:50:45.943Z"}
+{"t":"link","rel":"plans","to":"file:dersler/16-hohmann-transfer.html","why":"Düğmeler bu dosyada JS ile üretiliyor (satır ~167).","at":"2026-11-18T18:50:45.963Z"}
+{"t":"check","id":"AC-1","text":"Jüpiter düğmesi turuncu arka plana sahip","command":"grep -n \"#e8751a\" dersler/16-hohmann-transfer.html","at":"2026-11-18T18:50:45.963Z"}
+{"t":"confirm","by":"the person","said":"Önerilerini kabul ediyorum.","amended":[],"at":"2026-11-18T18:51:39.035Z"}
+{"t":"ready","head":"fc5473c6bc06c5cd8e349c988191515510bbed41","scope":["dersler/16-hohmann-transfer.html"],"level":"micro","at":"2026-11-18T18:51:39.715Z"}

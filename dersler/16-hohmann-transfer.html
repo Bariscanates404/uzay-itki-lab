@@ -166,6 +166,7 @@ Lab.start([
     const s=document.createElement('span'); s.style.marginRight='14px'; s.append(name+': ');
     PRE.forEach(([n,r])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n;
       b.style.cssText='margin:0 3px;padding:3px 9px;border-radius:6px;border:1px solid #2c3a7a;background:#101840;color:#e8ecff;cursor:pointer';
+      if(n==='Jüpiter'){ b.style.background='#e8751a'; b.style.borderColor='#e8751a'; b.style.color='#fff'; }
       b.onclick=()=>{ $(id).value=r; update(); }; s.append(b); });
     pre.append(s);
   });
